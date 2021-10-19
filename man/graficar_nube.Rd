@@ -2,7 +2,7 @@
 % Please edit documentation in R/analisis_graficar_preguntas.R
 \name{graficar_nube}
 \alias{graficar_nube}
-\title{Title}
+\title{Nube de palabras interactiva}
 \usage{
 graficar_nube(tokens_clean, interactivo = TRUE)
 }
@@ -17,7 +17,7 @@ o no.}
 Gráfica de nube de palabras.
 }
 \description{
-Title
+Nube de palabras interactiva
 }
 \examples{
 #notrun (graficar_nube(p_1))
