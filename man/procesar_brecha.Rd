@@ -8,8 +8,8 @@ global}
 procesar_brecha(bd)
 }
 \arguments{
-\item{bd}{(list) La lista con las tablas necesarias provistas por
-la función leer_base}
+\item{bd}{(list) La lista con las tablas necesarias
+provistas por la función leer_base}
 }
 \value{
 (tibble) Tabla con las columnas tema, p_clave (palabras clave),

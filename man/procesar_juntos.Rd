@@ -8,8 +8,8 @@ medio de sus medianas.}
 procesar_juntos(bd)
 }
 \arguments{
-\item{bd}{(list) La lista con las tablas necesarias provistas por
-la función leer_base.}
+\item{bd}{(list) La lista con las tablas necesarias
+provistas por la función leer_base.}
 }
 \value{
 (tibble) Un tibble con Importancia relaacionada con
@@ -18,4 +18,7 @@ Cumplimiento por medio de la mediana.
 \description{
 Procesa la importancia y el cumplimiento juntos por
 medio de sus medianas.
+}
+\examples{
+#notrun(procesar_juntos(bd))
 }

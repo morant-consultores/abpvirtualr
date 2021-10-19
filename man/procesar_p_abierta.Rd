@@ -8,8 +8,8 @@ una tabla con variables de texto}
 procesar_p_abierta(bd, pregunta, etapa)
 }
 \arguments{
-\item{bd}{(list) La lista con las tablas necesarias provistas por
-la función leer_base.}
+\item{bd}{(list) La lista con las tablas necesarias
+provistas por la función leer_base.}
 
 \item{pregunta}{(int) Número de pregunta de la etapa.}
 

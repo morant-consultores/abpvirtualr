@@ -1,8 +1,8 @@
 #' @title Limpia, tokeniza y obtiene las frecuencias de palabras a
 #' una tabla con variables de texto
 #'
-#' @param bd (list) La lista con las tablas necesarias provistas por
-#'  la función leer_base.
+#' @param bd (list) La lista con las tablas necesarias
+#'  provistas por la función leer_base.
 #' @param pregunta (int) Número de pregunta de la etapa.
 #' @param etapa (int) Número de la etapa.
 #'
@@ -52,8 +52,8 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
 #' Procesamiento de la pregunta brecha, palabras clave por tema de manera
 #' global
 #'
-#' @param bd (list) La lista con las tablas necesarias provistas por
-#'  la función leer_base
+#' @param bd (list) La lista con las tablas necesarias
+#'  provistas por la función leer_base
 #'
 #' @return (tibble) Tabla con las columnas tema, p_clave (palabras clave),
 #'  pregunta (pregunta brecha)
@@ -163,7 +163,7 @@ procesar_r_tema <- function(bd, top_p, top_r, otro){
         count(Respuesta, Nombre,sort = T) %>%
         left_join(junta %>%
         count(Respuesta,name = "tot")) %>%
-        na.omit() %>%
+        stats::na.omit() %>%
         mutate(pct = n/tot) %>%
         group_by(Nombre) %>%
         arrange(desc(pct)) %>%
@@ -194,8 +194,8 @@ procesar_r_tema <- function(bd, top_p, top_r, otro){
 #' Procesa la importancia y cumplimiento de cierta sesión por medio
 #' de la mediana.
 #'
-#' @param bd (list) La lista con las tablas necesarias provistas por
-#'  la función leer_base.
+#' @param bd (list) La lista con las tablas necesarias
+#'  provistas por la función leer_base.
 #' @param tipo (char) Puede ser "orden_cat" o bien "calif_cat"
 #' dependiendo si es importancia y cumplimiento respectivamente.
 #'
@@ -231,15 +231,15 @@ procesar_numerica <- function(bd, tipo){
 #' Procesa la importancia y el cumplimiento juntos por
 #' medio de sus medianas.
 #'
-#' @param bd (list) La lista con las tablas necesarias provistas por
-#'  la función leer_base.
+#' @param bd (list) La lista con las tablas necesarias
+#' provistas por la función leer_base.
 #'
 #' @return (tibble) Un tibble con Importancia relaacionada con
 #' Cumplimiento por medio de la mediana.
 #' @export
 #' @impor dplyr
 #'
-#' @examples
+#' @examples #notrun(procesar_juntos(bd))
 
 procesar_juntos <- function(bd){
 
@@ -249,8 +249,85 @@ procesar_juntos <- function(bd){
         select(IdCategoria,IdUsuario,Calificacion)) %>%
         left_join(bd$categoria) %>%
         group_by(Nombre) %>%
-        summarise(importancia = median(Orden),
-        cumplimiento = median(Calificacion))
+        summarise(importancia = stats::median(Orden),
+        cumplimiento = stats::median(Calificacion))
+
+    return(res)
+}
+
+#' Obtiene el o los códigos de los colores más repetidos.
+#'
+#' @param codes (char) Recibe un carácter que es código
+#' de un color.
+#'
+#' @return (char) Regresa el o los códigos más repetidos.
+#' @export
+#'
+#' @examples #notrun (mode(color))
+
+mode <- function(codes){
+
+    cual <- which.max(table(codes))
+    if(sum(cual == table(codes))>1){
+        NA
+    } else{
+        names(cual)
+    }
+}
+
+#' Asigna colores dependiendo del cálulo de la brecha.
+#'
+#' @param brecha (dbl) Columna con el cálculo de la brecha.
+#' @param corte  Los cortes que se van a asignar para
+#' la pregunta brecha
+#' @param colores (vector) Vector de colores asginados a
+#' esos cortes
+#'
+#' @return (char) Código del color asignado al corte.
+#' @export
+#'
+#' @examples #notrun (corte(brecha))
+
+corte <- function(brecha, corte = cortes,
+    colores = c(sm_vf,sm_vc,sm_a, sm_rc,sm_rf)){
+
+    as.character(cut(brecha, corte, labels = colores))
+}
+
+#' Realiza el marco de datos del cálculo de la brecha
+#' con sus colores.
+#'
+#' @param bd (list) La lista con las tablas necesarias
+#' provistas por la función leer_base.
+#'
+#' @return (tibble) Marco de datos con la importancia y cumplimiento,
+#' así como el cálculo de la brecha con los colores asignados.
+#' @export
+#'
+#' @import dplyr
+#' @examples #notrun (calcular_brecha(bd))
+
+calcular_brecha <- function(bd){
+
+    res <- bd %>%
+        procesar_numerica("Orden") %>%
+        pluck("histograma") %>%
+        left_join(bd %>%
+        procesar_numerica("Calificacion") %>%
+        purrr::pluck("histograma")) %>%
+        mutate(
+            brecha = Orden*(100-Calificacion),
+            color = corte(brecha)) %>%
+        group_by(Categoria) %>%
+        summarise(
+            brecha = stats::median(brecha),
+            cumplimiento = stats::median(Calificacion),
+            importancia = stats::median(Orden),
+            color = mode(color)) %>%
+        mutate(
+            color = if_else(is.na(color),
+            corte(brecha),color)
+            )
 
     return(res)
 }
