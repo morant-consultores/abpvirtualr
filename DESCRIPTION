@@ -31,6 +31,8 @@ Imports:
     scales,
     stringr,
     tibble,
+    tidyr,
     tidytext,
     tm,
-    wordcloud
+    wordcloud,
+    xaringanthemer

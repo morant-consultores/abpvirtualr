@@ -53,7 +53,7 @@ slides_nubes <- function(bd, etapa){
 slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
 
     # Slide brecha
-    p_4 <- procesar_brecha(bd)
+    p_4 <- procesar_brecha(bd, otro = "Otro")
     out1 <- knitr::knit_expand(text = imprimir_brecha(p_4))
 
     # Slides p clave
@@ -63,8 +63,8 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
     out2 <- purrr::imap(brecha, ~{
 
         a1 <- knitr::knit_expand(
-            text = sprintf("\n # %s\n", .y))
-            a1.1 <- knitr::knit_expand(
+            text = sprintf("\n \n # %s\n", .y))
+        a1.1 <- knitr::knit_expand(
             text = "\n --- \n .pull-left[")
 
         a1.3 <- knitr::knit_expand(text = sprintf(

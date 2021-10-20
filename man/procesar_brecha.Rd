@@ -5,11 +5,14 @@
 \title{Procesamiento de la pregunta brecha, palabras clave por tema de manera
 global}
 \usage{
-procesar_brecha(bd)
+procesar_brecha(bd, otro = "Otro")
 }
 \arguments{
 \item{bd}{(list) La lista con las tablas necesarias
-provistas por la función leer_base}
+provistas por la función leer_base.}
+
+\item{otro}{(char) La forma de como se escribe el otro tema,
+regularmente será "Otro".}
 }
 \value{
 (tibble) Tabla con las columnas tema, p_clave (palabras clave),

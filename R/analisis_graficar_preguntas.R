@@ -50,19 +50,19 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
 
     if(interactivo){
 
-    tokens_clean %>%
-        hchart(hcaes(x = palabra, weight = log(n),
+      tokens_clean %>%
+        hchart(hcaes(x= palabra, weight =log(n),
         color=colores), type= "wordcloud") %>%
-            hc_chart(style = list(fontFamily="Poppins")) %>%
-            hc_tooltip(
-            enabled=T,
-            pointFormat= 'Frases mencionadas:<b/> <br>{point.completa}',
-            headerFormat= '',
-            backgroundColor= '#FFFFFF',
-            style=list(fontSize ="25px", color = "#005B70")) %>%
-            hc_plotOptions( wordcloud= list(allowPointSelect = TRUE,
-            style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
-            )
+        hc_chart(style=list(fontFamily="Poppins"))   %>%
+        hc_tooltip(
+        enabled=T,
+        pointFormat= 'Respuestas con la palabra <b>{point.palabra}<b/>:<b/> <br>{point.completa}',
+        headerFormat= '',
+        backgroundColor= '#FFFFFF',
+        style=list(fontSize ="25px", color = "#005B70")) %>%
+        hc_plotOptions( wordcloud= list(allowPointSelect=T,
+        style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
+        )
 
     }else{
 
@@ -125,6 +125,24 @@ graficar_brecha <- function(bd, interactivo = TRUE,
     }
 }
 
+#' Formato adecuado para las palabras clave en los slides
+#'
+#' @param df (tibble) Un marco de datos adecuado para las palabras clave.
+#'
+#' @return (vector) Una lista de palabras clave.
+#' @export
+#'
+#' @examples #notrun (graficar_claves(brecha$pclave$p_clave))
+
+graficar_claves <- function(df){
+
+  res <- df %>%
+    pull(feature) %>%
+    paste(collapse = ", ")
+
+  return(res)
+}
+
 #' Gráfica de barras (histograma) y otra de resumen (error bar)
 #'
 #' @param bd (list) Listas de marcos de datos provistas de
@@ -142,7 +160,6 @@ graficar_brecha <- function(bd, interactivo = TRUE,
 #' @import ggplot2
 #' @import dplyr
 #' @examples #notrun (graficar_numerica(bd %>% procesar_numerica("Calificacion"), tipo = 'point_range',tema_highcharter()) )
-
 
 graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
 
@@ -211,7 +228,8 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
 
             bd %>%
                 purrr::pluck(2) %>%
-                ggplot(aes(y = fct_reorder(Categoria, prom), x = prom)) +
+                ggplot(aes(y = forcats::fct_reorder(
+                Categoria, prom), x = prom)) +
                 geom_col(fill="skyblue", alpha=0.5) +
                 geom_pointrange(
                     aes(xmin = prom-se, xmax=prom+se),
@@ -273,7 +291,7 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             geom_abline(linetype = "dotted", color = "gray50") +
             coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
             labs(y = "Importancia", x = "Cumplimiento") +
-            theme_xaringan() +
+            xaringanthemer::theme_xaringan() +
             geom_point(data = bd, aes(
                 x = cumplimiento,
                 y = importancia,

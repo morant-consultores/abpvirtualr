@@ -17,5 +17,6 @@ Una tabla de tipo kable.
 Genera la tabla en formato kable con sus colores
 }
 \examples{
+#notrun (generar_tabla(brecha2))
 
 }

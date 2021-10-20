@@ -17,18 +17,21 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
 
-    tokens <- df %>%
-        tidytext::unnest_tokens(
-        output = palabra, input = Respuesta, drop = FALSE) %>%
-        group_by(palabra) %>%
-        summarise(n = n(),
-        completa = stringr::str_c(Respuesta, collapse= "<br>")) %>%
-        ungroup()
-
     stop_words <- tibble::tibble(palabra = tm::stopwords("spanish"))
 
-    tokens_clean <- tokens %>%
-        anti_join(stop_words)
+    tokens_clean <- df %>%
+        tidytext::unnest_tokens(
+        output = palabra, input = Respuesta, drop = FALSE) %>%
+        anti_join(stop_words) %>%
+        group_by(palabra) %>%
+        mutate(num = paste0(row_number(),") ")) %>%
+        summarise(
+            n = n(),
+        completa = tolower(
+        stringr::str_c(num, Respuesta, collapse= "<br><br>"))) %>%
+        ungroup() %>%
+        mutate(completa = stringr::str_replace_all(
+        palabra, glue::glue("<b>{palabra}</b>"), string = completa))
 
     nums <- tokens_clean %>%
         filter(stringr::str_detect(palabra, "^[0-9]")) %>%
@@ -38,12 +41,12 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
     tokens_clean <- tokens_clean %>%
         anti_join(nums, by = "palabra") %>%
         mutate(colores = case_when(
-            n <= quantile(n,probs=.75) ~ inverso,
-            n >= quantile(n,probs=.75) & n<=quantile(n,probs=.90) ~ "#485375",
-            n >= quantile(n,probs=.90) ~ "#001c50"),
+            n<=quantile(n,probs=.75)~ inverso,
+            n>quantile(n,probs=.75) & n<=quantile(n,probs=.90)~"#485375",
+            n>quantile(n,probs=.90)~"#001c50"),
             Pregunta = bd$pregunta %>%
-            filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
-            pull(Nombre)
+                filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
+                pull(Nombre)
         )
 
     return(tokens_clean)
@@ -53,23 +56,25 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
 #' global
 #'
 #' @param bd (list) La lista con las tablas necesarias
-#'  provistas por la función leer_base
-#'
+#'  provistas por la función leer_base.
+#' @param otro (char) La forma de como se escribe el otro tema,
+#'  regularmente será "Otro".
 #' @return (tibble) Tabla con las columnas tema, p_clave (palabras clave),
 #'  pregunta (pregunta brecha)
 #' @export
-#' @import dplyr
 #' @examples #notrun (procesar_r_tema(bd))
 
-procesar_brecha <- function(bd){
+procesar_brecha <- function(bd,  otro = "Otro"){
 
     junta <- bd$respuesta_cat %>%
         left_join(bd$respuesta %>%
-        filter(IdEtapa == 2) %>%
-        select(IdRespuesta, IdPregunta, Respuesta)) %>%
+            filter(IdEtapa == 2) %>%
+            select(IdRespuesta, IdPregunta, Respuesta)) %>%
         left_join(bd$categoria %>%
-        filter(EsDefault) %>%
-        select(IdCategoria, Nombre))
+            filter(EsDefault) %>%
+            select(IdCategoria, Nombre)) %>%
+        tidyr::replace_na(list(Nombre = otro))
+
 
     corpus <- junta %>%
         quanteda::corpus(text = "Respuesta")
@@ -81,44 +86,41 @@ procesar_brecha <- function(bd){
 
     dfmat_news <- quanteda::dfm(toks_news)
 
-    p_clave <- bd$categoria %>%
-        filter(EsDefault) %>%
-        pull(Nombre) %>%
+    p_clave <- junta$Nombre %>%
+        unique %>%
         purrr::map(~{
             palabras <- quanteda.textstats::textstat_keyness(
-                dfmat_news,
-                target = .x) %>%
+                dfmat_news, target = .x) %>%
                 as_tibble %>%
                 head(3) %>%
                 pull(1) %>%
                 paste(collapse = ", ")
 
             tibble::tibble(tema = .x,p_clave = palabras)
-        }) %>% do.call(rbind,.)
+        }) %>% do.call(rbind, .)
 
     pregunta <- bd$pregunta %>%
         filter(IdEtapa == 2) %>%
         pull(Nombre) %>%
         unique()
 
-    res <- bd$respuesta_cat %>%
-        count(IdCategoria,IdRespuesta) %>%
-        group_by(IdCategoria) %>%
-        summarise(resp = n(), per = sum(n)) %>%
+
+    res <- junta %>%
+        group_by(Respuesta, Nombre) %>%
+        summarise(n=n()) %>%
+        mutate(pct = n/sum(n)) %>%
+        group_by(Nombre) %>%
+        summarise(
+        pct_r = sum(pct)/n_distinct(
+            bd$respuesta_cat$IdRespuesta)) %>%
         mutate(
-            pct_r = resp/n_distinct(bd$respuesta_cat$IdRespuesta),
-            pct = scales::percent(pct_r,1)) %>%
-        left_join(bd$categoria %>%
-            select(IdCategoria,Nombre)) %>%
-        semi_join(bd$categoria %>%
-            filter(EsDefault)) %>%
+            pct = scales::percent(pct_r,1)
+        ) %>%
         left_join(p_clave %>%
-            rename(Nombre = tema))
+        rename(Nombre = tema))
 
 
-    pregunta <- tibble::tibble(
-        pregunta = rep(pregunta, nrow(res))
-        )
+    pregunta <- tibble::tibble(pregunta = rep(pregunta, nrow(res)))
 
     res <- bind_cols(res, pregunta)
 
@@ -141,41 +143,46 @@ procesar_brecha <- function(bd){
 #' @examples #notrun(procesar_r_tema(bd, top_p = 5, top_r = 2, otro = "Otro"))
 
 
-procesar_r_tema <- function(bd, top_p, top_r, otro){
+procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
+
 
     junta <- bd$respuesta_cat %>%
         left_join(bd$respuesta %>%
-        select(IdRespuesta,Respuesta)) %>%
+        select(IdRespuesta, Respuesta)) %>%
         left_join(bd$categoria %>%
         filter(EsDefault) %>%
-        select(IdCategoria,Nombre))
+        select(IdCategoria,Nombre)) %>%
+        tidyr::replace_na(list(Nombre = otro))
 
     corpus <- junta %>%
         quanteda::corpus(text = "Respuesta")
 
     toks_news <- quanteda::tokens(corpus, remove_punct = TRUE,
-        remove_symbols = T, remove_url = T,remove_separators = T) %>%
+        remove_symbols = T,remove_url = T,
+        remove_separators = T) %>%
         quanteda::tokens_group(groups = Nombre)
 
     dfmat_news <- quanteda::dfm(toks_news)
 
     respuestas <- junta %>%
-        count(Respuesta, Nombre,sort = T) %>%
-        left_join(junta %>%
-        count(Respuesta,name = "tot")) %>%
-        stats::na.omit() %>%
-        mutate(pct = n/tot) %>%
+        group_by(Respuesta,Nombre) %>%
+        summarise(n=n()) %>%
+        mutate(pct = n/sum(n)) %>%
         group_by(Nombre) %>%
+        mutate(
+        pct_r =sum(pct)/n_distinct(
+        bd$respuesta_cat$IdRespuesta)) %>%
         arrange(desc(pct)) %>%
         slice(1:top_r) %>%
         ungroup %>%
+        filter(pct_r >= .1) %>%
         mutate(
-        Nombre = forcats::fct_relevel(Nombre,otro, after = Inf)) %>%
+            Nombre = forcats::fct_reorder(Nombre,-pct_r)
+        ) %>%
         split(.$Nombre) %>%
         purrr::imap(~{
             resp <- paste0("<b>(",
-                .x %>%
-                pull(pct) %>%
+                .x %>% pull(pct) %>%
                 scales::percent(accuracy = 1),")</b>") %>%
                 paste(.x %>% pull(Respuesta))
 
@@ -237,16 +244,15 @@ procesar_numerica <- function(bd, tipo){
 #' @return (tibble) Un tibble con Importancia relaacionada con
 #' Cumplimiento por medio de la mediana.
 #' @export
-#' @impor dplyr
 #'
 #' @examples #notrun(procesar_juntos(bd))
 
 procesar_juntos <- function(bd){
 
     res <- bd$orden_cat %>%
-        select(IdCategoria,IdUsuario,Orden) %>%
+        select(IdCategoria,IdUsuario, Orden) %>%
         left_join(bd$calif_cat %>%
-        select(IdCategoria,IdUsuario,Calificacion)) %>%
+        select(IdCategoria, IdUsuario,Calificacion)) %>%
         left_join(bd$categoria) %>%
         group_by(Nombre) %>%
         summarise(importancia = stats::median(Orden),

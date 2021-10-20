@@ -5,7 +5,7 @@
 \title{Procesa las palabras clave y las respuestas por cada uno de los temas de
 manera particular}
 \usage{
-procesar_r_tema(bd, top_p, top_r, otro)
+procesar_r_tema(bd, top_p, top_r, otro = "Otro")
 }
 \arguments{
 \item{bd}{(list) La lista con las tablas necesarias provistas por
