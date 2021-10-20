@@ -22,11 +22,15 @@ Imports:
     glue,
     grDevices,
     highcharter,
+    kableExtra,
+    knitr,
     purrr,
     quanteda,
     quanteda.textstats,
+    RColorBrewer,
     scales,
     stringr,
     tibble,
     tidytext,
-    tm
+    tm,
+    wordcloud

@@ -68,7 +68,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
 
         pal <- RColorBrewer::brewer.pal(8,"Dark2")
         tokens_clean %>% with(
-            wordcloud2::wordcloud(palabra, n,
+            wordcloud::wordcloud(palabra, n,
                       random.order = FALSE, min.freq = 1,
                       max.words = 50, colors=pal))
 
