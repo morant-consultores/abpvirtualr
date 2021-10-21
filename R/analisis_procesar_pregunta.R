@@ -17,9 +17,7 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
 
-    stop_words <- tibble::tibble(
-        palabra = c(stopwords::stopwords("es"), "de", "al", "con")
-    )
+    stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
 
     tokens_clean <- df %>%
         tidytext::unnest_tokens(
@@ -78,19 +76,15 @@ procesar_brecha <- function(bd,  otro = "Otro"){
         tidyr::replace_na(list(Nombre = otro))
 
 
-    corpus <- junta %>%
-        quanteda::corpus(text = "Respuesta")
-
-    toks_news <- quanteda::tokens(corpus,
-        remove_punct = TRUE,
-        remove_symbols = T, remove_url = T,
-        remove_separators = T) %>%
-        quanteda::tokens_group(groups = Nombre)
-
-    dfmat_news <- quanteda::dfm(toks_news) %>%
-        quanteda::dfm_remove(
-        c(stopwords::stopwords("es"), "de", "al", "con")
-        )
+    dfmat_news <- junta %>%
+        quanteda::corpus(text = "Respuesta") %>%
+        quanteda::tokens(
+            remove_punct = TRUE, remove_symbols = T,
+            remove_url = T, remove_separators = T) %>%
+        quanteda::tokens_remove(
+            stopwords::stopwords("es")) %>%
+        quanteda::tokens_group(groups = Nombre) %>%
+        quanteda::dfm()
 
     p_clave <- junta$Nombre %>%
         unique %>%
@@ -159,14 +153,15 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
         select(IdCategoria,Nombre)) %>%
         tidyr::replace_na(list(Nombre = otro))
 
-    corpus <- junta %>%
-        quanteda::corpus(text = "Respuesta")
-
-    toks_news <- quanteda::tokens(corpus) %>%
-        quanteda::tokens_group(groups = Nombre)
-
-    dfmat_news <- quanteda::dfm(toks_news) %>%
-        quanteda::dfm_remove(stopwords::stopwords("es"))
+    dfmat_news <- junta %>%
+        quanteda::corpus(text = "Respuesta") %>%
+        quanteda::tokens(
+            remove_punct = TRUE, remove_symbols = T,
+            remove_url = T, remove_separators = T) %>%
+        quanteda::tokens_remove(
+            stopwords::stopwords("es")) %>%
+        quanteda::tokens_group(groups = Nombre) %>%
+        quanteda::dfm()
 
     respuestas <- junta %>%
         group_by(Respuesta,Nombre) %>%

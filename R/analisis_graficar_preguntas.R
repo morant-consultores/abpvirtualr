@@ -328,6 +328,11 @@ graficar_nbrecha <- function(brecha, thm){
     hc_xAxis(
       list(categories = bd$Categoria)) %>%
     hc_colors(bd %>% pull(color)) %>%
+    hc_yAxis(
+      title = list(text = ""),
+      labels = list(format = "{value}%"),
+      max = 100
+    ) %>%
     hc_add_theme(thm)
 
 }
