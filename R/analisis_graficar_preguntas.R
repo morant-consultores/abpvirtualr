@@ -57,7 +57,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 pointFormat= 'Respuestas con la palabra <b>{point.palabra}<b/>:<b/> <br>{point.completa}',
                 headerFormat= '',
                 backgroundColor= '#FFFFFF',
-                style=list(fontSize ="20px", color = "#343a40")) %>%
+                style=list(fontSize ="20px", color = gris)) %>%
             hc_plotOptions( wordcloud= list(allowPointSelect=T, minFontSize = 5,
                                             style=list('{"fontFamily" : "Poppins"}'))
             )
@@ -108,9 +108,12 @@ graficar_brecha <- function(bd, interactivo = TRUE,
                            '<br>{point.pct} <br/>', sep = ""),
                        headerFormat= '',
                        backgroundColor= '#FFFFFF',
-                       style=list(fontSize ="15px", color = primario)
-            ) %>%
-            hc_add_theme(thm)
+                       style=list(fontSize ="15px", color = gris, fontFamily = familia) ) %>%
+            hc_plotOptions(treemap = list(borderRadius = 5,
+                                          dataLabels = list( style = list(fontFamily = familia,
+                                                                          fontSize = "14px")))   ) %>%
+            hc_add_theme(thm) %>%
+            hc_legend(enabled = F)
 
     }else{
         bd %>%
