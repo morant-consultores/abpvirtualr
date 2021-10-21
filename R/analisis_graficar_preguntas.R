@@ -13,6 +13,7 @@
 
 tema_high <- function(font, color, size){
 
+<<<<<<< HEAD
   options(highcharter.google_fonts = TRUE)
 
   thm <- hc_theme(
@@ -30,6 +31,25 @@ tema_high <- function(font, color, size){
   )
 
   return(thm)
+=======
+    options(highcharter.google_fonts = TRUE)
+
+    thm <- hc_theme(
+        chart = list(fontFamily = glue::glue("{font}"),
+                     fontSize = glue::glue("{size}"),
+                     title = list(style =
+                                      list(fontFamily = glue::glue("{font}"))),
+                     subtitle = list(style =
+                                         list(fontFamily = glue::glue("{font}")),
+                                     legend = list(itemStyle =
+                                                       list(fontFamily = glue::glue({"{font}"}),
+                                                            color = glue::glue("{color}")),
+                                                   itemHoverStyle = list(color ='gray'))
+                     ))
+    )
+
+    return(thm)
+>>>>>>> 3cc0f38d6d2b23108d52210bc612e4502aebc1cb
 }
 
 #' Nube de palabras interactiva
@@ -62,13 +82,14 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                                        style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
       )
 
+
   }else{
 
-    pal <- RColorBrewer::brewer.pal(8,"Dark2")
-    tokens_clean %>% with(
-      wordcloud::wordcloud(palabra, n,
-                           random.order = FALSE, min.freq = 1,
-                           max.words = 50, colors = pal))
+        pal <- RColorBrewer::brewer.pal(8,"Dark2")
+        tokens_clean %>% with(
+            wordcloud::wordcloud(palabra, n,
+                                 random.order = FALSE, min.freq = 1,
+                                 max.words = 50, colors=pal))
 
   }
 }
@@ -119,6 +140,7 @@ graficar_brecha <- function(bd, interactivo = TRUE,
       ggplot2::theme_minimal() +
       ggplot2::geom_label(aes(label = p_clave))
   }
+
 }
 
 #' Formato adecuado para las palabras clave en los slides
@@ -132,11 +154,11 @@ graficar_brecha <- function(bd, interactivo = TRUE,
 
 graficar_claves <- function(df){
 
-  res <- df %>%
-    pull(feature) %>%
-    paste(collapse = ", ")
+    res <- df %>%
+        pull(feature) %>%
+        paste(collapse = ", ")
 
-  return(res)
+    return(res)
 }
 
 #' Gráfica de barras (histograma) y otra de resumen (error bar)
@@ -156,82 +178,81 @@ graficar_claves <- function(df){
 #' @examples #notrun (graficar_numerica(bd %>% procesar_numerica("Calificacion"), tipo = 'point_range',tema_highcharter()) )
 
 graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
+    if (interactivo == TRUE){
+        if (tipo == "histograma"){
 
-  if (interactivo == TRUE){
-    if (tipo == "histograma"){
+            bd %>%
+                purrr::pluck(1) %>%
+                count(Calificacion, Categoria) %>%
+                hchart(type = "column",
+                       hcaes(y = n, x = Calificacion,
+                             group = Categoria)) %>%
+                hc_plotOptions(
+                    bar = list(stacking = "percent")) %>%
+                hc_legend(enabled = T) %>%
+                hc_tooltip(enabled=T,
+                           pointFormat =
+                               'Número de participantes:<b/> <br>{point.n}',
+                           headerFormat= '',
+                           backgroundColor= '#FFFFFF',
+                           style=list(fontSize ="25px", color = "#005B70")) %>%
+                hc_add_theme(thm)
 
-      bd %>%
-        purrr::pluck(1) %>%
-        count(Calificacion, Categoria) %>%
-        hchart(type = "column",
-               hcaes(y = n, x = Calificacion,
-                     group = Categoria)) %>%
-        hc_plotOptions(
-          bar = list(stacking = "percent")) %>%
-        hc_legend(enabled = T) %>%
-        hc_tooltip(enabled=T,
-                   pointFormat =
-                     'Número de participantes:<b/> <br>{point.n}',
-                   headerFormat= '',
-                   backgroundColor= '#FFFFFF',
-                   style=list(fontSize ="25px", color = "#005B70")) %>%
-        hc_add_theme(thm)
+        }else if (tipo == "point_range"){
 
-    }else if (tipo == "point_range"){
-
-      df <- bd %>%
-        purrr::pluck("point_range") %>%
-        arrange(desc(y)) %>%
-        mutate(
-          Categoria = forcats::fct_reorder(Categoria, y),
-          mediana = round(y, digits = 2))
+            df <- bd %>%
+                purrr::pluck("point_range") %>%
+                arrange(desc(y)) %>%
+                mutate(
+                    Categoria = forcats::fct_reorder(Categoria, y),
+                    mediana = round(y, digits = 2))
 
 
-      df %>%
-        hchart(type = "errorbar",
-               hcaes(x = Categoria,y = y, low= ymin, high = ymax),
-               color = primario) %>%
-        hc_legend(enabled = T) %>%
-        hc_tooltip(
-          enabled = T,
-          pointFormat = 'Mediana: {point.mediana} ',
-          headerFormat = '',
-          backgroundColor= '#FFFFFF',
-          style=list(fontSize ="20px", color = primario)) %>%
-        hc_add_series(df, "point",
-                      hcaes(x = Categoria, y = y),
-                      color = inverso) %>%
-        hc_xAxis(title = list(text = "Categoria")) %>%
-        hc_yAxis(title = list(text = "")) %>%
-        hc_add_theme(thm)
+            df %>%
+                hchart(type = "errorbar",
+                       hcaes(x = Categoria,y = y, low= ymin, high = ymax),
+                       color = primario) %>%
+                hc_legend(enabled = T) %>%
+                hc_tooltip(
+                    enabled = T,
+                    pointFormat = 'Mediana: {point.mediana} ',
+                    headerFormat = '',
+                    backgroundColor= '#FFFFFF',
+                    style=list(fontSize ="20px", color = primario)) %>%
+                hc_add_series(df, "point",
+                              hcaes(x = Categoria, y = y),
+                              color = inverso) %>%
+                hc_xAxis(title = list(text = "Categoria")) %>%
+                hc_yAxis(title = list(text = "")) %>%
+                hc_add_theme(thm)
 
-    }else{NULL}
+        }else{NULL}
 
-  }else{
+    }else{
 
-    if (tipo == "histograma"){
-      bd %>%
-        purrr::pluck(1) %>%
-        ggplot(aes(x = Calificacion,
-                   fill = Categoria)) +
-        geom_histogram(binwidth = 3) +
-        theme_minimal() +
-        facet_wrap(~Categoria, ncol = 5)
+        if (tipo == "histograma"){
+            bd %>%
+                purrr::pluck(1) %>%
+                ggplot(aes(x = Calificacion,
+                           fill = Categoria)) +
+                geom_histogram(binwidth = 3) +
+                theme_minimal() +
+                facet_wrap(~Categoria, ncol = 5)
 
-    }else if (tipo == "point_range"){
+        }else if (tipo == "point_range"){
 
-      bd %>%
-        purrr::pluck(2) %>%
-        ggplot(aes(y = forcats::fct_reorder(
-          Categoria, prom), x = prom)) +
-        geom_col(fill="skyblue", alpha=0.5) +
-        geom_pointrange(
-          aes(xmin = prom-se, xmax=prom+se),
-          colour="orange", alpha=0.9, size=0.7) +
-        theme_minimal()
+            bd %>%
+                purrr::pluck(2) %>%
+                ggplot(aes(y = forcats::fct_reorder(
+                    Categoria, prom), x = prom)) +
+                geom_col(fill="skyblue", alpha=0.5) +
+                geom_pointrange(
+                    aes(xmin = prom-se, xmax=prom+se),
+                    colour="orange", alpha=0.9, size=0.7) +
+                theme_minimal()
 
-    }else{NULL}
-  }
+        }else{NULL}
+    }
 }
 
 
@@ -252,7 +273,7 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
 
 graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
 
-  if(interactivo){
+    if(interactivo){
 
     bd %>%
       hchart("scatter",
@@ -362,6 +383,5 @@ generar_tabla <- function(brecha){
     kableExtra::kable_paper("striped", full_width = F) %>%
     kableExtra::column_spec(2, color = "white",
                             background = colores)
-
   return(tabla_df)
 }

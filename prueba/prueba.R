@@ -1,6 +1,17 @@
 library(tidyverse)
 library(dbplyr)
 library(highcharter)
+# Necesitas correr esto
+primario <- "#001c50"
+inverso <- "#DE4797"
+cortes <- c(0,5,9,13,17,25)*20^2
+sm_vf <- "#264653"
+sm_vc <- "#2a9d8f"
+sm_a <- "#e9c46a"
+sm_rc <- "#f4a261"
+sm_rf <- "#e76f51"
+familia <- "Poppins"
+gris <- "#343a40"
 
 xaringanthemer::style_duo_accent(
     primary_color = primario,
@@ -16,15 +27,6 @@ xaringanthemer::style_duo_accent(
 
 options(highcharter.google_fonts = TRUE)
 
-# Necesitas correr esto
-primario <- "#001c50"
-inverso <- "#ff1895"
-cortes <- c(0,5,9,13,17,25)*20^2
-sm_vf <- "#264653"
-sm_vc <- "#2a9d8f"
-sm_a <- "#e9c46a"
-sm_rc <- "#f4a261"
-sm_rf <- "#e76f51"
 
 pool<- pool::dbPool(odbc::odbc(),
                     Driver = "ODBC Driver 17 for SQL Server",
