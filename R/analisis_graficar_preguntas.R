@@ -365,7 +365,7 @@ generar_tabla <- function(brecha){
 
     tabla_df <- tabla %>%
         mutate(Brecha = scales::percent(brecha_pct, 1)) %>%
-        select(Categoria, Brecha,
+        select( Tema=Categoria , Brecha,
                Cumplimiento = cumplimiento,
                Importancia = importancia) %>%
         kableExtra::kbl() %>%
