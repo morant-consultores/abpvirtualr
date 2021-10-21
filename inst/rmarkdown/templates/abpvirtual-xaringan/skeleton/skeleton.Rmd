@@ -49,8 +49,6 @@ knitr::opts_chunk$set(
 
 xaringanthemer::style_duo_accent(
   primary_color = primario,
-  # title_slide_background_image = "prueba_files/figure-html/Ecología-1.png",
-  # title_slide_background_size = "20%",
   secondary_color = "#485375",
   inverse_header_color = inverso,
   header_color = "#001c50",
