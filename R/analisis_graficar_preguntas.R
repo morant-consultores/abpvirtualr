@@ -360,7 +360,6 @@ graficar_nbrecha <- function(brecha, thm){
 #'
 
 generar_tabla <- function(brecha){
-
     tabla <- brecha %>% arrange(desc(brecha))
     colores <- tabla %>% pull(color)
 
@@ -372,6 +371,7 @@ generar_tabla <- function(brecha){
         kableExtra::kbl() %>%
         kableExtra::kable_paper("striped", full_width = F) %>%
         kableExtra::column_spec(2, color = "white",
-                                background = colores)
+                                background = colores) %>%
+        kableExtra::kable_classic(full_width = F, html_font = "Poppins")
     return(tabla_df)
 }
