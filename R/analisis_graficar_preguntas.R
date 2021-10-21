@@ -109,7 +109,7 @@ graficar_brecha <- function(bd, interactivo = TRUE,
                        headerFormat= '',
                        backgroundColor= '#FFFFFF',
                        style=list(fontSize ="15px", color = gris, fontFamily = familia) ) %>%
-            hc_plotOptions(treemap = list(borderRadius = 5,
+            hc_plotOptions(treemap = list(borderRadius = 8,
                                           dataLabels = list( style = list(fontFamily = familia,
                                                                           fontSize = "14px")))   ) %>%
             hc_add_theme(thm) %>%
@@ -192,22 +192,31 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
 
 
             df %>%
-                hchart(type = "errorbar",
+                hchart(type = "columnrange",
                        hcaes(x = Categoria,y = y, low= ymin, high = ymax),
-                       color = primario) %>%
+                       color = primario_claro) %>%
                 hc_legend(enabled = T) %>%
                 hc_tooltip(
                     enabled = T,
                     pointFormat = 'Mediana: {point.mediana} ',
                     headerFormat = '',
+                    borderWidth= 0,
                     backgroundColor= '#FFFFFF',
-                    style=list(fontSize ="20px", color = primario)) %>%
+                    style=list(fontSize ="18px", color = gris)) %>%
                 hc_add_series(df, "point",
                               hcaes(x = Categoria, y = y),
-                              color = inverso) %>%
-                hc_xAxis(title = list(text = "Categoria")) %>%
-                hc_yAxis(title = list(text = "")) %>%
-                hc_add_theme(thm)
+                              color = inverso_claro) %>%
+                hc_xAxis(title = list(text = "Tema",
+                                      style = list(fontSize = etiquetas)),
+                         lineWidth = 3.5, lineColor = gris_claro,
+                         labels = list(style = list(fontSize = etiquetas))) %>%
+                hc_yAxis(title = list(text = ""),
+                         tickAmount = 5, min = 0, max= 100,
+                         labels = list(style = list(fontSize = etiquetas))) %>%
+                hc_plotOptions(columnrange = list(pointWidth = 7, borderRadius = 4),
+                               scatter = list(marker = list(radius = 6.5))) %>%
+                hc_add_theme(thm) %>%
+                hc_chart(inverted = T, style = list(fontFamily = familia))
 
         }else{NULL}
 

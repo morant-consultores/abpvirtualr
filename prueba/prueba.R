@@ -3,7 +3,9 @@ library(dbplyr)
 library(highcharter)
 # Necesitas correr esto
 primario <- "#001c50"
+primario_claro <- "#40557C"
 inverso <- "#DE4797"
+inverso_claro <- "#E675B1"
 cortes <- c(0,5,9,13,17,25)*20^2
 sm_vf <- "#264653"
 sm_vc <- "#2a9d8f"
@@ -12,6 +14,8 @@ sm_rc <- "#f4a261"
 sm_rf <- "#e76f51"
 familia <- "Poppins"
 gris <- "#343a40"
+gris_claro <- "#ced4da"
+etiquetas = "14px"
 
 xaringanthemer::style_duo_accent(
     primary_color = primario,
