@@ -14,8 +14,8 @@ slides_etapa_2(bd, top_p, top_r, otro = "Otro")
 
 \item{top_r}{(int) El top n de respuestas de cada tema.}
 
-\item{otro}{(char) La forma de como se escribe el otro tema,
-regularmente será "Otro".}
+\item{otro}{(char) La forma de como se escribe el otro
+tema, regularmente será "Otro".}
 }
 \value{
 (list) Una lista de chuncks correspondientes a cada pregunta.

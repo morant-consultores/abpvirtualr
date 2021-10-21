@@ -7,7 +7,6 @@
 #' @return (char) El chunk de xaringan en cadena de caracteres.
 #' @export
 #'
-#' @import glue
 #' @import dplyr
 #' @examples #notrun (imprimir_nube(p_1, 1))
 
@@ -33,8 +32,6 @@ imprimir_nube <- function(df, i){
 #' @return (char) Crea el chunk de xaringan para poner el
 #'  treemap de brecha.
 #' @export
-#' @import glue
-#' @import dplyr
 #' @examples #notrun (imprimir_brecha(p_4))
 
 imprimir_brecha <- function(df){

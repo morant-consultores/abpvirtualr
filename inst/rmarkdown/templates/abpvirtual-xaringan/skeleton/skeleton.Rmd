@@ -59,21 +59,6 @@ options(highcharter.google_fonts = TRUE)
 ```
 
 ```{r, cache = F}
-# library(tidyverse)     
-# library(pool)
-# library(tm)
-# library(tidytext)
-# library(wordcloud)
-# library(RColorBrewer)
-# library(quanteda)
-# library(quanteda.textstats)
-# library(highcharter)
-# library(scales)
-# library(Hmisc)
-# library(kableExtra)
-# library(dbplyr)
-# library(dplyr)
-# library(abpvirtualr)
 library(abpvirtualr)
 ```
 
@@ -88,7 +73,7 @@ pool<- pool::dbPool(odbc::odbc(),
 
 thm <- tema_high(font = "Popins", color = "black", size = "15px")
 # Hacer que esta función lea un archivo yaml 
-bd <- leer_base(pool, id_sesion = "Todo")
+bd <- leer_base(pool, id_sesion = 3156)
 ```
 
 # Etapa 1
