@@ -60,6 +60,6 @@ id_sesion <- if(id_sesion == "Todo") tbl(pool,
         orden_cat = orden_cat,
         calif_cat = calif_cat
     )
-
+    pool::poolClose()
     return(res)
 }

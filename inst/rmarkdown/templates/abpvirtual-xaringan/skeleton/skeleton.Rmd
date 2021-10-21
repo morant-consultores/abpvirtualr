@@ -19,13 +19,19 @@ class: inverse, middle, center
 
 ```{r, include = FALSE}
 primario <- "#001c50"
-inverso <- "#ff1895"
+primario_claro <- "#40557C"
+inverso <- "#DE4797"
+inverso_claro <- "#E675B1"
 cortes <- c(0,5,9,13,17,25)*20^2
 sm_vf <- "#264653"
 sm_vc <- "#2a9d8f"
 sm_a <- "#e9c46a"
 sm_rc <- "#f4a261"
 sm_rf <- "#e76f51"
+familia <- "Poppins"
+gris <- "#343a40"
+gris_claro <- "#ced4da"
+etiquetas = "14px"
 ```
 
 ```{r setup, include=FALSE}
@@ -64,12 +70,12 @@ library(abpvirtualr)
 
 ```{r}
 pool<- pool::dbPool(odbc::odbc(),
-                    Driver = "ODBC Driver 17 for SQL Server",
-                    Server = "database.negox.com",
-                    Database = "CIDFares2020_ABPVirtualTest",
-                    UID = "CIDFares2020_CIDFares2020",
-                    PWD = "CIDFares@BP2021",
-                    Port = 1433)
+                    Driver = conexion$Driver,
+                    Server = conexion$Server,
+                    Database = conexion$Database,
+                    UID = conexion$UID,
+                    PWD = conexion$PWD,
+                    Port = conexion$Port)
 
 thm <- tema_high(font = "Popins", color = "black", size = "15px")
 # Hacer que esta función lea un archivo yaml 

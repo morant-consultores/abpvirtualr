@@ -37,3 +37,5 @@ Imports:
     tm,
     wordcloud,
     xaringanthemer
+Depends: 
+    R (>= 2.10)
