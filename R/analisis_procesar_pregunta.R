@@ -336,7 +336,7 @@ calcular_brecha <- function(bd){
             cumplimiento = median(Calificacion),
             importancia = median(Orden),
             # brecha calculada a partir de las medianas
-            brecha = importancia*(100-cumplimiento)/10000
+            brecha = importancia*(100-cumplimiento)
             # color = mode(color) # para calcular el semáforo por moda
         ) %>%
         # brecha calculada a partir de las medianas
@@ -344,35 +344,9 @@ calcular_brecha <- function(bd){
         mutate(
     # color = if_else(is.na(color),# para calcular el semáforo por moda
     # corte(brecha),color)# para calcular el semáforo por moda
-    color = corte(brecha)
-        )
+    color = corte(brecha),
+    brecha_pct = brecha/10000,
+    )
 
     return(res)
-}
-
-#' Genera la tabla en formato kable con sus colores
-#'
-#' @param brecha (tibble) Un marco de datos que proviene
-#' de generar_tabla.
-#'
-#' @return Una tabla de tipo kable.
-#' @export
-#'
-#' @examples #notrun (generar_tabla(brecha2))
-#'
-
-generar_tabla <- function(brecha){
-
-    tabla <- brecha %>% arrange(desc(brecha))
-    colores <- tabla %>% pull(color)
-
-    tabla_df <- tabla %>%
-        select(-color, Categoria, Brecha = brecha,
-        Cumplimiento = cumplimiento, Importancia = importancia) %>%
-        kableExtra::kbl() %>%
-        kableExtra::kable_paper("striped", full_width = F) %>%
-        kableExtra::column_spec(2, color = "white",
-        background = colores)
-
-    return(tabla_df)
 }
