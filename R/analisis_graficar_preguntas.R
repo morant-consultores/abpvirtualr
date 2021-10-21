@@ -332,9 +332,9 @@ graficar_nbrecha <- function(brecha, thm){
             backgroundColor= '#FFFFFF',
             borderWidth =0,
             style=list(fontSize ="16px", color = gris, fontFamily = familia)) %>%
-        hc_xAxis(
-            labels = list(style = list(fontSize = etiquetas))
-        ) %>%
+        hc_xAxis(lineWidth = 3.5, lineColor = gris_claro,
+            labels = list(style = list(fontSize = etiquetas)),
+            title= list(text = "Tema")        ) %>%
         hc_colors(bd %>% pull(color)) %>%
         hc_yAxis( labels = list(format = "{value}%",
                                 style = list(fontSize = etiquetas)),
@@ -343,7 +343,8 @@ graficar_nbrecha <- function(brecha, thm){
                   min = 0,
                   max = 100
         ) %>%
-        hc_add_theme(thm)
+        hc_add_theme(thm) %>%
+        hc_chart(style=list(fontFamily = familia))
 
 }
 
