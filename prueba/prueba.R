@@ -1,6 +1,13 @@
+
+
 library(tidyverse)
 library(dbplyr)
 library(highcharter)
+
+
+# Correr ------------------------------------------------------------------
+
+
 # Necesitas correr esto
 primario <- "#001c50"
 primario_claro <- "#40557C"
@@ -43,6 +50,10 @@ pool<- pool::dbPool(odbc::odbc(),
 source("R/utilitaria_colectar_base.R")
 source("R/analisis_procesar_pregunta.R")
 source("R/analisis_graficar_preguntas.R")
+
+
+# Funciones ---------------------------------------------------------------
+
 
 thm <- tema_high(font = "Poppins", color = "black", size = "15px")
 # Hacer que esta función lea un archivo yaml

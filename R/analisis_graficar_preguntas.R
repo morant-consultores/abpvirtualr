@@ -46,24 +46,24 @@ tema_high <- function(font, color, size){
 
 graficar_nube <- function(tokens_clean, interactivo = TRUE){
 
-  if(interactivo){
+    if(interactivo){
 
-    tokens_clean %>%
-      hchart(hcaes(x= palabra, weight =log(n),
-                   color=colores), type= "wordcloud") %>%
-      hc_chart(style=list(fontFamily = "Poppins"))   %>%
-      hc_tooltip(
-        enabled = T,
-        pointFormat= 'Respuestas con la palabra <b>{point.palabra}<b/>:<br>{point.completa}',
-        headerFormat = '',
-        backgroundColor = '#FFFFFF',
-        style=list(fontSize = "25px", color = "#005B70")) %>%
-      hc_plotOptions( wordcloud = list(allowPointSelect = T,
-                                       style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
-      )
+        tokens_clean %>%
+            hchart(hcaes(x= palabra, weight =log(n),
+                         color=colores), type= "wordcloud") %>%
+            hc_chart(style=list(fontFamily = "Poppins"))   %>%
+            hc_tooltip(
+                enabled = T,
+                pointFormat= 'Respuestas con la palabra <b>{point.palabra}<b/>:<br>{point.completa}',
+                headerFormat = '',
+                backgroundColor = '#FFFFFF',
+                style=list(fontSize = "25px", color = "#005B70")) %>%
+            hc_plotOptions( wordcloud = list(allowPointSelect = T,
+                                             style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
+            )
 
 
-  }else{
+    }else{
 
         pal <- RColorBrewer::brewer.pal(8,"Dark2")
         tokens_clean %>% with(
@@ -71,7 +71,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                                  random.order = FALSE, min.freq = 1,
                                  max.words = 50, colors=pal))
 
-  }
+    }
 }
 
 
@@ -116,6 +116,7 @@ graficar_brecha <- function(bd, interactivo = TRUE,
             hc_legend(enabled = F)
 
 
+    }
 }
 
 #' Formato adecuado para las palabras clave en los slides
@@ -259,41 +260,44 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
 
     if(interactivo){
 
-    bd %>%
-      hchart("scatter",
-             hcaes(x = importancia,
-                   y = cumplimiento, group = Nombre)) %>%
-      hc_add_theme(thm)
+        bd %>%
+            hchart("scatter",
+                   hcaes(x = importancia,
+                         y = cumplimiento, group = Nombre)) %>%
+            hc_add_theme(thm)
 
-  }
-  else{
+    }
+    else{
 
-    br <- function(x,c) purrr::map_dbl(x, ~ min(c/(100-.x),100))
-    dominio <- seq(0,100,.1)
+        br <- function(x,c) purrr::map_dbl(x, ~ min(c/(100-.x),100))
+        dominio <- seq(0,100,.1)
 
-    ggplot() +
-      geom_ribbon(
-        aes(x = dominio, ymin = 0, ymax = br(dominio,corte[2])),
-        fill = sm_vf,alpha = .3) +
-      geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[2]),
-                      ymax = br(dominio,corte[3])), fill = sm_vc,alpha = .3) +
-      geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[3]),
-                      ymax = br(dominio,corte[4])), fill = sm_a,alpha = .3) +
-      geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[4]),
-                      ymax = br(dominio,corte[5])), fill = sm_rc,alpha = .3) +
-      geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[5]),
-                      ymax = 100), fill = sm_rf,alpha = .3) +
-      geom_hline(yintercept = 50) +
-      geom_vline(xintercept = 50) +
-      geom_abline(linetype = "dotted", color = "gray50") +
-      coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
-      labs(y = "Importancia", x = "Cumplimiento") +
-      xaringanthemer::theme_xaringan() +
-      geom_point(data = bd, aes(
-        x = cumplimiento,
-        y = importancia,
-        color = Nombre))
-  }
+        ggplot() +
+            geom_ribbon(
+                aes(x = dominio, ymin = 0, ymax = br(dominio,corte[2])),
+                fill = sm_vf,alpha = .3) +
+            geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[2]),
+                            ymax = br(dominio,corte[3])), fill = sm_vc,alpha = .3) +
+            geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[3]),
+                            ymax = br(dominio,corte[4])), fill = sm_a,alpha = .3) +
+            geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[4]),
+                            ymax = br(dominio,corte[5])), fill = sm_rc,alpha = .3) +
+            geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[5]),
+                            ymax = 100), fill = sm_rf,alpha = .3) +
+            geom_hline(yintercept = 50) +
+            geom_vline(xintercept = 50) +
+            geom_abline(linetype = "dotted", color = "gray50") +
+            coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
+            labs(y = "Importancia", x = "Cumplimiento") +
+            xaringanthemer::theme_xaringan() +
+            geom_point(data = bd, aes(
+                x = cumplimiento,
+                y = importancia,
+                color = Nombre))+
+            theme(text = element_text(family = familia),
+                  panel.grid.minor = element_blank(),
+                  legend.text = element_text(family = familia))
+    }
 }
 
 
@@ -311,34 +315,35 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
 
 graficar_nbrecha <- function(brecha, thm){
 
-  bd <- brecha %>%
-    arrange(desc(brecha)) %>%
-    mutate(
-      brecha_pct = brecha_pct*100,
-      Categoria = forcats::fct_reorder(Categoria, brecha)
-      )
+    bd <- brecha %>%
+        arrange(desc(brecha)) %>%
+        mutate(
+            brecha_pct = brecha_pct*100,
+            Categoria = forcats::fct_reorder(Categoria, brecha)
+        )
 
-  highchart() %>%
-    hc_add_series(bd,
-                  type = "bar",
-                  hcaes(y = brecha_pct, x = Categoria)) %>%
-    hc_plotOptions(bar = list(colorByPoint = T)) %>%
-    hc_legend(enabled = F) %>%
-    hc_tooltip(
-      enabled = T,
-      pointFormat =
-        ' <br> Brecha: {point.brecha_pct} %',
-      backgroundColor= '#FFFFFF',
-      style=list(fontSize ="16px", color = primario)) %>%
-    hc_xAxis(
-      list(categories = bd$Categoria)) %>%
-    hc_colors(bd %>% pull(color)) %>%
-    hc_yAxis(
-      title = list(text = ""),
-      labels = list(format = "{value}%"),
-      max = 100
-    ) %>%
-    hc_add_theme(thm)
+    bd %>% hchart(hcaes(y = brecha_pct, x = Categoria), type = "bar") %>%
+        hc_plotOptions(bar = list(colorByPoint = T, borderRadius = 6)) %>%
+        hc_legend(enabled = F) %>%
+        hc_tooltip(
+            enabled = T,
+            headerFormat = '<span style="font-size: 14px"><b>{point.key}</b></span><br/>',
+            pointFormat = ' <br> Brecha: {point.brecha_pct}%',
+            backgroundColor= '#FFFFFF',
+            borderWidth =0,
+            style=list(fontSize ="16px", color = gris, fontFamily = familia)) %>%
+        hc_xAxis(
+            labels = list(style = list(fontSize = etiquetas))
+        ) %>%
+        hc_colors(bd %>% pull(color)) %>%
+        hc_yAxis( labels = list(format = "{value}%",
+                                style = list(fontSize = etiquetas)),
+                  title = list(text = ""),
+                  tickAmount = 5,
+                  min = 0,
+                  max = 100
+        ) %>%
+        hc_add_theme(thm)
 
 }
 
@@ -355,17 +360,17 @@ graficar_nbrecha <- function(brecha, thm){
 
 generar_tabla <- function(brecha){
 
-  tabla <- brecha %>% arrange(desc(brecha))
-  colores <- tabla %>% pull(color)
+    tabla <- brecha %>% arrange(desc(brecha))
+    colores <- tabla %>% pull(color)
 
-  tabla_df <- tabla %>%
-    mutate(Brecha = scales::percent(brecha_pct, 1)) %>%
-    select(Categoria, Brecha,
-           Cumplimiento = cumplimiento,
-           Importancia = importancia) %>%
-    kableExtra::kbl() %>%
-    kableExtra::kable_paper("striped", full_width = F) %>%
-    kableExtra::column_spec(2, color = "white",
-                            background = colores)
-  return(tabla_df)
+    tabla_df <- tabla %>%
+        mutate(Brecha = scales::percent(brecha_pct, 1)) %>%
+        select(Categoria, Brecha,
+               Cumplimiento = cumplimiento,
+               Importancia = importancia) %>%
+        kableExtra::kbl() %>%
+        kableExtra::kable_paper("striped", full_width = F) %>%
+        kableExtra::column_spec(2, color = "white",
+                                background = colores)
+    return(tabla_df)
 }
