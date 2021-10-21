@@ -8,7 +8,7 @@
 #' @export
 #'
 #' @import highcharter
-#' @import glue
+#' @import dplyr
 #' @examples #notrun (tema_highcharter("Popins","black", "15px"))
 
 tema_high <- function(font, color, size){
@@ -42,8 +42,6 @@ tema_high <- function(font, color, size){
 #' @return Gráfica de nube de palabras.
 #' @export
 #'
-#' @import highcharter
-#' @import dplyr
 #' @examples #notrun (graficar_nube(p_1))
 
 graficar_nube <- function(tokens_clean, interactivo = TRUE){
@@ -63,6 +61,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hc_plotOptions( wordcloud= list(allowPointSelect=T, minFontSize = 5,
                                             style=list('{"fontFamily" : "Poppins"}'))
             )
+
 
     }else{
 
@@ -88,8 +87,6 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
 #' @return Gráfica treemap
 #' @export
 #'
-#' @import highcharter
-#' @import dplyr
 #' @examples #notrun (graficar_brecha(bd, inverso, primario, tema_highcharter()))
 
 graficar_brecha <- function(bd, interactivo = TRUE,
@@ -156,9 +153,7 @@ graficar_claves <- function(df){
 #' @return Gráfica highcharter; histograma o errorbar
 #' @export
 #'
-#' @import highcharter
 #' @import ggplot2
-#' @import dplyr
 #' @examples #notrun (graficar_numerica(bd %>% procesar_numerica("Calificacion"), tipo = 'point_range',tema_highcharter()) )
 
 graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
@@ -252,8 +247,6 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
 #'
 #' @return Gráfica de cumplimiento vs importancia.
 #' @export
-#' @import highcharter
-#' @import dplyr
 #' @import ggplot2
 #'
 #' @examples #notrun ( graficar_juntos(procesar_juntos(bd), tema_highcharter()) )
@@ -310,8 +303,6 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
 #' @return Gráfica de barras del cálculo de brecha
 #' @export
 #'
-#' @import highcharter
-#' @import dplyr
 #' @examples #notrun ( graficar_nbrecha(calcular_brecha(bd)) )
 
 graficar_nbrecha <- function(brecha, thm){

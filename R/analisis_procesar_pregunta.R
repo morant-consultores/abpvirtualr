@@ -17,7 +17,9 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
 
-    stop_words <- tibble::tibble(palabra = tm::stopwords("spanish"))
+    stop_words <- tibble::tibble(
+        palabra = c(stopwords::stopwords("es"), "de", "al", "con")
+    )
 
     tokens_clean <- df %>%
         tidytext::unnest_tokens(
@@ -26,9 +28,9 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
         group_by(palabra) %>%
         mutate(num = paste0(row_number(),") ")) %>%
         summarise(
-            n = n(),
-        completa = tolower(
-        stringr::str_c(num, Respuesta, collapse= "<br><br>"))) %>%
+        n = n(),
+        completa = tolower(stringr::str_c(
+        num, Respuesta, collapse= "<br><br>"))) %>%
         ungroup() %>%
         mutate(completa = stringr::str_replace_all(
         palabra, glue::glue("<b>{palabra}</b>"), string = completa))
@@ -79,12 +81,16 @@ procesar_brecha <- function(bd,  otro = "Otro"){
     corpus <- junta %>%
         quanteda::corpus(text = "Respuesta")
 
-    toks_news <- quanteda::tokens(corpus, remove_punct = TRUE,
-        remove_symbols = T,remove_url = T,
+    toks_news <- quanteda::tokens(corpus,
+        remove_punct = TRUE,
+        remove_symbols = T, remove_url = T,
         remove_separators = T) %>%
         quanteda::tokens_group(groups = Nombre)
 
-    dfmat_news <- quanteda::dfm(toks_news)
+    dfmat_news <- quanteda::dfm(toks_news) %>%
+        quanteda::dfm_remove(
+        c(stopwords::stopwords("es"), "de", "al", "con")
+        )
 
     p_clave <- junta$Nombre %>%
         unique %>%
@@ -145,7 +151,6 @@ procesar_brecha <- function(bd,  otro = "Otro"){
 
 procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
 
-
     junta <- bd$respuesta_cat %>%
         left_join(bd$respuesta %>%
         select(IdRespuesta, Respuesta)) %>%
@@ -157,12 +162,11 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
     corpus <- junta %>%
         quanteda::corpus(text = "Respuesta")
 
-    toks_news <- quanteda::tokens(corpus, remove_punct = TRUE,
-        remove_symbols = T,remove_url = T,
-        remove_separators = T) %>%
+    toks_news <- quanteda::tokens(corpus) %>%
         quanteda::tokens_group(groups = Nombre)
 
-    dfmat_news <- quanteda::dfm(toks_news)
+    dfmat_news <- quanteda::dfm(toks_news) %>%
+        quanteda::dfm_remove(stopwords::stopwords("es"))
 
     respuestas <- junta %>%
         group_by(Respuesta,Nombre) %>%
@@ -321,19 +325,27 @@ calcular_brecha <- function(bd){
         left_join(bd %>%
         procesar_numerica("Calificacion") %>%
         purrr::pluck("histograma")) %>%
-        mutate(
-            brecha = Orden*(100-Calificacion),
-            color = corte(brecha)) %>%
+        ## para mediana de la brecha
+        # mutate(
+        # brecha = Orden*(100-Calificacion)#,
+        # color = corte(brecha) # para calcular el semáforo por moda
+        # ) %>%
         group_by(Categoria) %>%
         summarise(
-            brecha = stats::median(brecha),
-            cumplimiento = stats::median(Calificacion),
-            importancia = stats::median(Orden),
-            color = mode(color)) %>%
+            # brecha = median(brecha), mediana de la brecha
+            cumplimiento = median(Calificacion),
+            importancia = median(Orden),
+            # brecha calculada a partir de las medianas
+            brecha = importancia*(100-cumplimiento)/10000
+            # color = mode(color) # para calcular el semáforo por moda
+        ) %>%
+        # brecha calculada a partir de las medianas
+        relocate(brecha, .before = cumplimiento) %>%
         mutate(
-            color = if_else(is.na(color),
-            corte(brecha),color)
-            )
+    # color = if_else(is.na(color),# para calcular el semáforo por moda
+    # corte(brecha),color)# para calcular el semáforo por moda
+    color = corte(brecha)
+        )
 
     return(res)
 }

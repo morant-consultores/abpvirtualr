@@ -29,6 +29,7 @@ Imports:
     quanteda.textstats,
     RColorBrewer,
     scales,
+    stopwords,
     stringr,
     tibble,
     tidyr,

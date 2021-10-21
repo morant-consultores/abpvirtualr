@@ -40,14 +40,13 @@ slides_nubes <- function(bd, etapa){
 #' @param bd (list) Lista de talbas provistas por leer_base.
 #' @param top_p (int) El top n de preguntas de cada tema.
 #' @param top_r (int) El top n de respuestas de cada tema.
-#' @param otro  (char) La forma de como se escribe el otro tema,
-#'  regularmente será "Otro".
+#' @param otro  (char) La forma de como se escribe el otro
+#'  tema, regularmente será "Otro".
 #'
 #' @return (list) Una lista de chuncks correspondientes a cada pregunta.
 #' @export
 #'
 #' @import dplyr
-#' @importFrom knitr knit_expand
 #' @examples
 
 slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
