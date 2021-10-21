@@ -43,7 +43,8 @@ id_sesion <- if(id_sesion == "Todo") tbl(pool,
     orden_cat <- tbl(pool,
         in_schema("Cuestionario", "OrdenCategoria")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
-        collect()
+        collect() %>%
+        mutate(Orden = Orden*10)
 
     calif_cat <- tbl(pool,
         in_schema("Cuestionario", "CalificacionCategoria")) %>%
