@@ -166,9 +166,7 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
         quanteda::tokens_group(groups = Nombre)
 
     dfmat_news <- quanteda::dfm(toks_news) %>%
-        quanteda::dfm_remove(
-            c(stopwords::stopwords("es"), "de", "al", "con")
-        )
+        quanteda::dfm_remove(stopwords::stopwords("es"))
 
     respuestas <- junta %>%
         group_by(Respuesta,Nombre) %>%

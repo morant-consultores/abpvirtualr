@@ -38,7 +38,7 @@ source("R/utilitaria_colectar_base.R")
 source("R/analisis_procesar_pregunta.R")
 source("R/analisis_graficar_preguntas.R")
 
-thm <- tema_high(font = "Popins", color = "black", size = "15px")
+thm <- tema_high(font = "Poppins", color = "black", size = "15px")
 # Hacer que esta función lea un archivo yaml
 bd <- leer_base(pool, id_sesion = 3156)
 
@@ -67,7 +67,6 @@ procesar_juntos(bd) %>%
 # Gráfica de calculo de brecha
 calcular_brecha(bd) %>%
     graficar_nbrecha(thm)
-
 
 # Tabla de calculo de brecha
 calcular_brecha(bd) %>%
