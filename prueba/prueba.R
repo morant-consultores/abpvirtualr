@@ -34,6 +34,13 @@ xaringanthemer::style_duo_accent(
 )
 
 options(highcharter.google_fonts = TRUE)
+options(highcharter.tooltip.formatter = JS("function () {
+    var s='<div style='padding:5px;'><b>' + xName +' </b></div> '+
+        '<div style='max-height:50px ;min-width: 170px; overflow-y:auto;overflow-x:hidden '>'+
+    '<table style='width: 150px'>';
+    +......'</table></div>'
+    return s
+}"))
 data(conexion)
 
 # Funciones ------------------------------------------------------------
