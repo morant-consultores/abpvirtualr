@@ -67,17 +67,8 @@ library(abpvirtualr)
 ```
 
 ```{r}
-pool<- pool::dbPool(odbc::odbc(),
-                    Driver = conexion$Driver,
-                    Server = conexion$Server,
-                    Database = conexion$Database,
-                    UID = conexion$UID,
-                    PWD = conexion$PWD,
-                    Port = conexion$Port)
-
-thm <- tema_high(font = "Popins", color = "black", size = "15px")
-# Hacer que esta función lea un archivo yaml 
-bd <- leer_base(pool, id_sesion = 3156)
+thm <- tema_high(font = "Poppins", color = "black", size = "15px")
+bd <- leer_base(id_sesion = 3156)
 ```
 
 # Etapa 1
