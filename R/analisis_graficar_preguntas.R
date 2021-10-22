@@ -52,13 +52,37 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hchart(hcaes(x= palabra, weight =log(n),
                          color=colores), type= "wordcloud") %>%
             hc_chart(style=list(fontFamily =familia))   %>%
+            hc_yAxis(    scrollbar=list(
+                enabled=T)) %>%
             hc_tooltip(
-                enabled = T,
+                positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
+                          y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.5};}"),
+                useHTML= T,
+                outside = T,
+                formatter = JS("function (H) {
+    H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
+        if (e && e.type !== 'mousemove') {
+            proceed.call(this, point, e);
+        }
+    });
+    H.addEvent(H.Point.prototype, 'click', function (e) {
+        e.point.series.chart.tooltip.refresh(e.point, e);
+    });
+}(Highcharts)"),
+                # tooltipString = '<div class="..." style="...; height: 80px; overflow-y: scroll">',
+                # pointFormatter= JS('function() {
+                #     var string = "";
+                #     Highcharts.each(toolTip[this.series.data.indexOf(this)], function(p) {
+                #         string += p + "</a><br>"
+                #     })
+                #     return "Incident<br>" + string + "<br />";
+                # }'),
                 pointFormat= 'Respuestas con la palabra <b>{point.palabra}<b/>:<br>{point.completa}',
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
                 style=list(fontSize = "20px", color = gris)) %>%
             hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2,
+
                                              style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
             )
 
@@ -333,8 +357,8 @@ graficar_nbrecha <- function(brecha, thm){
             borderWidth =0,
             style=list(fontSize ="16px", color = gris, fontFamily = familia)) %>%
         hc_xAxis(lineWidth = 3.5, lineColor = primario_claro,
-            labels = list(style = list(fontSize = etiquetas)),
-            title= list(text = "Tema", style = list(fontSize = etiquetas))        ) %>%
+                 labels = list(style = list(fontSize = etiquetas)),
+                 title= list(text = "Tema", style = list(fontSize = etiquetas))        ) %>%
         hc_colors(bd %>% pull(color)) %>%
         hc_yAxis( labels = list(format = "{value}%",
                                 style = list(fontSize = etiquetas)),
@@ -364,8 +388,8 @@ generar_tabla <- function(brecha){
     tabla_df <- tabla %>%
         mutate(Brecha = scales::percent(brecha_pct, 1)) %>%
         select( Tema=Categoria , Brecha,
-               Cumplimiento = cumplimiento,
-               Importancia = importancia) %>%
+                Cumplimiento = cumplimiento,
+                Importancia = importancia) %>%
         kableExtra::kbl() %>%
         kableExtra::kable_paper("striped", full_width = F) %>%
         kableExtra::column_spec(2, color = "white",
