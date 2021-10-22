@@ -82,7 +82,16 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 backgroundColor = '#FFFFFF',
                 style=list(fontSize = "20px", color = gris)) %>%
             hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2,
+                                             point= list(events = list(mouseOver = JS("function (e) {
+                                receive = 'y: ' + this.y;
 
+                                $('#customTooltip').html(receive)
+                                .css({
+                                    top: e.target.plotY,
+                                    left:  e.target.plotX
+                                })
+                                .show();
+                            }"))),
                                              style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
             )
 
@@ -127,13 +136,14 @@ graficar_brecha <- function(bd, interactivo = TRUE,
             ) %>%
             hc_tooltip(enabled=T,
                        pointFormat= paste(
-                           'Palabras clave: <br>{point.p_clave}',
-                           '<br/> Porcentaje de categorización:',
-                           '<br>{point.pct} <br/>', sep = ""),
+                           '<b>{point.Categoria}</b><br>
+                           Palabras clave: {point.p_clave}',
+                           '<br> Porcentaje de categorización:',
+                           ' {point.pct} <br/>', sep = ""),
                        headerFormat= '',
                        backgroundColor= '#FFFFFF',
                        style=list(fontSize ="15px", color = gris, fontFamily = familia) ) %>%
-            hc_plotOptions(treemap = list(borderRadius = 8,
+            hc_plotOptions(treemap = list(borderRadius = 10,
                                           dataLabels = list( style = list(fontFamily = familia,
                                                                           fontSize = "14px")))   ) %>%
             hc_add_theme(thm) %>%
@@ -207,7 +217,6 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                     Categoria = forcats::fct_reorder(Categoria, y),
                     mediana = round(y, digits = 2))
 
-
             df %>%
                 hchart(type = "columnrange",
                        hcaes(x = Categoria,y = y, low= ymin, high = ymax),
@@ -225,7 +234,7 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                               color = inverso_claro) %>%
                 hc_xAxis(title = list(text = "Tema",
                                       style = list(fontSize = etiquetas)),
-                         lineWidth = 3.5, lineColor = primario_claro,
+                         lineWidth = 3.5, lineColor = inverso_claro,
                          labels = list(style = list(fontSize = etiquetas))) %>%
                 hc_yAxis(title = list(text = ""),
                          tickAmount = 5, min = 0, max= 100,
@@ -356,7 +365,7 @@ graficar_nbrecha <- function(brecha, thm){
             backgroundColor= '#FFFFFF',
             borderWidth =0,
             style=list(fontSize ="16px", color = gris, fontFamily = familia)) %>%
-        hc_xAxis(lineWidth = 3.5, lineColor = primario_claro,
+        hc_xAxis(lineWidth = 3.5, lineColor = primario_claro, zIndex= 5,
                  labels = list(style = list(fontSize = etiquetas)),
                  title= list(text = "Tema", style = list(fontSize = etiquetas))        ) %>%
         hc_colors(bd %>% pull(color)) %>%
