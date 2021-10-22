@@ -1,7 +1,8 @@
 library(tidyverse)
 library(dbplyr)
 library(highcharter)
-
+library(ggpmthemes)
+library(showtext)
 
 # Correr ----------------------------------------------------------------
 
@@ -11,11 +12,11 @@ primario_claro <- "#40557C"
 inverso <- "#DE4797"
 inverso_claro <- "#E675B1"
 cortes <- c(0,4,8,12,16,25)*20^2
-sm_vf <- "#264653"
-sm_vc <- "#2a9d8f"
-sm_a <- "#e9c46a"
-sm_rc <- "#f4a261"
-sm_rf <- "#e76f51"
+sm_vf <- "#1C6130"
+sm_vc <- "#55A630"
+sm_a <- "#F5BC38"
+sm_rc <- "#BA181B"
+sm_rf <- "#660708"
 familia <- "Poppins"
 gris <- "#343a40"
 gris_claro <- "#ced4da"

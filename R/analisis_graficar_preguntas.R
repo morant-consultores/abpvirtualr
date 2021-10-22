@@ -216,7 +216,6 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                 mutate(
                     Categoria = forcats::fct_reorder(Categoria, y),
                     mediana = round(y, digits = 2))
-
             df %>%
                 hchart(type = "columnrange",
                        hcaes(x = Categoria,y = y, low= ymin, high = ymax),
@@ -224,7 +223,7 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                 hc_legend(enabled = T) %>%
                 hc_tooltip(
                     enabled = T,
-                    pointFormat = 'Mediana: {point.mediana} ',
+                    pointFormat = 'Mediana: {point.mediana} <br> límites: inferior {point.ymin2} - superior {point.ymax2}   ',
                     headerFormat = '',
                     borderWidth= 0,
                     backgroundColor= '#FFFFFF',
@@ -305,31 +304,44 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
         br <- function(x,c) purrr::map_dbl(x, ~ min(c/(100-.x),100))
         dominio <- seq(0,100,.1)
 
+        font_add_google(familia)
+
         ggplot() +
             geom_ribbon(
                 aes(x = dominio, ymin = 0, ymax = br(dominio,corte[2])),
-                fill = sm_vf,alpha = .3) +
+                fill = sm_vf,alpha = .5) +
             geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[2]),
-                            ymax = br(dominio,corte[3])), fill = sm_vc,alpha = .3) +
+                            ymax = br(dominio,corte[3])), fill = sm_vc,alpha = .5) +
             geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[3]),
-                            ymax = br(dominio,corte[4])), fill = sm_a,alpha = .3) +
+                            ymax = br(dominio,corte[4])), fill = sm_a,alpha = .5) +
             geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[4]),
-                            ymax = br(dominio,corte[5])), fill = sm_rc,alpha = .3) +
+                            ymax = br(dominio,corte[5])), fill = sm_rc,alpha = .5) +
             geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[5]),
-                            ymax = 100), fill = sm_rf,alpha = .3) +
+                            ymax = 100), fill = sm_rf,alpha = .5) +
             geom_hline(yintercept = 50) +
             geom_vline(xintercept = 50) +
             geom_abline(linetype = "dotted", color = "gray50") +
             coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
-            labs(y = "Importancia", x = "Cumplimiento") +
+            labs(y = "Importancia", x = "Cumplimiento", color = "Tema") +
             xaringanthemer::theme_xaringan() +
             geom_point(data = bd, aes(
                 x = cumplimiento,
                 y = importancia,
-                color = Nombre))+
+                color = Nombre), size = 6)+
+            scale_color_manual(values = c("#001C50", "#4DCCBD", "#725E54",
+                                          "#FF6B6B", "#DBD56E", "#C6B9CD",
+                                          "#414535", "#EB6534", "#59A5D8",
+                                          "#DE4797"))+
+            theme_minimal(base_size=12, base_family = familia,
+                          base_line_size = .5, base_rect_size = .5 ) %+replace%
             theme(text = element_text(family = familia),
-                  panel.grid.minor = element_blank(),
-                  legend.text = element_text(family = familia))
+                panel.grid.major = element_line(size=0.5,
+                                                linetype = "solid",
+                                                lineend = "butt"),
+                panel.grid.minor = element_blank()
+
+
+            )
     }
 }
 
