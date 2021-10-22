@@ -5,7 +5,6 @@ library(highcharter)
 
 # Correr ----------------------------------------------------------------
 
-
 # Necesitas correr esto
 primario <- "#001c50"
 primario_claro <- "#40557C"
@@ -35,15 +34,12 @@ xaringanthemer::style_duo_accent(
 )
 
 options(highcharter.google_fonts = TRUE)
-
 data(conexion)
-
 
 # Funciones ------------------------------------------------------------
 
 thm <- tema_high(font = "Poppins", color = "black", size = "15px")
-# Hacer que esta función lea un archivo yaml
-bd <- leer_base(id_sesion = 3156)
+bd <- leer_base(id_sesion = "Todo")
 
 # 1 - Nube de palabras
 procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>%
