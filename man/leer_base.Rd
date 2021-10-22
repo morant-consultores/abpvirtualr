@@ -4,10 +4,10 @@
 \alias{leer_base}
 \title{Colecta todas las tablas necesarias para su posterior análisis}
 \usage{
-leer_base(pool, id_sesion = NULL)
+leer_base(con, id_sesion = NULL)
 }
 \arguments{
-\item{pool}{(pool::dbPool) Configuración de conexión remota a la base de datos.}
+\item{con}{(pool::dbcon) Configuración de conexión remota a la base de datos.}
 
 \item{id_sesion}{(int) La sesión necesaria para el evento. En caso de no
 proveerla toma la última, y si se inserta "Todo" entrega todos los eventos}
@@ -19,5 +19,5 @@ proveerla toma la última, y si se inserta "Todo" entrega todos los eventos}
 Colecta todas las tablas necesarias para su posterior análisis
 }
 \examples{
-#notrun (leer_base(pool, id_sesion = "Todo"))
+#notrun (leer_base(con, id_sesion = "Todo"))
 }

@@ -1,5 +1,3 @@
-
-
 library(tidyverse)
 library(dbplyr)
 library(highcharter)
@@ -39,13 +37,13 @@ xaringanthemer::style_duo_accent(
 options(highcharter.google_fonts = TRUE)
 
 
-pool<- pool::dbPool(odbc::odbc(),
-                    Driver = "ODBC Driver 17 for SQL Server",
-                    Server = "database.negox.com",
-                    Database = "CIDFares2020_ABPVirtualTest",
-                    UID = "CIDFares2020_CIDFares2020",
-                    PWD = "CIDFares@BP2021",
-                    Port = 1433)
+con <- pool::dbPool(odbc::odbc(),
+                    Driver = conexion$Driver,
+                    Server = conexion$Server,
+                    Database = conexion$Database,
+                    UID = conexion$UID,
+                    PWD = conexion$PWD,
+                    Port = conexion$Port)
 
 source("R/utilitaria_colectar_base.R")
 source("R/analisis_procesar_pregunta.R")
@@ -57,7 +55,7 @@ source("R/analisis_graficar_preguntas.R")
 
 thm <- tema_high(font = "Poppins", color = "black", size = "15px")
 # Hacer que esta función lea un archivo yaml
-bd <- leer_base(pool, id_sesion = 3156)
+bd <- leer_base(con = con, id_sesion = 3156)
 
 # 1 - Nube de palabras
 procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>%
