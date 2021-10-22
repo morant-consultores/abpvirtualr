@@ -51,14 +51,14 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
         tokens_clean %>%
             hchart(hcaes(x= palabra, weight =log(n),
                          color=colores), type= "wordcloud") %>%
-            hc_chart(style=list(fontFamily = "Poppins"))   %>%
+            hc_chart(style=list(fontFamily =familia))   %>%
             hc_tooltip(
                 enabled = T,
                 pointFormat= 'Respuestas con la palabra <b>{point.palabra}<b/>:<br>{point.completa}',
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
-                style=list(fontSize = "25px", color = "#005B70")) %>%
-            hc_plotOptions( wordcloud = list(allowPointSelect = T,
+                style=list(fontSize = "20px", color = gris)) %>%
+            hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2,
                                              style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
             )
 
@@ -201,7 +201,7 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                               color = inverso_claro) %>%
                 hc_xAxis(title = list(text = "Tema",
                                       style = list(fontSize = etiquetas)),
-                         lineWidth = 3.5, lineColor = gris_claro,
+                         lineWidth = 3.5, lineColor = primario_claro,
                          labels = list(style = list(fontSize = etiquetas))) %>%
                 hc_yAxis(title = list(text = ""),
                          tickAmount = 5, min = 0, max= 100,
@@ -323,7 +323,7 @@ graficar_nbrecha <- function(brecha, thm){
         )
 
     bd %>% hchart(hcaes(y = brecha_pct, x = Categoria), type = "bar") %>%
-        hc_plotOptions(bar = list(colorByPoint = T, borderRadius = 6)) %>%
+        hc_plotOptions(bar = list(colorByPoint = T, borderRadius = 6, borderWidth =0)) %>%
         hc_legend(enabled = F) %>%
         hc_tooltip(
             enabled = T,
@@ -332,17 +332,15 @@ graficar_nbrecha <- function(brecha, thm){
             backgroundColor= '#FFFFFF',
             borderWidth =0,
             style=list(fontSize ="16px", color = gris, fontFamily = familia)) %>%
-        hc_xAxis(lineWidth = 3.5, lineColor = gris_claro,
+        hc_xAxis(lineWidth = 3.5, lineColor = primario_claro,
             labels = list(style = list(fontSize = etiquetas)),
-            title= list(text = "Tema")        ) %>%
+            title= list(text = "Tema", style = list(fontSize = etiquetas))        ) %>%
         hc_colors(bd %>% pull(color)) %>%
         hc_yAxis( labels = list(format = "{value}%",
                                 style = list(fontSize = etiquetas)),
                   title = list(text = ""),
                   tickAmount = 5,
-                  min = 0,
-                  max = 100
-        ) %>%
+                  min = 0) %>%
         hc_add_theme(thm) %>%
         hc_chart(style=list(fontFamily = familia))
 
