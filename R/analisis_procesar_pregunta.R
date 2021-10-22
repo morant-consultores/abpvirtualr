@@ -21,17 +21,17 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
 
     tokens_clean <- df %>%
         tidytext::unnest_tokens(
-        output = palabra, input = Respuesta, drop = FALSE) %>%
+            output = palabra, input = Respuesta, drop = FALSE) %>%
         anti_join(stop_words) %>%
         group_by(palabra) %>%
         mutate(num = paste0(row_number(),") ")) %>%
         summarise(
-        n = n(),
-        completa = tolower(stringr::str_c(
-        num, Respuesta, collapse= "<br><br>"))) %>%
+            n = n(),
+            completa = tolower(stringr::str_c(
+                num, Respuesta, collapse= "<br><br>"))) %>%
         ungroup() %>%
         mutate(completa = stringr::str_replace_all(
-        palabra, glue::glue("<b>{palabra}</b>"), string = completa))
+            palabra, glue::glue("<b>{palabra}</b>"), string = completa))
 
     nums <- tokens_clean %>%
         filter(stringr::str_detect(palabra, "^[0-9]")) %>%
@@ -68,11 +68,11 @@ procesar_brecha <- function(bd,  otro = "Otro"){
 
     junta <- bd$respuesta_cat %>%
         left_join(bd$respuesta %>%
-            filter(IdEtapa == 2) %>%
-            select(IdRespuesta, IdPregunta, Respuesta)) %>%
+                      filter(IdEtapa == 2) %>%
+                      select(IdRespuesta, IdPregunta, Respuesta)) %>%
         left_join(bd$categoria %>%
-            filter(EsDefault) %>%
-            select(IdCategoria, Nombre)) %>%
+                      filter(EsDefault) %>%
+                      select(IdCategoria, Nombre)) %>%
         tidyr::replace_na(list(Nombre = otro))
 
 
@@ -111,13 +111,13 @@ procesar_brecha <- function(bd,  otro = "Otro"){
         mutate(pct = n/sum(n)) %>%
         group_by(Nombre) %>%
         summarise(
-        pct_r = sum(pct)/n_distinct(
-            bd$respuesta_cat$IdRespuesta)) %>%
+            pct_r = sum(pct)/n_distinct(
+                bd$respuesta_cat$IdRespuesta)) %>%
         mutate(
             pct = scales::percent(pct_r,1)
         ) %>%
         left_join(p_clave %>%
-        rename(Nombre = tema))
+                      rename(Nombre = tema))
 
 
     pregunta <- tibble::tibble(pregunta = rep(pregunta, nrow(res)))
@@ -147,10 +147,10 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
 
     junta <- bd$respuesta_cat %>%
         left_join(bd$respuesta %>%
-        select(IdRespuesta, Respuesta)) %>%
+                      select(IdRespuesta, Respuesta)) %>%
         left_join(bd$categoria %>%
-        filter(EsDefault) %>%
-        select(IdCategoria,Nombre)) %>%
+                      filter(EsDefault) %>%
+                      select(IdCategoria,Nombre)) %>%
         tidyr::replace_na(list(Nombre = otro))
 
     dfmat_news <- junta %>%
@@ -169,8 +169,8 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
         mutate(pct = n/sum(n)) %>%
         group_by(Nombre) %>%
         mutate(
-        pct_r =sum(pct)/n_distinct(
-        bd$respuesta_cat$IdRespuesta)) %>%
+            pct_r =sum(pct)/n_distinct(
+                bd$respuesta_cat$IdRespuesta)) %>%
         arrange(desc(pct)) %>%
         slice(1:top_r) %>%
         ungroup %>%
@@ -181,8 +181,8 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
         split(.$Nombre) %>%
         purrr::imap(~{
             resp <- paste0("<b>(",
-                .x %>% pull(pct) %>%
-                scales::percent(accuracy = 1),")</b>") %>%
+                           .x %>% pull(pct) %>%
+                               scales::percent(accuracy = 1),")</b>") %>%
                 paste(.x %>% pull(Respuesta))
 
             p_clave <- quanteda.textstats::textstat_keyness(
@@ -215,8 +215,8 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
 procesar_numerica <- function(bd, tipo){
 
     tipobd <- switch(tipo,
-    Orden = "orden_cat",
-    Calificacion = "calif_cat"
+                     Orden = "orden_cat",
+                     Calificacion = "calif_cat"
     )
 
     histograma <- bd %>%
@@ -227,7 +227,7 @@ procesar_numerica <- function(bd, tipo){
     point_range <- histograma %>%
         group_by(Categoria) %>%
         summarise(
-        ggplot2::median_hilow(!!sym(tipo), conf.int = .5)
+            ggplot2::mean_se(!!sym(tipo))
         )
 
     res <- list(histograma = histograma,
@@ -251,11 +251,11 @@ procesar_juntos <- function(bd){
     res <- bd$orden_cat %>%
         select(IdCategoria,IdUsuario, Orden) %>%
         left_join(bd$calif_cat %>%
-        select(IdCategoria, IdUsuario,Calificacion)) %>%
+                      select(IdCategoria, IdUsuario,Calificacion)) %>%
         left_join(bd$categoria) %>%
         group_by(Nombre) %>%
-        summarise(importancia = stats::median(Orden),
-        cumplimiento = stats::median(Calificacion))
+        summarise(importancia = base::round(base::mean(Orden),2),
+                  cumplimiento = base::round(base::mean(Calificacion),2))
 
     return(res)
 }
@@ -294,7 +294,7 @@ mode <- function(codes){
 #' @examples #notrun (corte(brecha))
 
 corte <- function(brecha, corte = cortes,
-    colores = c(sm_vf,sm_vc,sm_a, sm_rc,sm_rf)){
+                  colores = c(sm_vf,sm_vc,sm_a, sm_rc,sm_rf)){
 
     as.character(cut(brecha, corte, labels = colores))
 }
@@ -318,30 +318,20 @@ calcular_brecha <- function(bd){
         procesar_numerica("Orden") %>%
         purrr::pluck("histograma") %>%
         left_join(bd %>%
-        procesar_numerica("Calificacion") %>%
-        purrr::pluck("histograma")) %>%
-        ## para mediana de la brecha
-        # mutate(
-        # brecha = Orden*(100-Calificacion)#,
-        # color = corte(brecha) # para calcular el semáforo por moda
-        # ) %>%
+                      procesar_numerica("Calificacion") %>%
+                      purrr::pluck("histograma")) %>%
+        mutate(
+            br = Orden*(100-Calificacion)#,
+        ) %>%
         group_by(Categoria) %>%
         summarise(
-            # brecha = median(brecha), mediana de la brecha
-            cumplimiento = median(Calificacion),
-            importancia = median(Orden),
-            # brecha calculada a partir de las medianas
-            brecha = importancia*(100-cumplimiento)
+            brecha = base::mean(br),
+            cumplimiento = base::round(base::mean(Calificacion),2),
+            importancia = base::round(base::mean(Orden),2),
+            color = corte(brecha),
+            brecha_pct = brecha/10000,
             # color = mode(color) # para calcular el semáforo por moda
-        ) %>%
-        # brecha calculada a partir de las medianas
-        relocate(brecha, .before = cumplimiento) %>%
-        mutate(
-    # color = if_else(is.na(color),# para calcular el semáforo por moda
-    # corte(brecha),color)# para calcular el semáforo por moda
-    color = corte(brecha),
-    brecha_pct = brecha/10000,
-    )
+        )
 
     return(res)
 }
