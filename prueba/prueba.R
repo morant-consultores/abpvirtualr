@@ -37,7 +37,7 @@ xaringanthemer::style_duo_accent(
 options(highcharter.google_fonts = TRUE)
 
 
-pool<- pool::dbPool(odbc::odbc(),
+con <- pool::dbPool(odbc::odbc(),
                     Driver = conexion$Driver,
                     Server = conexion$Server,
                     Database = conexion$Database,
@@ -55,7 +55,7 @@ source("R/analisis_graficar_preguntas.R")
 
 thm <- tema_high(font = "Poppins", color = "black", size = "15px")
 # Hacer que esta función lea un archivo yaml
-bd <- leer_base(pool, id_sesion = 3156)
+bd <- leer_base(con = con, id_sesion = 3156)
 
 # 1 - Nube de palabras
 procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>%

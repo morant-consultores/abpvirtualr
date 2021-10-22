@@ -24,6 +24,7 @@ Imports:
     highcharter,
     kableExtra,
     knitr,
+    pool,
     purrr,
     quanteda,
     quanteda.textstats,
