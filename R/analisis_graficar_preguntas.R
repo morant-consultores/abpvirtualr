@@ -55,11 +55,21 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hc_yAxis(    scrollbar=list(
                 enabled=T)) %>%
             hc_tooltip(
-                positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.01),
+                positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
                           y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.5};}"),
                 useHTML= T,
                 outside = T,
-                tooltipString = '<div class="..." style="...; height: 80px; overflow-y: scroll">',
+                formatter = JS("function (H) {
+    H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
+        if (e && e.type !== 'mousemove') {
+            proceed.call(this, point, e);
+        }
+    });
+    H.addEvent(H.Point.prototype, 'click', function (e) {
+        e.point.series.chart.tooltip.refresh(e.point, e);
+    });
+}(Highcharts)"),
+                # tooltipString = '<div class="..." style="...; height: 80px; overflow-y: scroll">',
                 # pointFormatter= JS('function() {
                 #     var string = "";
                 #     Highcharts.each(toolTip[this.series.data.indexOf(this)], function(p) {
@@ -72,6 +82,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 backgroundColor = '#FFFFFF',
                 style=list(fontSize = "20px", color = gris)) %>%
             hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2,
+
                                              style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
             )
 
