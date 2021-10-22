@@ -55,14 +55,11 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hc_yAxis(    scrollbar=list(
                 enabled=T)) %>%
             hc_tooltip(
-                scrollbar=list(
-                    enabled=T),
+                positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.01),
+                          y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.5};}"),
                 useHTML= T,
                 outside = T,
-                # positioner: function (w, h, point) {
-                #     this.chart.pointer.chartPosition = null;
-                #     return this.getPosition(w, h, point);
-                # },
+                tooltipString = '<div class="..." style="...; height: 80px; overflow-y: scroll">',
                 # pointFormatter= JS('function() {
                 #     var string = "";
                 #     Highcharts.each(toolTip[this.series.data.indexOf(this)], function(p) {
@@ -70,7 +67,6 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 #     })
                 #     return "Incident<br>" + string + "<br />";
                 # }'),
-                enabled = T,
                 pointFormat= 'Respuestas con la palabra <b>{point.palabra}<b/>:<br>{point.completa}',
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
@@ -350,8 +346,8 @@ graficar_nbrecha <- function(brecha, thm){
             borderWidth =0,
             style=list(fontSize ="16px", color = gris, fontFamily = familia)) %>%
         hc_xAxis(lineWidth = 3.5, lineColor = primario_claro,
-            labels = list(style = list(fontSize = etiquetas)),
-            title= list(text = "Tema", style = list(fontSize = etiquetas))        ) %>%
+                 labels = list(style = list(fontSize = etiquetas)),
+                 title= list(text = "Tema", style = list(fontSize = etiquetas))        ) %>%
         hc_colors(bd %>% pull(color)) %>%
         hc_yAxis( labels = list(format = "{value}%",
                                 style = list(fontSize = etiquetas)),
@@ -381,8 +377,8 @@ generar_tabla <- function(brecha){
     tabla_df <- tabla %>%
         mutate(Brecha = scales::percent(brecha_pct, 1)) %>%
         select( Tema=Categoria , Brecha,
-               Cumplimiento = cumplimiento,
-               Importancia = importancia) %>%
+                Cumplimiento = cumplimiento,
+                Importancia = importancia) %>%
         kableExtra::kbl() %>%
         kableExtra::kable_paper("striped", full_width = F) %>%
         kableExtra::column_spec(2, color = "white",
