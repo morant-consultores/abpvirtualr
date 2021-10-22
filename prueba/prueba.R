@@ -37,17 +37,6 @@ xaringanthemer::style_duo_accent(
 options(highcharter.google_fonts = TRUE)
 
 data(conexion)
-con <- pool::dbPool(odbc::odbc(),
-                    Driver = conexion$Driver,
-                    Server = conexion$Server,
-                    Database = conexion$Database,
-                    UID = conexion$UID,
-                    PWD = conexion$PWD,
-                    Port = conexion$Port)
-
-# source("R/utilitaria_colectar_base.R")
-# source("R/analisis_procesar_pregunta.R")
-# source("R/analisis_graficar_preguntas.R")
 
 
 # Funciones ------------------------------------------------------------

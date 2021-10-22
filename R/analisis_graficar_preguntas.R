@@ -331,7 +331,7 @@ graficar_nbrecha <- function(brecha, thm){
     bd <- brecha %>%
         arrange(desc(brecha)) %>%
         mutate(
-            brecha_pct = base::round(brecha_pct,1)*100,
+            brecha_pct = base::round(brecha_pct*100),
             Categoria = forcats::fct_reorder(Categoria, brecha)
         )
 
