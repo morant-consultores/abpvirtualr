@@ -3,7 +3,7 @@ title: "Aquí va tu título"
 subtitle: "ABP Digital"  
 author: 
   - "Gerencia del Poder"
-date: '`r format(Sys.Date(),"%d de %B de %y")`'
+date: '`r Sys.setlocale(locale = "es_ES.UTF-8"); format(Sys.Date(),"%d de %B de %Y")`'
 output:
   xaringan::moon_reader:
     css: [xaringan-themer.css]
