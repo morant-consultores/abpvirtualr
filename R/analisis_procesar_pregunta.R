@@ -227,8 +227,11 @@ procesar_numerica <- function(bd, tipo){
     point_range <- histograma %>%
         group_by(Categoria) %>%
         summarise(
-            ggplot2::mean_se(!!sym(tipo))
-        )
+            ggplot2::mean_se(!!sym(tipo),mult = stats::qnorm(.975))
+        ) %>% mutate(y2 = base::round(y),
+                     ymin2 = base::round(ymin),
+                     ymax2 = base::round(ymax)
+                     )
 
     res <- list(histograma = histograma,
                 point_range = point_range)
@@ -254,8 +257,8 @@ procesar_juntos <- function(bd){
                       select(IdCategoria, IdUsuario,Calificacion)) %>%
         left_join(bd$categoria) %>%
         group_by(Nombre) %>%
-        summarise(importancia = base::round(base::mean(Orden),1),
-                  cumplimiento = base::round(base::mean(Calificacion),1))
+        summarise(importancia = base::round(base::mean(Orden)),
+                  cumplimiento = base::round(base::mean(Calificacion)))
 
     return(res)
 }
@@ -296,7 +299,7 @@ mode <- function(codes){
 corte <- function(brecha, corte = cortes,
                   colores = c(sm_vf,sm_vc,sm_a, sm_rc,sm_rf)){
 
-    as.character(cut(brecha, corte, labels = colores))
+    as.character(cut(brecha, corte, labels = colores, include.lowest = T))
 }
 
 #' Realiza el marco de datos del cálculo de la brecha
@@ -326,8 +329,8 @@ calcular_brecha <- function(bd){
         group_by(Categoria) %>%
         summarise(
             brecha = base::mean(br),
-            cumplimiento = base::round(base::mean(Calificacion),1),
-            importancia = base::round(base::mean(Orden),1),
+            cumplimiento = base::round(base::mean(Calificacion)),
+            importancia = base::round(base::mean(Orden)),
             color = corte(brecha),
             brecha_pct = brecha/10000,
             # color = mode(color) # para calcular el semáforo por moda
