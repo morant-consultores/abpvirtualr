@@ -11,7 +11,7 @@ primario <- "#001c50"
 primario_claro <- "#40557C"
 inverso <- "#DE4797"
 inverso_claro <- "#E675B1"
-cortes <- c(0,5,9,13,17,25)*20^2
+cortes <- c(0,4,8,12,16,25)*20^2
 sm_vf <- "#264653"
 sm_vc <- "#2a9d8f"
 sm_a <- "#e9c46a"

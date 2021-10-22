@@ -299,7 +299,7 @@ mode <- function(codes){
 corte <- function(brecha, corte = cortes,
                   colores = c(sm_vf,sm_vc,sm_a, sm_rc,sm_rf)){
 
-    as.character(cut(brecha, corte, labels = colores))
+    as.character(cut(brecha, corte, labels = colores, include.lowest = T))
 }
 
 #' Realiza el marco de datos del cálculo de la brecha
