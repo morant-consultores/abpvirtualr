@@ -68,7 +68,6 @@ library(abpvirtualr)
 
 ```{r}
 thm <- tema_high(font = "Poppins", color = "black", size = "15px")
-# Hacer que esta función lea un archivo yaml 
 bd <- leer_base(id_sesion = 3156)
 ```
 

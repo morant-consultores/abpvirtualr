@@ -50,8 +50,7 @@ con <- pool::dbPool(odbc::odbc(),
 # source("R/analisis_graficar_preguntas.R")
 
 
-# Funciones ---------------------------------------------------------------
-
+# Funciones ------------------------------------------------------------
 
 thm <- tema_high(font = "Poppins", color = "black", size = "15px")
 # Hacer que esta función lea un archivo yaml

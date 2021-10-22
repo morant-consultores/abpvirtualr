@@ -306,7 +306,7 @@ corte <- function(brecha, corte = cortes,
 #' provistas por la función leer_base.
 #'
 #' @return (tibble) Marco de datos con la importancia y cumplimiento,
-#' así como el cálculo de la brecha con los colores asignados.
+#' así como el cálculo de la brecha por medias con los colores asignados.
 #' @export
 #'
 #' @import dplyr

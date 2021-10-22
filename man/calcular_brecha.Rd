@@ -13,7 +13,7 @@ provistas por la función leer_base.}
 }
 \value{
 (tibble) Marco de datos con la importancia y cumplimiento,
-así como el cálculo de la brecha con los colores asignados.
+así como el cálculo de la brecha por medias con los colores asignados.
 }
 \description{
 Realiza el marco de datos del cálculo de la brecha
