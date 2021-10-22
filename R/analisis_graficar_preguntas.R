@@ -52,7 +52,24 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hchart(hcaes(x= palabra, weight =log(n),
                          color=colores), type= "wordcloud") %>%
             hc_chart(style=list(fontFamily =familia))   %>%
+            hc_yAxis(    scrollbar=list(
+                enabled=T)) %>%
             hc_tooltip(
+                scrollbar=list(
+                    enabled=T),
+                useHTML= T,
+                outside = T,
+                # positioner: function (w, h, point) {
+                #     this.chart.pointer.chartPosition = null;
+                #     return this.getPosition(w, h, point);
+                # },
+                # pointFormatter= JS('function() {
+                #     var string = "";
+                #     Highcharts.each(toolTip[this.series.data.indexOf(this)], function(p) {
+                #         string += p + "</a><br>"
+                #     })
+                #     return "Incident<br>" + string + "<br />";
+                # }'),
                 enabled = T,
                 pointFormat= 'Respuestas con la palabra <b>{point.palabra}<b/>:<br>{point.completa}',
                 headerFormat = '',
