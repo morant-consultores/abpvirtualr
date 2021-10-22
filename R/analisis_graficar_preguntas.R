@@ -338,6 +338,10 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
                 panel.grid.major = element_line(size=0.5,
                                                 linetype = "solid",
                                                 lineend = "butt"),
+                axis.title = element_text(size = 15),
+                legend.title = element_text(size = 15),
+                legend.text = element_text(size = 12),
+                axis.text = element_text(size = 12),
                 panel.grid.minor = element_blank()
 
 
