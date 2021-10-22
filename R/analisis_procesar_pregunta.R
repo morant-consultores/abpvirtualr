@@ -254,8 +254,8 @@ procesar_juntos <- function(bd){
                       select(IdCategoria, IdUsuario,Calificacion)) %>%
         left_join(bd$categoria) %>%
         group_by(Nombre) %>%
-        summarise(importancia = base::round(base::mean(Orden),2),
-                  cumplimiento = base::round(base::mean(Calificacion),2))
+        summarise(importancia = base::round(base::mean(Orden),1),
+                  cumplimiento = base::round(base::mean(Calificacion),1))
 
     return(res)
 }
@@ -326,8 +326,8 @@ calcular_brecha <- function(bd){
         group_by(Categoria) %>%
         summarise(
             brecha = base::mean(br),
-            cumplimiento = base::round(base::mean(Calificacion),2),
-            importancia = base::round(base::mean(Orden),2),
+            cumplimiento = base::round(base::mean(Calificacion),1),
+            importancia = base::round(base::mean(Orden),1),
             color = corte(brecha),
             brecha_pct = brecha/10000,
             # color = mode(color) # para calcular el semáforo por moda
