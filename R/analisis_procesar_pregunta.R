@@ -45,9 +45,9 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
     tokens_clean <- tokens_clean %>%
         anti_join(nums, by = "palabra") %>%
         mutate(colores = case_when(
-            n<=quantile(n,probs=.75)~ inverso,
-            n>quantile(n,probs=.75) & n<=quantile(n,probs=.90)~"#485375",
-            n>quantile(n,probs=.90)~"#001c50"),
+            n<=quantile(n,probs=.75)~ "#4C97C8",
+            n>quantile(n,probs=.75) & n<=quantile(n,probs=.90)~"#304E83",
+            n>quantile(n,probs=.90)~"#232B58"),
             Pregunta = bd$pregunta %>%
                 filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
                 pull(Nombre)
