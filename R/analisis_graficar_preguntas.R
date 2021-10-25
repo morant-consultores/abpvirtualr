@@ -308,7 +308,7 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
         br <- function(x,c) purrr::map_dbl(x, ~ min(c/(100-.x),100))
         dominio <- seq(0,100,.1)
 
-        font_add_google(familia)
+        sysfonts::font_add_google(familia)
 
         ggplot() +
             geom_ribbon(
