@@ -17,18 +17,22 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
 
-    stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
+    stop_words <- tibble::tibble(palabra = stopwords::stopwords("es"))
 
     tokens_clean <- df %>%
         tidytext::unnest_tokens(
             output = palabra, input = Respuesta, drop = FALSE) %>%
         anti_join(stop_words) %>%
         group_by(palabra) %>%
-        mutate(num = paste0(row_number(),") ")) %>%
+        mutate(
+            num = paste0(row_number(),") "),
+            prueba = paste(num, tolower(Respuesta), sep = " "),
+            comp = paste("<tr><td>", prueba, "</td> </tr>", sep = " ")
+            ) %>%
         summarise(
             n = n(),
-            completa = tolower(stringr::str_c(
-                num, Respuesta, collapse= "<br><br>"))) %>%
+            completa = tolower(stringr::str_c(comp, collapse = " ")),
+            ) %>%
         ungroup() %>%
         mutate(completa = stringr::str_replace_all(
             palabra, glue::glue("<b>{palabra}</b>"), string = completa))
