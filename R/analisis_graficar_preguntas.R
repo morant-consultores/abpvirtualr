@@ -335,17 +335,12 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             theme_minimal(base_size=12, base_family = familia,
                           base_line_size = .5, base_rect_size = .5 ) %+replace%
             theme(text = element_text(family = familia),
-                panel.grid.major = element_line(size=0.5,
-                                                linetype = "solid",
-                                                lineend = "butt"),
                 axis.title = element_text(size = 15),
                 legend.title = element_text(size = 15),
                 legend.text = element_text(size = 12),
                 axis.text = element_text(size = 12),
-                panel.grid.minor = element_blank()
-
-
-            )
+                panel.grid.minor = element_blank(),
+                axis.ticks = element_blank()         )
     }
 }
 
