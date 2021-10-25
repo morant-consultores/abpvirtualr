@@ -52,51 +52,39 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hchart(hcaes(x= palabra, weight =log(n),
                          color=colores), type= "wordcloud") %>%
             hc_chart(style=list(fontFamily =familia))   %>%
-            hc_yAxis( scrollbar= list(enabled=TRUE)) %>%
             hc_tooltip(
                 positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
                           y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
                 useHTML= T,
                 outside = T,
-                formatter = JS("
-                function (H) {
-                H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
-                    if (e && e.type !== 'mousemove') {
-                    proceed.call(this, point, e);
-                    }
-                });
-                H.addEvent(H.Point.prototype, 'click', function (e) {
-                e.point.series.chart.tooltip.refresh(e.point, e);
-                });
-                }(Highcharts)
-                "),
                 pointFormat= "
-                <div style='overflow: auto, height: 150px;'>
-                <table style = 'margin-top: 20px; overflow-x: auto; '>
-                <tr>
-                 <th> Respuestas con la palabra <b>{point.palabra}<b/>: </th>
-                 </tr>
-                <tr>
-                 <td> {point.completa}  </td>
-                </tr>
-                </table>
-                </div>
-                ",
+            <table cellspacing='0' cellpadding='0' border='0' width='520'>
+            <tr>
+            <td>
+            <table cellspacing='0' cellpadding='1' border='1' width='520' >
+            <tr style='color:white;background-color:grey'>
+            <th> Respuestas con la palabra <b>{point.palabra}<b/>: </th>
+            </tr>
+            <tr>
+            <td>
+            <div style='width:520px; height:400px; overflow:auto;'>
+            <table cellspacing='0' cellpadding='1' border='1' width='500'>
+            {point.completa}
+            </table>
+            </div>
+            </td>
+            </tr>
+            </table>
+            ",
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
-                style=list(fontSize = "20px", color = gris, 'overflow-y' = "scroll", scrollbar = TRUE)) %>%
-                hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2,
-                            point= list(events = list(mouseOver = JS("function (e) {
-                                receive = 'y: ' + this.y;
-
-                                $('#customTooltip').html(receive)
-                                .css({
-                                    top: e.target.plotY,
-                                    left:  e.target.plotX
-                                })
-                                .show();
-                            }"))),
-                                             style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
+                style=list(
+                    fontSize = "20px",
+                    color = gris)) %>%
+                hc_plotOptions(wordcloud = list(
+                    allowPointSelect = T,
+                    minFontSize = 2,
+                    style = list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
             )
 
 
