@@ -7,10 +7,10 @@ library(showtext)
 # Correr ----------------------------------------------------------------
 
 # Necesitas correr esto
-primario <- "#001c50"
-primario_claro <- "#40557C"
-inverso <- "#DE4797"
-inverso_claro <- "#E675B1"
+primario <- "#232B58"
+primario_claro <- "#304E83"
+inverso <- "#4C97C8"
+inverso_claro <- "#88B9CF"
 cortes <- c(0,4,8,12,16,25)*20^2
 sm_vf <- "#1C6130"
 sm_vc <- "#55A630"

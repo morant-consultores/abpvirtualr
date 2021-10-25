@@ -52,12 +52,12 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hchart(hcaes(x= palabra, weight =log(n),
                          color=colores), type= "wordcloud") %>%
             hc_chart(style=list(fontFamily =familia))   %>%
-            hc_yAxis( scrollbar= list(enabled=TRUE)) %>%
+            hc_yAxis( scrollbar= list(enabled=F)) %>%
             hc_tooltip(
-                positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
-                          y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
+                # positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
+                #           y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
                 useHTML= T,
-                outside = T,
+                outside = F,
                 formatter = JS("
                 function (H) {
                 H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
@@ -418,6 +418,6 @@ generar_tabla <- function(brecha){
         kableExtra::kable_paper("striped", full_width = F) %>%
         kableExtra::column_spec(2, color = "white",
                                 background = colores) %>%
-        kableExtra::kable_classic(full_width = F, html_font = "Poppins")
+        kableExtra::kable_classic(full_width = F, html_font = familia)
     return(tabla_df)
 }
