@@ -50,7 +50,7 @@ leer_base <- function(id_sesion = NULL){
     orden_cat <- tbl(con,
                      in_schema("Cuestionario", "OrdenCategoria")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
-        collect()
+        collect() %>%  mutate(Orden= Orden*10)
 
     calif_cat <- tbl(con,
         in_schema("Cuestionario", "CalificacionCategoria")) %>%

@@ -52,12 +52,12 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hchart(hcaes(x= palabra, weight =log(n),
                          color=colores), type= "wordcloud") %>%
             hc_chart(style=list(fontFamily =familia))   %>%
-            hc_yAxis( scrollbar= list(enabled=TRUE)) %>%
+            hc_yAxis( scrollbar= list(enabled=F)) %>%
             hc_tooltip(
-                positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
-                          y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
+                # positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
+                #           y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
                 useHTML= T,
-                outside = T,
+                outside = F,
                 formatter = JS("
                 function (H) {
                 H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
@@ -71,22 +71,14 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 }(Highcharts)
                 "),
                 pointFormat= "
-                <div style='overflow: auto, height: 150px;'>
-                <table style = 'margin-top: 20px; overflow-x: auto; '>
-                <tr>
-                 <th> Respuestas con la palabra <b>{point.palabra}<b/>: </th>
-                 </tr>
-                <tr>
-                 <td> {point.completa}  </td>
-                </tr>
-                </table>
-                </div>
+                Respuestas con la palabra <b>{point.palabra}<b/>: <br>
+                {point.completa}
                 ",
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
                 style=list(fontSize = "20px", color = gris, 'overflow-y' = "scroll", scrollbar = TRUE)) %>%
-                hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2,
-                            point= list(events = list(mouseOver = JS("function (e) {
+            hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2,
+                                             point= list(events = list(mouseOver = JS("function (e) {
                                 receive = 'y: ' + this.y;
 
                                 $('#customTooltip').html(receive)
@@ -96,7 +88,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                                 })
                                 .show();
                             }"))),
-                                             style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
+                            style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
             )
 
 
@@ -308,7 +300,7 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
         br <- function(x,c) purrr::map_dbl(x, ~ min(c/(100-.x),100))
         dominio <- seq(0,100,.1)
 
-        font_add_google(familia)
+        sysfonts::font_add_google(familia)
 
         ggplot() +
             geom_ribbon(
@@ -331,7 +323,7 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             geom_point(data = bd, aes(
                 x = cumplimiento,
                 y = importancia,
-                color = Nombre), size = 6)+
+                color = Nombre), size = 5)+
             scale_color_manual(values = c("#001C50", "#4DCCBD", "#725E54",
                                           "#FF6B6B", "#DBD56E", "#C6B9CD",
                                           "#414535", "#EB6534", "#59A5D8",
@@ -418,6 +410,6 @@ generar_tabla <- function(brecha){
         kableExtra::kable_paper("striped", full_width = F) %>%
         kableExtra::column_spec(2, color = "white",
                                 background = colores) %>%
-        kableExtra::kable_classic(full_width = F, html_font = "Poppins")
+        kableExtra::kable_classic(full_width = F, html_font = familia)
     return(tabla_df)
 }

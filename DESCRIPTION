@@ -33,6 +33,7 @@ Imports:
     scales,
     stopwords,
     stringr,
+    sysfonts,
     tibble,
     tidyr,
     tidytext,
