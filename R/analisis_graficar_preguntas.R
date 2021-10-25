@@ -331,7 +331,7 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             geom_point(data = bd, aes(
                 x = cumplimiento,
                 y = importancia,
-                color = Nombre), size = 6)+
+                color = Nombre), size = 5)+
             scale_color_manual(values = c("#001C50", "#4DCCBD", "#725E54",
                                           "#FF6B6B", "#DBD56E", "#C6B9CD",
                                           "#414535", "#EB6534", "#59A5D8",
