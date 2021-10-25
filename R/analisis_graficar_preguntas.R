@@ -52,10 +52,11 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hchart(hcaes(x= palabra, weight =log(n),
                          color=colores), type= "wordcloud") %>%
             hc_chart(style=list(fontFamily =familia))   %>%
+            # hc_yAxis( scrollbar= list(enabled=F)) %>%
             hc_tooltip(
                 # positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
                 #           y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
-                useHTML= T,
+                # useHTML= T,
                 outside = F,
                 formatter = JS("
                 function (H) {
@@ -76,19 +77,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
                 style=list(fontSize = "20px", color = gris, 'overflow-y' = "scroll", scrollbar = TRUE)) %>%
-            hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2,
-                                             point= list(events = list(mouseOver = JS("function (e) {
-                                receive = 'y: ' + this.y;
-
-                                $('#customTooltip').html(receive)
-                                .css({
-                                    top: e.target.plotY,
-                                    left:  e.target.plotX
-                                })
-                                .show();
-                            }"))),
-                            style=list('{"fontFamily" : "Poppins", "fontWeight": "200"}'))
-            )
+            hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2))
 
 
     }else{
@@ -330,12 +319,12 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             theme_minimal(base_size=12, base_family = familia,
                           base_line_size = .5, base_rect_size = .5 ) %+replace%
             theme(text = element_text(family = familia),
-                axis.title = element_text(size = 15),
-                legend.title = element_text(size = 15),
-                legend.text = element_text(size = 12),
-                axis.text = element_text(size = 12),
-                panel.grid.minor = element_blank(),
-                axis.ticks = element_blank()         )
+                  axis.title = element_text(size = 15),
+                  legend.title = element_text(size = 15),
+                  legend.text = element_text(size = 12),
+                  axis.text = element_text(size = 12),
+                  panel.grid.minor = element_blank(),
+                  axis.ticks = element_blank()         )
     }
 }
 
