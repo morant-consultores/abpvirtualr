@@ -57,19 +57,19 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 # positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
                 #           y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
                 # useHTML= T,
-                outside = F,
-                formatter = JS("
-                function (H) {
-                H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
-                    if (e && e.type !== 'mousemove') {
-                    proceed.call(this, point, e);
-                    }
-                });
-                H.addEvent(H.Point.prototype, 'click', function (e) {
-                e.point.series.chart.tooltip.refresh(e.point, e);
-                });
-                }(Highcharts)
-                "),
+                # outside = F,
+                # formatter = JS("
+                # function (H) {
+                # H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
+                #     if (e && e.type !== 'mousemove') {
+                #     proceed.call(this, point, e);
+                #     }
+                # });
+                # H.addEvent(H.Point.prototype, 'click', function (e) {
+                # e.point.series.chart.tooltip.refresh(e.point, e);
+                # });
+                # }(Highcharts)
+                # "),
                 pointFormat= "
                 Respuestas con la palabra <b>{point.palabra}<b/>: <br>
                 {point.completa}
