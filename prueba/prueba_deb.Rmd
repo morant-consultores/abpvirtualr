@@ -1,9 +1,11 @@
 ---
 title: "Aqui va tu título"
 subtitle: "ABP Digital"  
-author: 
-  - "Gerencia del Poder"
+author:   <img src="img/logo2.png" width="900" height="200" />
+            "Gerencia del Poder"
+
 date: '`r Sys.Date()`'
+
 output:
   xaringan::moon_reader:
     css: [xaringan-themer.css]
@@ -19,7 +21,8 @@ output:
 class: inverse, middle, center
 
 ```{r, include = FALSE}
-primario <- "#232B58"
+
+primario <- "#2A3D6E"
 primario_claro <- "#304E83"
 inverso <- "#4C97C8"
 inverso_claro <- "#88B9CF"
