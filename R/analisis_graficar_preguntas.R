@@ -52,7 +52,6 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
             hchart(hcaes(x= palabra, weight =log(n),
                          color=colores), type= "wordcloud") %>%
             hc_chart(style=list(fontFamily =familia))   %>%
-            hc_yAxis( scrollbar= list(enabled=F)) %>%
             hc_tooltip(
                 # positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
                 #           y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
