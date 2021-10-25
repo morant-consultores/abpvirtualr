@@ -207,7 +207,7 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                 hc_legend(enabled = T) %>%
                 hc_tooltip(
                     enabled = T,
-                    pointFormat = 'Mediana: {point.mediana} <br> límites: inferior {point.ymin2} - superior {point.ymax2}   ',
+                    pointFormat = 'Media: {point.mediana} <br> límites: inferior {point.ymin2} - superior {point.ymax2}   ',
                     headerFormat = '',
                     borderWidth= 0,
                     backgroundColor= '#FFFFFF',
