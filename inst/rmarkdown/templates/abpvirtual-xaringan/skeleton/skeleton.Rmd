@@ -77,16 +77,12 @@ options(htmltools.dir.version = FALSE, htmltools.preserve.raw = FALSE)
 ```
 
 ```{r, cache = F}
-# library(abpvirtualr)
-
-devtools::load_all("~/Documents/Git/abpvirtualr/")
+library(abpvirtualr)
 ```
 
 ```{r}
-
-thm <- tema_high(font = "Popins", color = "black", size = "15px")
-# Hacer que esta función lea un archivo yaml 
-bd <- leer_base( id_sesion = 3156)
+thm <- tema_high(font = "Poppins", color = "black", size = "15px")
+bd <- leer_base(id_sesion = 3156)
 ```
 
 
