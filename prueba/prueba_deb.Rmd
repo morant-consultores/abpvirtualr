@@ -1,5 +1,5 @@
 ---
-title: "Análisis de brechas percibidas"
+title: "Análisis de Brechas Percibidas"
 subtitle: "Digital"  
 author:   <img src="img/logo2.png" width="900" height="200" />
             "Gerencia del Poder"
@@ -27,6 +27,7 @@ primario_claro <- "#304E83"
 inverso <- "#4C97C8"
 inverso_claro <- "#88B9CF"
 cortes <- c(0,4,8,12,16,25)*20^2
+# cortes <- c(0,4,7.5,11,16,25)*20^2
 sm_vf <- "#1C6130"
 sm_vc <- "#55A630"
 sm_a <- "#F5BC38"
