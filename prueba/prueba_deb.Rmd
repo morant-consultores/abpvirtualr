@@ -80,7 +80,7 @@ options(htmltools.dir.version = FALSE, htmltools.preserve.raw = FALSE)
 ```{r, cache = F}
 # library(abpvirtualr)
 
-devtools::load_all("~/MorantConsultores/abpvirtualr/")
+devtools::load_all(here::here())
 ```
 
 ```{r}
