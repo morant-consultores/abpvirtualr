@@ -57,21 +57,23 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 # positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
                 #           y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
                 # useHTML= T,
-                outside = F,
-                formatter = JS("
-                function (H) {
-                H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
-                    if (e && e.type !== 'mousemove') {
-                    proceed.call(this, point, e);
-                    }
-                });
-                H.addEvent(H.Point.prototype, 'click', function (e) {
-                e.point.series.chart.tooltip.refresh(e.point, e);
-                });
-                }(Highcharts)
-                "),
-                pointFormat=
-                    "<b>{point.n}<b/> Respuestas con la palabra: <b>{point.palabra}<b/>",
+                # outside = F,
+                # formatter = JS("
+                # function (H) {
+                # H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
+                #     if (e && e.type !== 'mousemove') {
+                #     proceed.call(this, point, e);
+                #     }
+                # });
+                # H.addEvent(H.Point.prototype, 'click', function (e) {
+                # e.point.series.chart.tooltip.refresh(e.point, e);
+                # });
+                # }(Highcharts)
+                # "),
+                pointFormat= "
+                Respuestas con la palabra <b>{point.palabra}<b/>: <br>
+                {point.completa}
+                ",
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
                 style=list(fontSize = "20px", color = gris, 'overflow-y' = "scroll", scrollbar = TRUE)) %>%
@@ -205,7 +207,7 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                 hc_legend(enabled = T) %>%
                 hc_tooltip(
                     enabled = T,
-                    pointFormat = 'Mediana: {point.mediana} <br> límites: inferior {point.ymin2} - superior {point.ymax2}   ',
+                    pointFormat = 'Media: {point.mediana} <br> límites: inferior {point.ymin2} - superior {point.ymax2}   ',
                     headerFormat = '',
                     borderWidth= 0,
                     backgroundColor= '#FFFFFF',
