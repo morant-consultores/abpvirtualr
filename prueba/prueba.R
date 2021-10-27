@@ -4,6 +4,7 @@ library(highcharter)
 library(ggpmthemes)
 library(showtext)
 
+devtools::load_all("~/MorantConsultores/abpvirtualr/")
 # Correr ----------------------------------------------------------------
 
 # Necesitas correr esto
@@ -42,6 +43,7 @@ options(highcharter.google_fonts = TRUE)
 #     +......'</table></div>'
 #     return s
 # }"))
+
 data(conexion)
 
 # Funciones ------------------------------------------------------------
@@ -50,8 +52,11 @@ thm <- tema_high(font = "Poppins", color = "black", size = "15px")
 bd <- leer_base(id_sesion = 3156)
 
 # 1 - Nube de palabras
-procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>%
+procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>% pluck(1) %>%
     graficar_nube()
+
+procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>%
+generar_tabla_nube()
 
 # 2 - Treemap brecha
 procesar_brecha(bd, otro = "Otro") %>%

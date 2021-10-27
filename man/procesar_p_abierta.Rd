@@ -16,7 +16,7 @@ provistas por la función leer_base.}
 \item{etapa}{(int) Número de la etapa.}
 }
 \value{
-(tibble) Tabla con las palabras, frecuencias y colores asignados.
+(list) Lista de dataframes uno con una tabla con las palabras, frecuencias y colores asignados y otro con las respuestas.
 }
 \description{
 Limpia, tokeniza y obtiene las frecuencias de palabras a

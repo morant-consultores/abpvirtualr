@@ -21,7 +21,6 @@ output:
 class: inverse, middle, center
 
 ```{r, include = FALSE}
-
 primario <- "#2A3D6E"
 primario_claro <- "#304E83"
 inverso <- "#4C97C8"
@@ -73,17 +72,17 @@ style_mono_accent(base_color =  primario,
                   header_font_google = google_font("Poppins"),
                   text_font_google   = google_font("Poppins"),
                   code_font_google   = google_font("Poppins"))
+
 options(htmltools.dir.version = FALSE, htmltools.preserve.raw = FALSE)
 ```
 
 ```{r, cache = F}
 # library(abpvirtualr)
 
-devtools::load_all("~/Documents/Git/abpvirtualr/")
+devtools::load_all("~/MorantConsultores/abpvirtualr/")
 ```
 
 ```{r}
-
 thm <- tema_high(font = "Popins", color = "black", size = "15px")
 # Hacer que esta función lea un archivo yaml 
 bd <- leer_base( id_sesion = 3156)
@@ -93,8 +92,8 @@ bd <- leer_base( id_sesion = 3156)
 
 # ETAPA 1: INICIO
 
-
 ---
+
 `r slides_nubes(bd, etapa = 1)`
 
 class: inverse, middle, center
