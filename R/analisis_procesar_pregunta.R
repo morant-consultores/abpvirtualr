@@ -6,7 +6,7 @@
 #' @param pregunta (int) Número de pregunta de la etapa.
 #' @param etapa (int) Número de la etapa.
 #'
-#' @return (tibble) Tabla con las palabras, frecuencias y colores asignados.
+#' @return (list) Lista de dataframes uno con una tabla con las palabras, frecuencias y colores asignados y otro con las respuestas.
 #' @export
 #' @import dplyr
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
@@ -28,10 +28,9 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
         summarise(
             n = n(),
             completa = tolower(stringr::str_c(
-                num, Respuesta, collapse= "<br><br>"))) %>%
-        ungroup() %>%
-        mutate(completa = stringr::str_replace_all(
-            palabra, glue::glue("<b>{palabra}</b>"), string = completa))
+                num, Respuesta, collapse= "\n"))) %>%
+        ungroup()
+
 
     nums <- tokens_clean %>%
         filter(stringr::str_detect(palabra, "^[0-9]")) %>%
@@ -49,7 +48,14 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
                 pull(Nombre)
         )
 
-    return(tokens_clean)
+    respuestas <- df %>% select(Respuesta) %>%
+        mutate(Pregunta = bd$pregunta %>%
+                   filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
+                   pull(Nombre))
+
+    res <- list(tokens_clean, respuestas)
+
+    return(res)
 }
 
 #' Procesamiento de la pregunta brecha, palabras clave por tema de manera
@@ -231,7 +237,7 @@ procesar_numerica <- function(bd, tipo){
         ) %>% mutate(y2 = base::round(y),
                      ymin2 = base::round(ymin),
                      ymax2 = base::round(ymax)
-                     )
+        )
 
     res <- list(histograma = histograma,
                 point_range = point_range)

@@ -19,15 +19,29 @@ slides_nubes <- function(bd, etapa){
 
     for (i in preguntas){
         a <- procesar_p_abierta(bd, pregunta = i, etapa = etapa)
-        b <- glue::glue("p_{i} <- a")
-        eval(parse(text = b))
 
-        x <- glue::glue(
+        a1 <- a %>% purrr::pluck(1)
+        a2 <- a %>% purrr::pluck(2)
+
+        b1 <- glue::glue("p_{i} <- a1")
+        b2 <- glue::glue("q_{i} <- a2")
+        eval(parse(text = b1))
+        eval(parse(text = b2))
+
+
+        x1 <- glue::glue(
         "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}))"
         )
 
-        y <- eval(parse(text = x))
-        out <- append(out, y)
+        x2 <- glue::glue(
+            "knitr::knit_expand(text = imprimir_tabla_nube(q_{i}, {i}))"
+        )
+
+        y1 <- eval(parse(text = x1))
+        y2 <- eval(parse(text = x2))
+
+        out <- append(out, y1) %>%
+            append(y2)
     }
 
     knitr::knit(text = paste(out, collapse = '\n'))

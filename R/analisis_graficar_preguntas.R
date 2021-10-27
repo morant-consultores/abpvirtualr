@@ -401,3 +401,28 @@ generar_tabla <- function(brecha){
         kableExtra::kable_classic(full_width = F, html_font = familia)
     return(tabla_df)
 }
+
+
+#' Title
+#'
+#' @param bd (Tibble) que proviene del segundo elemento de procesar_p_abierta
+#'
+#' @return Tabla en formato DT.
+#' @export
+#'
+#' @examples #notrun (generar_tabla_nube(procesar_p_abierta(bd,1,1) %>% pluck(2)))
+
+generar_tabla_nube <- function(bd){
+
+    tabla <- bd %>%
+        select(Respuesta) %>%
+        DT::datatable(
+            options = list(
+             language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
+            lengthMenu = c(5, 10, 25, 50, 100),
+            pageLength = 3,
+            scrollY = 300
+        ))
+
+    return(tabla)
+}
