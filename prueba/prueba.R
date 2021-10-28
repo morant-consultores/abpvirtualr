@@ -85,17 +85,15 @@ calcular_brecha(bd) %>%
     generar_tabla()
 
 # sandbox -----------------------------------------------------------------
+library(spatstat)
+library(scales)
+library(ggridges)
+corte <- seq(0,10000,length.out = 6)
 juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
     left_join(
         bd$calif_cat %>% select(usuario = IdUsuario,Calificacion,IdCategoria)
     ) %>% na.omit() %>% left_join(bd$categoria) %>% rename(cat = IdCategoria) %>%
     mutate(brecha = Orden*(100-Calificacion))
-juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
-    left_join(
-        bd$calif_cat %>% select(usuario = IdUsuario,Calificacion,IdCategoria)
-    ) %>% na.omit() %>% left_join(bd$categoria) %>% rename(cat = IdCategoria) %>%
-    mutate(brecha = Orden*(100-Calificacion))
-
 
 juntos %>% ggplot(aes(x = Calificacion, y = Orden)) + geom_density2d_filled() +
     facet_wrap(~Nombre)
@@ -107,13 +105,22 @@ ggplot() +
     geom_function(fun = ~purrr::map_dbl(.x, ~ min(corte[3]/(100-.x),100)), color = sm_vc, linetype = "dashed") +
     geom_function(fun = ~purrr::map_dbl(.x, ~ min(corte[2]/(100-.x),100)), color = sm_vf, linetype = "dashed") +
     xlim(0,100) +
-    coord_fixed() +
+    # coord_fixed() +
     facet_wrap(vars(Nombre))
+
+brecha_prob_1 <- juntos %>% split(.$Nombre) %>% imap(~{
+    acum <- CDF(density(.x$brecha, from = 0, to = 10000))
+    tibble(inf= corte,sup = lead(corte), color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,"")) %>%
+        slice(-6) %>% mutate(
+            prob = acum(sup-.0000001) - acum(inf),
+            Nombre = .y
+        )
+}) %>% bind_rows() %>% group_by(Nombre)
 
 juntos %>% ggplot(aes(y = brecha, x = Nombre, fill = Nombre)) + geom_violin(guide = F) +
     scale_fill_manual(values = brecha_prob_1$color)
 
-library(ggridges)
+
 ggplot(juntos, aes(x = brecha, y = Nombre,fill = ..x..)) +
     geom_density_ridges_gradient(scale = 2, rel_min_height = 0.001, gradient_lwd = 1, alpha = .7) +
     # scale_x_continuous(expand = c(0.01, 0)) +
@@ -127,7 +134,4 @@ ggplot(juntos, aes(x = brecha, y = Nombre,fill = ..x..)) +
     theme(axis.title.y = element_blank())
 
 
-jaja <- juntos %>% mutate(color = corte(brecha,cortes)) %>% count(Nombre,color) %>% group_by(Nombre) %>%
-    mutate(pct = n/sum(n))
-jaja %>% ggplot(aes(x = Nombre, y = color, color = color)) +
-    geom_point(data = jaja %>% filter(pct == max(pct)), size = 10) + scale_color_identity()
+
