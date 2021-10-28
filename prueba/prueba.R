@@ -4,7 +4,7 @@ library(highcharter)
 library(ggpmthemes)
 library(showtext)
 
-devtools::load_all("~/MorantConsultores/abpvirtualr/")
+devtools::load_all(here::here())
 # Correr ----------------------------------------------------------------
 
 # Necesitas correr esto
@@ -30,9 +30,9 @@ xaringanthemer::style_duo_accent(
     header_color = "#001c50",
     inverse_background_color = "#485375",
     header_font_google = xaringanthemer::google_font(
-    "https://fonts.googleapis.com/css2?family=Poppins:wght@400;700"),
+        "https://fonts.googleapis.com/css2?family=Poppins:wght@400;700"),
     text_font_google = xaringanthemer::google_font(
-    "https://fonts.googleapis.com/css2?family=Lato:wght@400;700")
+        "https://fonts.googleapis.com/css2?family=Lato:wght@400;700")
 )
 
 options(highcharter.google_fonts = TRUE)
@@ -56,7 +56,7 @@ procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>% pluck(1) %>%
     graficar_nube()
 
 procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>%
-generar_tabla_nube()
+    generar_tabla_nube()
 
 # 2 - Treemap brecha
 procesar_brecha(bd, otro = "Otro") %>%
@@ -83,3 +83,51 @@ calcular_brecha(bd) %>%
 # Tabla de calculo de brecha
 calcular_brecha(bd) %>%
     generar_tabla()
+
+# sandbox -----------------------------------------------------------------
+juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
+    left_join(
+        bd$calif_cat %>% select(usuario = IdUsuario,Calificacion,IdCategoria)
+    ) %>% na.omit() %>% left_join(bd$categoria) %>% rename(cat = IdCategoria) %>%
+    mutate(brecha = Orden*(100-Calificacion))
+juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
+    left_join(
+        bd$calif_cat %>% select(usuario = IdUsuario,Calificacion,IdCategoria)
+    ) %>% na.omit() %>% left_join(bd$categoria) %>% rename(cat = IdCategoria) %>%
+    mutate(brecha = Orden*(100-Calificacion))
+
+
+juntos %>% ggplot(aes(x = Calificacion, y = Orden)) + geom_density2d_filled() +
+    facet_wrap(~Nombre)
+
+ggplot() +
+    geom_density2d_filled(data = juntos,aes(x = Calificacion, y = Orden), alpha = .7, show.legend = F) +
+    geom_function(fun = ~purrr::map_dbl(.x, ~ min(corte[5]/(100-.x),100)), color = sm_rc, linetype = "dashed") +
+    geom_function(fun = ~purrr::map_dbl(.x, ~ min(corte[4]/(100-.x),100)), color = sm_a, linetype = "dashed") +
+    geom_function(fun = ~purrr::map_dbl(.x, ~ min(corte[3]/(100-.x),100)), color = sm_vc, linetype = "dashed") +
+    geom_function(fun = ~purrr::map_dbl(.x, ~ min(corte[2]/(100-.x),100)), color = sm_vf, linetype = "dashed") +
+    xlim(0,100) +
+    coord_fixed() +
+    facet_wrap(vars(Nombre))
+
+juntos %>% ggplot(aes(y = brecha, x = Nombre, fill = Nombre)) + geom_violin(guide = F) +
+    scale_fill_manual(values = brecha_prob_1$color)
+
+library(ggridges)
+ggplot(juntos, aes(x = brecha, y = Nombre,fill = ..x..)) +
+    geom_density_ridges_gradient(scale = 2, rel_min_height = 0.001, gradient_lwd = 1, alpha = .7) +
+    # scale_x_continuous(expand = c(0.01, 0)) +
+    # scale_y_discrete(expand = c(0.01, 0)) +
+    scale_fill_gradientn(colours = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf),
+                         values = corte/10000) +
+    # scale_fill_viridis(name = "Temp. [F]", option = "C") +
+    # labs(title = 'Temperatures in Lincoln NE',
+    #      subtitle = 'Mean temperatures (Fahrenheit) by month for 2016\nData: Original CSV from the Weather Underground') +
+    theme_ridges(font_size = 13, grid = TRUE) +
+    theme(axis.title.y = element_blank())
+
+
+jaja <- juntos %>% mutate(color = corte(brecha,cortes)) %>% count(Nombre,color) %>% group_by(Nombre) %>%
+    mutate(pct = n/sum(n))
+jaja %>% ggplot(aes(x = Nombre, y = color, color = color)) +
+    geom_point(data = jaja %>% filter(pct == max(pct)), size = 10) + scale_color_identity()
