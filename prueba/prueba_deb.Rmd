@@ -84,8 +84,7 @@ devtools::load_all(here::here())
 ```
 
 ```{r}
-thm <- tema_high(font = "Popins", color = "black", size = "15px")
-# Hacer que esta función lea un archivo yaml 
+thm <- tema_high(font = "Poppins", color = "black", size = "15px")
 bd <- leer_base( id_sesion = 3156)
 ```
 
