@@ -25,7 +25,8 @@ primario <- "#2A3D6E"
 primario_claro <- "#304E83"
 inverso <- "#4C97C8"
 inverso_claro <- "#88B9CF"
-cortes <- c(0,4,8,12,16,25)*20^2
+corte <- seq(0,10000,length.out = 6)
+cortes <- corte
 # cortes <- c(0,4,7.5,11,16,25)*20^2
 sm_vf <- "#1C6130"
 sm_vc <- "#55A630"
@@ -64,7 +65,6 @@ xaringanthemer::style_duo_accent(
 ) 
 
 options(highcharter.google_fonts = TRUE)
-
 ```
 
 ```{r include=F, echo=F, results=F}

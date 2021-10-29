@@ -111,7 +111,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
     # Gráfica de calculo de brecha
     brecha2 <- calcular_brecha(bd)
     out6 <- knitr::knit_expand(
-        text = imprimir_calc_brecha(brecha2, grafica = TRUE))
+        text = imprimir_calc_brecha(p_7, grafica = TRUE))
 
     # Tabla de calculo de brecha
     tabla_df <- generar_tabla(brecha2)

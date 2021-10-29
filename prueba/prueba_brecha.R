@@ -52,23 +52,34 @@ stat_aud <- function(mapping = NULL, data = NULL, geom = "area",
         params = list(xlim = xlim, n = n, ...))
 }
 # base --------------------------------------------------------------------
-juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
+juntos <- bd$orden_cat %>%
+    select(usuario = IdUsuario,Orden,IdCategoria) %>%
     left_join(
-        bd$calif_cat %>% select(usuario = IdUsuario,Calificacion,IdCategoria)
-    ) %>% na.omit() %>% left_join(bd$categoria) %>% rename(cat = IdCategoria) %>%
+        bd$calif_cat %>%
+            select(usuario = IdUsuario,Calificacion,IdCategoria)
+    ) %>%
+    na.omit() %>%
+    left_join(bd$categoria) %>%
+    rename(cat = IdCategoria) %>%
     mutate(brecha = Orden*(100-Calificacion))
 # prob brecha -------------------------------------------------------------
 
-brecha_prob_1 <- juntos %>% split(.$Nombre) %>% imap(~{
-    acum <- CDF(density(.x$brecha, from = 0, to = 10000))
-    tibble(inf= corte,sup = lead(corte), color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,"")) %>%
-        slice(-6) %>% mutate(
-            prob = acum(sup-.0000001) - acum(inf),
-            Nombre = .y
-        )
-}) %>% bind_rows() %>% group_by(Nombre)
+brecha_prob_1 <- juntos %>%
+    split(.$Nombre) %>%
+    imap(~{
+        acum <- spatstat.core::CDF(density(.x$brecha, from = 0, to = 10000))
+        tibble(inf= corte,sup = lead(corte), color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,"")) %>%
+            slice(-6) %>%
+            mutate(
+                prob = acum(sup-.0000001) - acum(inf),
+                Nombre = .y
+            )
+    }) %>%
+    bind_rows() %>%
+    group_by(Nombre)
 
-(a <- juntos %>% ggplot(aes(x = brecha)) + geom_density() +
+(a <- juntos %>%
+        ggplot(aes(x = brecha)) + geom_density() +
         stat_aud(geom="area",
                  fill = sm_vf,
                  xlim = cortes[1:2],
@@ -89,7 +100,8 @@ brecha_prob_1 <- juntos %>% split(.$Nombre) %>% imap(~{
                  fill = sm_rf,
                  xlim = cortes[5:6],
                  alpha = 1)+
-        geom_point(data = brecha_prob_1 %>% filter(prob == max(prob)), aes(color = color, x = 5000, y = .00025), size = 5) +
+        geom_point(data = brecha_prob_1 %>%
+        filter(prob == max(prob)), aes(color = color, x = 5000, y = .00025), size = 5) +
         # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
         scale_color_identity() +
         geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
@@ -103,6 +115,7 @@ brecha_prob_1 <- juntos %>% split(.$Nombre) %>% imap(~{
         facet_wrap(~Nombre)+ theme_void() +
         labs(caption = "* El círculo de color representa la propuesta de semaforización. \n** La línea vertical representa el promedio de la brecha.             ")
 )
+
 b <- brecha_prob_1 %>%
     ggplot(aes(x = Nombre, y = -sup, color = color)) +
     geom_point(data = brecha_prob_1  %>% filter(prob == max(prob)),size = 30) +
@@ -138,35 +151,35 @@ d <- brecha_prob_1 %>%
 br <- function(x,c = corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
 dominio <- seq(0,100,.1)
 library(hexbin)
-juntos %>% ggplot() +
+juntos %>%
+    ggplot() +
     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2])),
-                aes(x = a, ymin = 0, ymax = b),
-                fill = sm_vf,alpha = .5) +
+                aes(x = a, ymin = 0, ymax = b), fill = sm_vf,alpha = .5) +
     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2]), c = br(a,corte[3])),
-                aes(x = a, ymin = b,
-                    ymax = c), fill = sm_vc,alpha = .5) +
+                aes(x = a, ymin = b, ymax = c), fill = sm_vc,alpha = .5) +
     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[3]), c = br(a,corte[4])),
-                aes(x = a, ymin = b,
-                    ymax = c), fill = sm_a,alpha = .5) +
+                aes(x = a, ymin = b, ymax = c), fill = sm_a,alpha = .5) +
     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[4]), c = br(a,corte[5])),
-                aes(x = a, ymin = b,
-                    ymax = c), fill = sm_rc,alpha = .5) +
+                aes(x = a, ymin = b, ymax = c), fill = sm_rc,alpha = .5) +
     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[5])),
-                aes(x = a, ymin = b,
-                    ymax = 100), fill = sm_rf,alpha = .5) + coord_fixed() +
-    xlim(c(0,100)) + ylim(c(0,100)) +
+                aes(x = a, ymin = b, ymax = 100), fill = sm_rf,alpha = .5) +
+    coord_fixed() +
+    xlim(c(0,100)) +
+    ylim(c(0,100)) +
     # geom_tile(aes(x = Calificacion, y = Orden), width = 10, height = 10) +
     geom_hex(aes(x = Calificacion, y = Orden), bins = 10) +
     # geom_point(aes(x = Calificacion, y = Orden), color = "orange") +
     geom_vline(xintercept = 50) +
     geom_hline(yintercept = 50)+
     geom_abline(linetype = "dotted") +
-    geom_point(data = juntos %>% group_by(Nombre) %>%
+    geom_point(data = juntos %>%
+                   group_by(Nombre) %>%
                    summarise(i = mean(Orden), c = mean(Calificacion)),
                aes(x = c, y = i), color = "red", size = 3
-               )+
+    )+
     facet_wrap(~Nombre, nrow= 2) +
     theme_void()
+
 # Gráficas ----------------------------------------------------------------
 
 a
@@ -196,3 +209,4 @@ corte
 sim %>% ggplot(aes(x = b)) + geom_density()
 
 comb %>% ggplot() + geom_tile(aes(x = c, y = i))
+
