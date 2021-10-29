@@ -130,15 +130,16 @@ c <- brecha_prob_1 %>%
 d <- brecha_prob_1 %>%
     mutate(color = factor(color, levels = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)),
            acum = cumsum(prob)) %>%
-    ggplot(aes(x = Nombre, y = prob, fill = color)) +
-    geom_col(position = "stack",show.legend = F) +
+    ggplot(aes(x = 1, y = prob, fill = color)) +
+    geom_col(position = "dodge",show.legend = F) +
     # geom_text(aes(label = percent(prob,1), x = acum)) +
-    scale_fill_manual(values =c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf))
+    scale_fill_manual(values =c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)) +
+    facet_wrap(~Nombre)
 
 br <- function(x,c = corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
 dominio <- seq(0,100,.1)
 library(hexbin)
-juntos %>% ggplot() +
+e <- juntos %>% ggplot() +
     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2])),
                 aes(x = a, ymin = 0, ymax = b),
                 fill = sm_vf,alpha = .5) +
@@ -155,24 +156,23 @@ juntos %>% ggplot() +
                 aes(x = a, ymin = b,
                     ymax = 100), fill = sm_rf,alpha = .5) + coord_fixed() +
     xlim(c(0,100)) + ylim(c(0,100)) +
-    # geom_tile(aes(x = Calificacion, y = Orden), width = 10, height = 10) +
-    geom_hex(aes(x = Calificacion, y = Orden), bins = 10) +
-    # geom_point(aes(x = Calificacion, y = Orden), color = "orange") +
-    geom_vline(xintercept = 50) +
+    geom_vline(xintercept = 50, fill = primario) +
     geom_hline(yintercept = 50)+
     geom_abline(linetype = "dotted") +
-    geom_point(data = juntos %>% group_by(Nombre) %>%
-                   summarise(i = mean(Orden), c = mean(Calificacion)),
-               aes(x = c, y = i), color = "red", size = 3
-               )+
+    geom_hex(aes(x = Calificacion, y = Orden)) +
+    labs(fill = "Respuestas") +
     facet_wrap(~Nombre, nrow= 2) +
-    theme_void()
+    theme_void() + theme(legend.position = "bottom") +
+    scale_fill_gradientn(colours = hcl.colors(50, "YlOrRd", rev = TRUE),
+                         breaks = seq(0,juntos %>% count(Nombre) %>% summarise(max(n)) %>% pull(1),
+                                      length.out = 5))
 # Gráficas ----------------------------------------------------------------
 
 a
 b
 c
 d
+e
 # Combinaciones -----------------------------------------------------------
 
 comb <- expand.grid(i= 0:100, c = 0:100) %>% as_tibble %>% mutate(b =i * (100-c))
@@ -196,3 +196,48 @@ corte
 sim %>% ggplot(aes(x = b)) + geom_density()
 
 comb %>% ggplot() + geom_tile(aes(x = c, y = i))
+
+# Simulacion --------------------------------------------------------------
+
+sim <- juntos %>% group_by(Nombre) %>% summarise(media_i = mean(Orden), sd_i = sqrt(var(Orden/5)),
+                                          media_c = mean(Calificacion), sd_c = sqrt(var(Calificacion/5))) %>%
+    pmap(function(Nombre, media_i,sd_i,media_c,sd_c){
+        tibble(tema = Nombre, i = rnorm(100,media_i, sd_i),
+               c = rnorm(100,media_c, sd_c),b = i*(100-c))
+    }) %>% bind_rows()
+sim %>%
+    ggplot() +
+    geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2])),
+                aes(x = a, ymin = 0, ymax = b),
+                fill = sm_vf,alpha = .5) +
+    geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2]), c = br(a,corte[3])),
+                aes(x = a, ymin = b,
+                    ymax = c), fill = sm_vc,alpha = .5) +
+    geom_ribbon(data = tibble(a = dominio, b = br(a,corte[3]), c = br(a,corte[4])),
+                aes(x = a, ymin = b,
+                    ymax = c), fill = sm_a,alpha = .5) +
+    geom_ribbon(data = tibble(a = dominio, b = br(a,corte[4]), c = br(a,corte[5])),
+                aes(x = a, ymin = b,
+                    ymax = c), fill = sm_rc,alpha = .5) +
+    geom_ribbon(data = tibble(a = dominio, b = br(a,corte[5])),
+                aes(x = a, ymin = b,
+                    ymax = 100), fill = sm_rf,alpha = .5) + coord_fixed() +
+    xlim(c(0,100)) + ylim(c(0,100)) +
+    geom_vline(xintercept = 50) +
+    geom_hline(yintercept = 50)+
+    geom_abline(linetype = "dotted") +
+    geom_hex(aes(x = c, y = i)) +
+    # geom_point(aes(x = c, y = i)) +
+    labs(fill = "Respuestas") +
+    # geom_point(data = sim %>% group_by(tema) %>%
+    #                summarise(i = mean(i), c = mean(c)),
+    #            aes(x = c, y = i), color = "red", size = 2
+    # )+
+    facet_wrap(~tema, nrow= 2) +
+    theme_void() + theme(legend.position = "bottom") +
+    scale_fill_gradientn(colours = hcl.colors(50, "YlOrRd", rev = TRUE),
+                         breaks = seq(0,sim %>% count(tema) %>% summarise(max(n)) %>% pull(1),
+                                      length.out = 5))
+    # scale_fill_gradient(breaks = seq(0,sim %>% count(tema) %>% summarise(max(n)) %>% pull(1),
+    #                                  length.out = 5),
+    #                     low = primario, high = sm_rc)

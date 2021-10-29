@@ -330,6 +330,25 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
 
 
 
+StatAreaUnderDensity <- ggproto(
+    "StatAreaUnderDensity", Stat,
+    required_aes = "x",
+    compute_group = function(data, scales, xlim = NULL, n = 50) {
+        fun <- approxfun(density(data$x, from = 0, to = 10000))
+        StatFunction$compute_group(data, scales, fun = fun, xlim = xlim, n = n)
+    }
+)
+
+stat_aud <- function(mapping = NULL, data = NULL, geom = "area",
+                     position = "identity", na.rm = FALSE, show.legend = NA,
+                     inherit.aes = TRUE, n = 50, xlim=NULL,
+                     ...) {
+    layer(
+        stat = StatAreaUnderDensity, data = data, mapping = mapping, geom = geom,
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+        params = list(xlim = xlim, n = n, ...))
+}
+
 #' Gráfica de barras del cálculo de brecha.
 #'
 #' @param brecha (tibble) Marco de datos provisto por
@@ -342,35 +361,71 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
 #' @examples #notrun ( graficar_nbrecha(calcular_brecha(bd)) )
 
 graficar_nbrecha <- function(brecha, thm){
-
-    bd <- brecha %>%
-        arrange(desc(brecha)) %>%
+    bd <- brecha %>% pluck(2) %>%
+        arrange(desc(prob)) %>%
         mutate(
+            prob_pct = base::round(prob*100),
             brecha_pct = base::round(brecha_pct*100),
-            Categoria = forcats::fct_reorder(Categoria, brecha)
+            Categoria = forcats::fct_reorder(Nombre, prob)
         )
 
-    bd %>% hchart(hcaes(y = brecha_pct, x = Categoria), type = "bar") %>%
-        hc_plotOptions(bar = list(colorByPoint = T, borderRadius = 6, borderWidth =0)) %>%
-        hc_legend(enabled = F) %>%
-        hc_tooltip(
-            enabled = T,
-            headerFormat = '<span style="font-size: 14px"><b>{point.key}</b></span><br/>',
-            pointFormat = ' <br> Brecha: {point.brecha_pct}%',
-            backgroundColor= '#FFFFFF',
-            borderWidth =0,
-            style=list(fontSize ="16px", color = gris, fontFamily = familia)) %>%
-        hc_xAxis(lineWidth = 3.5, lineColor = primario_claro, zIndex= 5,
-                 labels = list(style = list(fontSize = etiquetas)),
-                 title= list(text = "Tema", style = list(fontSize = etiquetas))        ) %>%
-        hc_colors(bd %>% pull(color)) %>%
-        hc_yAxis( labels = list(format = "{value}%",
-                                style = list(fontSize = etiquetas)),
-                  title = list(text = ""),
-                  tickAmount = 5,
-                  min = 0) %>%
-        hc_add_theme(thm) %>%
-        hc_chart(style=list(fontFamily = familia))
+    juntos <- brecha %>% pluck(1)
+
+    (a <- juntos %>% ggplot(aes(x = brecha)) + geom_density() +
+            stat_aud(geom="area",
+                     fill = sm_vf,
+                     xlim = cortes[1:2],
+                     alpha = 1)+
+            stat_aud(geom="area",
+                     fill = sm_vc,
+                     xlim = cortes[2:3],
+                     alpha = 1)+
+            stat_aud(geom="area",
+                     fill = sm_a,
+                     xlim = cortes[3:4],
+                     alpha = 1)+
+            stat_aud(geom="area",
+                     fill = sm_rc,
+                     xlim = cortes[4:5],
+                     alpha = 1)+
+            stat_aud(geom="area",
+                     fill = sm_rf,
+                     xlim = cortes[5:6],
+                     alpha = 1)+
+            geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup, aes(color = color, x = 5000, y = .00025), size = 5) +
+            # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
+            scale_color_identity() +
+            geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
+                       aes(xintercept = media)
+            ) +
+            geom_text(data = bd %>% mutate(mean = (inf+sup)/2),
+                      aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = "white") +
+            facet_wrap(~Nombre)+ theme_void() +
+            labs(caption = "* El círculo de color representa la propuesta de semaforización. \n** La línea vertical representa el promedio de la brecha.             ")
+    )
+
+
+    # bd %>% hchart(hcaes(y = prob_pct, x = Categoria), type = "bar") %>%
+    #     hc_plotOptions(bar = list(colorByPoint = T, borderRadius = 6, borderWidth =0)) %>%
+    #     hc_legend(enabled = F) %>%
+    #     hc_tooltip(
+    #         enabled = T,
+    #         headerFormat = '<span style="font-size: 14px"><b>{point.key}</b></span><br/>',
+    #         pointFormat = ' <br> Brecha: {point.brecha_pct}% <br> Frecuencia: {point.prob_pct}%',
+    #         backgroundColor= '#FFFFFF',
+    #         borderWidth =0,
+    #         style=list(fontSize ="16px", color = gris, fontFamily = familia)) %>%
+    #     hc_xAxis(lineWidth = 3.5, lineColor = primario_claro, zIndex= 5,
+    #              labels = list(style = list(fontSize = etiquetas)),
+    #              title= list(text = "Tema", style = list(fontSize = etiquetas))        ) %>%
+    #     hc_colors(bd %>% pull(color)) %>%
+    #     hc_yAxis( labels = list(format = "{value}%",
+    #                             style = list(fontSize = etiquetas)),
+    #               title = list(text = "Frecuencia"),
+    #               tickAmount = 5,
+    #               min = 0) %>%
+    #     hc_add_theme(thm) %>%
+    #     hc_chart(style=list(fontFamily = familia))
 
 }
 
@@ -386,17 +441,23 @@ graficar_nbrecha <- function(brecha, thm){
 #'
 
 generar_tabla <- function(brecha){
-    tabla <- brecha %>% arrange(desc(brecha))
+    tabla <- brecha %>% pluck(2) %>%
+        filter(prob == max(prob)) %>% ungroup %>%
+        arrange(desc(brecha))
     colores <- tabla %>% pull(color)
 
     tabla_df <- tabla %>%
-        mutate(Brecha = scales::percent(brecha_pct, 1)) %>%
-        select( Tema=Categoria , Brecha,
+        mutate(Brecha = scales::percent(brecha_pct, 1),
+               Frecuencia =scales::percent(prob, 1)
+        ) %>%
+        select( Tema=Nombre ,
+                Brecha,
+                Frecuencia,
                 Cumplimiento = cumplimiento,
                 Importancia = importancia) %>%
         kableExtra::kbl() %>%
         kableExtra::kable_paper("striped", full_width = F) %>%
-        kableExtra::column_spec(2, color = "white",
+        kableExtra::column_spec(2:3, color = "white",
                                 background = colores) %>%
         kableExtra::kable_classic(full_width = F, html_font = familia)
     return(tabla_df)
@@ -418,11 +479,11 @@ generar_tabla_nube <- function(bd){
         select(Respuesta) %>%
         DT::datatable(
             options = list(
-             language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
-            lengthMenu = c(5, 10, 25, 50, 100),
-            pageLength = 3,
-            scrollY = 300
-        ))
+                language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
+                lengthMenu = c(5, 10, 25, 50, 100),
+                pageLength = 3,
+                scrollY = 300
+            ))
 
     return(tabla)
 }

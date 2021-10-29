@@ -9,6 +9,7 @@
 #' @return (list) Lista de dataframes uno con una tabla con las palabras, frecuencias y colores asignados y otro con las respuestas.
 #' @export
 #' @import dplyr
+#' @importFrom spatstat CDF
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
 
 procesar_p_abierta <- function(bd, pregunta, etapa){
@@ -322,25 +323,26 @@ corte <- function(brecha, corte = cortes,
 #' @examples #notrun (calcular_brecha(bd))
 
 calcular_brecha <- function(bd){
+    juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
+        left_join(
+            bd$calif_cat %>% select(usuario = IdUsuario,Calificacion,IdCategoria)
+        ) %>% na.omit() %>% left_join(bd$categoria) %>% rename(cat = IdCategoria) %>%
+        mutate(brecha = Orden*(100-Calificacion))
 
-    res <- bd %>%
-        procesar_numerica("Orden") %>%
-        purrr::pluck("histograma") %>%
-        left_join(bd %>%
-                      procesar_numerica("Calificacion") %>%
-                      purrr::pluck("histograma")) %>%
-        mutate(
-            br = Orden*(100-Calificacion)#,
-        ) %>%
-        group_by(Categoria) %>%
-        summarise(
-            brecha = base::mean(br),
-            cumplimiento = base::round(base::mean(Calificacion)),
-            importancia = base::round(base::mean(Orden)),
-            color = corte(brecha),
-            brecha_pct = brecha/10000,
-            # color = mode(color) # para calcular el semáforo por moda
-        )
+    res <- juntos %>% split(.$Nombre) %>% purrr::imap(~{
+        acum <- spatstat::CDF(stats::density(.x$brecha, from = 0, to = 10000))
+        tibble(inf= cortes,
+               sup = lead(cortes), color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,"")) %>%
+            na.omit() %>%
+            mutate(
+                prob = acum(sup-.0000001) - acum(inf),
+                Nombre = .y,
+                brecha = base::mean(.x$brecha),
+                cumplimiento = base::round(base::mean(.x$Calificacion)),
+                importancia = base::round(base::mean(.x$Orden)),
+                brecha_pct = brecha/10000
+            )
+    }) %>% bind_rows() %>% group_by(Nombre)
 
-    return(res)
+    return(list(juntos, res))
 }
