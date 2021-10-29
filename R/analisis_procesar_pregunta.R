@@ -249,7 +249,7 @@ procesar_numerica <- function(bd, tipo){
 #' @param bd (list) La lista con las tablas necesarias
 #' provistas por la función leer_base.
 #'
-#' @return (tibble) Un tibble con Importancia relaacionada con
+#' @return (list) Un tibble con Importancia relaacionada con
 #' Cumplimiento por medio de la mediana.
 #' @export
 #'
