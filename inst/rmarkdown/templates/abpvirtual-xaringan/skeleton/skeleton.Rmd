@@ -26,7 +26,8 @@ primario <- "#2A3D6E"
 primario_claro <- "#304E83"
 inverso <- "#4C97C8"
 inverso_claro <- "#88B9CF"
-cortes <- c(0,4,8,12,16,25)*20^2
+# cortes <- c(0,4,8,12,16,25)*20^2
+cortes <- seq(0,10000,length.out = 6)
 sm_vf <- "#1C6130"
 sm_vc <- "#55A630"
 sm_a <- "#F5BC38"
@@ -51,17 +52,6 @@ knitr::opts_chunk$set(
   fig.showtext = T
 ) 
 
-xaringanthemer::style_duo_accent(
-  primary_color = "#F2F2F0",
-  secondary_color = "#485375",
-  inverse_header_color = "#F2F2F0",
-  header_color = "#001c50",
-  inverse_background_color = "#233466",
-  header_font_google = xaringanthemer::google_font(
-  "https://fonts.googleapis.com/css2?family=Poppins:wght@400;700"),
-  text_font_google = xaringanthemer::google_font(
-  "https://fonts.googleapis.com/css2?family=Lato:wght@400;700")
-) 
 
 options(highcharter.google_fonts = TRUE)
 
@@ -70,9 +60,9 @@ options(highcharter.google_fonts = TRUE)
 ```{r include=F, echo=F, results=F}
 library(xaringanthemer)
 style_mono_accent(base_color =  primario,
-                  header_font_google = google_font("Poppins"),
-                  text_font_google   = google_font("Poppins"),
-                  code_font_google   = google_font("Poppins"))
+                  header_font_google = google_font(familia),
+                  text_font_google   = google_font(familia),
+                  code_font_google   = google_font(familia))
 options(htmltools.dir.version = FALSE, htmltools.preserve.raw = FALSE)
 ```
 
@@ -81,7 +71,7 @@ library(abpvirtualr)
 ```
 
 ```{r}
-thm <- tema_high(font = "Poppins", color = "black", size = "15px")
+thm <- tema_high(font = familia, color = "black", size = "15px")
 bd <- leer_base(id_sesion = 3156)
 ```
 

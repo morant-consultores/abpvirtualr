@@ -31,7 +31,7 @@ Imports:
     quanteda.textstats,
     RColorBrewer,
     scales,
-    spatstat,
+    spatstat.core,
     stopwords,
     stringr,
     sysfonts,

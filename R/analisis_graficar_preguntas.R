@@ -288,7 +288,7 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
         # br <- function(x,c) purrr::map_dbl(x, ~ min(c/(100-.x),100))
         # dominio <- seq(0,100,.1)
         #
-        # sysfonts::font_add_google(familia)
+        sysfonts::font_add_google(familia)
         #
         # ggplot() +
         #     geom_ribbon(
@@ -328,22 +328,83 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
 
         br <- function(x,c = corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
         dominio <- seq(0,100,.1)
-
-        # brecha_prob_1 %>%
-        bd$brecha_prob_1 %>%
-            mutate(alpha = prob/max(prob)) %>%
-            ggplot(aes(x = Nombre, y = -sup, fill = color,alpha = prob)) +
-            geom_tile(show.legend = F) +
-            geom_tile(data = bd$brecha_prob_1 %>%
-                          filter(prob == max(prob)), show.legend = F,
-                      color = primario, size = 3) +
-            geom_text(
-                aes(label = scales::percent(prob,accuracy = .1)),
-                color = "black", show.legend = F) +
-            scale_fill_identity() +
-            theme_minimal() +
-            theme(axis.text.y = element_blank()) +
-            labs(x =NULL,y = NULL)
+        sim <- bd %>% group_by(Nombre) %>%
+            summarise(media_i = mean(Orden), sd_i = sqrt(var(Orden/5)),
+                      media_c = mean(Calificacion), sd_c = sqrt(var(Calificacion/5))) %>%
+            purrr::pmap(function(Nombre, media_i,sd_i,media_c,sd_c){
+                tibble::tibble(tema = Nombre, i = rnorm(100,media_i, sd_i),
+                               c = rnorm(100,media_c, sd_c),b = i*(100-c))
+            }) %>% bind_rows()
+        # e <- bd %>% ggplot() +
+        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2])),
+        #                 aes(x = a, ymin = 0, ymax = b), fill = sm_vf,alpha = .5) +
+        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2]), c = br(a,corte[3])),
+        #                 aes(x = a, ymin = b, ymax = c), fill = sm_vc,alpha = .5) +
+        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[3]), c = br(a,corte[4])),
+        #                 aes(x = a, ymin = b, ymax = c), fill = sm_a,alpha = .5) +
+        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[4]), c = br(a,corte[5])),
+        #                 aes(x = a, ymin = b, ymax = c), fill = sm_rc,alpha = .5) +
+        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[5])),
+        #                 aes(x = a, ymin = b,
+        #                     ymax = 100), fill = sm_rf,alpha = .5) + coord_fixed() +
+        #     xlim(c(0,100)) + ylim(c(0,100)) +
+        #     geom_vline(xintercept = 50, fill = primario) +
+        #     geom_hline(yintercept = 50)+
+        #     geom_abline(linetype = "dotted") +
+        #     geom_hex(aes(x = Calificacion, y = Orden)) +
+        #     labs(fill = "Respuestas") +
+        #     facet_wrap(~Nombre, nrow= 2) +
+        #     theme_void() +# theme(legend.position = "bottom") +
+        #     scale_fill_gradientn(colours = hcl.colors(50, "YlOrRd", rev = TRUE),
+        #                          breaks = seq(0,bd %>% count(Nombre) %>% summarise(max(n)) %>% pull(1),
+        #                                       length.out = 5))
+        e <- sim %>%
+            ggplot() +
+            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2])),
+                        aes(x = a, ymin = 0, ymax = b),
+                        fill = sm_vf,alpha = .5) +
+            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2]), c = br(a,corte[3])),
+                        aes(x = a, ymin = b,
+                            ymax = c), fill = sm_vc,alpha = .5) +
+            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[3]), c = br(a,corte[4])),
+                        aes(x = a, ymin = b,
+                            ymax = c), fill = sm_a,alpha = .5) +
+            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[4]), c = br(a,corte[5])),
+                        aes(x = a, ymin = b,
+                            ymax = c), fill = sm_rc,alpha = .5) +
+            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[5])),
+                        aes(x = a, ymin = b,
+                            ymax = 100), fill = sm_rf,alpha = .5) + coord_fixed() +
+            xlim(c(0,100)) + ylim(c(0,100)) +
+            geom_vline(xintercept = 50) +
+            geom_hline(yintercept = 50)+
+            geom_abline(linetype = "dotted") +
+            geom_hex(aes(x = c, y = i)) +
+            # geom_point(aes(x = c, y = i)) +
+            labs(fill = "", x = "Cumplimiento", y ="Importancia") +
+            # geom_point(data = sim %>% group_by(tema) %>%
+            #                summarise(i = mean(i), c = mean(c)),
+            #            aes(x = c, y = i), color = "red", size = 2
+            # )+
+            facet_wrap(~tema, nrow= 2) +
+            scale_y_continuous(breaks = c(0,50,100)) +
+            scale_x_continuous(breaks = c(0,50,100)) +
+            scale_fill_gradientn(colours = hcl.colors(50, "YlOrRd", rev = TRUE)#,
+                                 # breaks = seq(0,sim %>% count(tema) %>% summarise(max(n)) %>% pull(1),
+                                 #              length.out = 5)
+                                 ) +
+                xaringanthemer::theme_xaringan() +
+                theme_minimal(base_size=12, base_family = familia,
+                              base_line_size = .5, base_rect_size = .5 ) %+replace%
+                theme(text = element_text(family = familia),
+                      axis.title = element_text(size = 15),
+                      legend.title = element_text(size = 15),
+                      legend.text = element_text(size = 12),
+                      axis.text = element_text(size = 12),
+                      panel.grid.minor = element_blank(),
+                      axis.ticks = element_blank()
+                      )
+        return(e)
     }
 }
 
@@ -380,7 +441,7 @@ stat_aud <- function(mapping = NULL, data = NULL, geom = "area",
 #' @examples #notrun ( graficar_nbrecha(calcular_brecha(bd)) )
 
 graficar_nbrecha <- function(brecha, thm){
-    bd <- brecha %>% pluck(2) %>%
+    bd <- brecha %>% purrr::pluck(2) %>%
         arrange(desc(prob)) %>%
         mutate(
             prob_pct = base::round(prob*100),
@@ -388,7 +449,7 @@ graficar_nbrecha <- function(brecha, thm){
             Categoria = forcats::fct_reorder(Nombre, prob)
         )
 
-    juntos <- brecha %>% pluck(1)
+    juntos <- brecha %>% purrr::pluck(1)
 
     Graph <- juntos %>% ggplot(aes(x = brecha)) + geom_density() +
         stat_aud(geom="area",
@@ -414,13 +475,13 @@ graficar_nbrecha <- function(brecha, thm){
         geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup, aes(color = color, x = 5000, y = .00025), size = 5) +
         # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
         scale_color_identity() +
-        geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
-                   aes(xintercept = media)
-        ) +
-        geom_text(data = bd %>% mutate(mean = (inf+sup)/2),
+        # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
+        #            aes(xintercept = media)
+        # ) +
+        geom_text(data = bd %>% mutate(mean = (inf+sup)/2), size = 3,
                   aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = "white") +
         facet_wrap(~Nombre)+ theme_void() +
-        labs(caption = "* El círculo de color representa la propuesta de semaforización. \n** La línea vertical representa el promedio de la brecha.             ")
+        labs(caption = "* El círculo de color representa la semaforización más frecuente.")
 
 
     # bd %>% hchart(hcaes(y = prob_pct, x = Categoria), type = "bar") %>%
@@ -459,7 +520,7 @@ graficar_nbrecha <- function(brecha, thm){
 #'
 
 generar_tabla <- function(brecha){
-    tabla <- brecha %>% pluck(2) %>%
+    tabla <- brecha %>% purrr::pluck(2) %>%
         filter(prob == max(prob)) %>% ungroup %>%
         arrange(desc(brecha))
     colores <- tabla %>% pull(color)

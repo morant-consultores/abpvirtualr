@@ -32,7 +32,6 @@ slides_nubes <- function(bd, etapa){
         x1 <- glue::glue(
         "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}))"
         )
-
         x2 <- glue::glue(
             "knitr::knit_expand(text = imprimir_tabla_nube(q_{i}, {i}))"
         )
@@ -111,7 +110,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
     # Gráfica de calculo de brecha
     brecha2 <- calcular_brecha(bd)
     out6 <- knitr::knit_expand(
-        text = imprimir_calc_brecha(p_7, grafica = TRUE))
+        text = imprimir_calc_brecha(brecha2, grafica = TRUE))
 
     # Tabla de calculo de brecha
     tabla_df <- generar_tabla(brecha2)

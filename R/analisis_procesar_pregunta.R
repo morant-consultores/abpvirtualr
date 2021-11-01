@@ -9,7 +9,7 @@
 #' @return (list) Lista de dataframes uno con una tabla con las palabras, frecuencias y colores asignados y otro con las respuestas.
 #' @export
 #' @import dplyr
-#' @importFrom spatstat CDF
+#' @importFrom spatstat.core CDF
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
 
 procesar_p_abierta <- function(bd, pregunta, etapa){
@@ -267,7 +267,6 @@ procesar_juntos <- function(bd){
     #     summarise(importancia = base::round(base::mean(Orden)),
     #               cumplimiento = base::round(base::mean(Calificacion)))
 
-    corte <- seq(0,10000,length.out = 6)
 
     juntos <- bd$orden_cat %>%
         select(usuario = IdUsuario,Orden,IdCategoria) %>%
@@ -280,23 +279,8 @@ procesar_juntos <- function(bd){
         rename(cat = IdCategoria) %>%
         mutate(brecha = Orden*(100-Calificacion))
 
-    brecha_prob_1 <- juntos %>%
-        split(.$Nombre) %>%
-        purrr::imap(~{
-            acum <- spatstat.core::CDF(density(.x$brecha, from = 0, to = 10000))
-            tibble(inf= corte,sup = lead(corte),
-                   color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,"")) %>%
-                slice(-6) %>%
-                mutate(
-                    prob = acum(sup-.0000001) - acum(inf),
-                    Nombre = .y
-                )
-        }) %>%
-        bind_rows() %>%
-        group_by(Nombre)
 
-    res <- list(juntos = juntos, brecha_prob_1 = brecha_prob_1)
-    return(res)
+    return(juntos)
 }
 
 #' Obtiene el o los códigos de los colores más repetidos.
@@ -359,7 +343,7 @@ calcular_brecha <- function(bd){
         mutate(brecha = Orden*(100-Calificacion))
 
     res <- juntos %>% split(.$Nombre) %>% purrr::imap(~{
-        acum <- spatstat::CDF(stats::density(.x$brecha, from = 0, to = 10000))
+        acum <- spatstat.core::CDF(stats::density(.x$brecha, from = 0, to = 10000))
         tibble(inf= cortes,
                sup = lead(cortes), color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,"")) %>%
             na.omit() %>%

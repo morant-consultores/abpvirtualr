@@ -196,7 +196,7 @@ imprimir_calc_brecha <- function(bd, grafica){
         char <- glue::glue(paste(
             "\n\n # Gráfica del cálculo de Brecha",
             "\n\n --- \n\n {sp}{r} \n\n",
-            "graficar_nbrecha(p_7)",
+            "graficar_nbrecha(brecha2)",
             "\n\n {sp} \n\n ---", sep = " ")
         )
 
