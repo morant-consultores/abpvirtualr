@@ -4,7 +4,7 @@
 \alias{graficar_nbrecha}
 \title{Gráfica de barras del cálculo de brecha.}
 \usage{
-graficar_nbrecha(brecha, thm)
+graficar_nbrecha(bd)
 }
 \arguments{
 \item{brecha}{(tibble) Marco de datos provisto por

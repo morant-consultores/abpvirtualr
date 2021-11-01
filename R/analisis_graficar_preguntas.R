@@ -285,46 +285,65 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
     }
     else{
 
-        br <- function(x,c) purrr::map_dbl(x, ~ min(c/(100-.x),100))
+        # br <- function(x,c) purrr::map_dbl(x, ~ min(c/(100-.x),100))
+        # dominio <- seq(0,100,.1)
+        #
+        # sysfonts::font_add_google(familia)
+        #
+        # ggplot() +
+        #     geom_ribbon(
+        #         aes(x = dominio, ymin = 0, ymax = br(dominio,corte[2])),
+        #         fill = sm_vf,alpha = .5) +
+        #     geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[2]),
+        #                     ymax = br(dominio,corte[3])), fill = sm_vc,alpha = .5) +
+        #     geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[3]),
+        #                     ymax = br(dominio,corte[4])), fill = sm_a,alpha = .5) +
+        #     geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[4]),
+        #                     ymax = br(dominio,corte[5])), fill = sm_rc,alpha = .5) +
+        #     geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[5]),
+        #                     ymax = 100), fill = sm_rf,alpha = .5) +
+        #     geom_hline(yintercept = 50) +
+        #     geom_vline(xintercept = 50) +
+        #     geom_abline(linetype = "dotted", color = "gray50") +
+        #     coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
+        #     labs(y = "Importancia", x = "Cumplimiento", color = "Tema") +
+        #     xaringanthemer::theme_xaringan() +
+        #     geom_point(data = bd, aes(
+        #         x = cumplimiento,
+        #         y = importancia,
+        #         color = Nombre), size = 5)+
+        #     scale_color_manual(values = c("#001C50", "#4DCCBD", "#725E54",
+        #                                   "#FF6B6B", "#DBD56E", "#C6B9CD",
+        #                                   "#414535", "#EB6534", "#59A5D8",
+        #                                   "#DE4797"))+
+        #     theme_minimal(base_size=12, base_family = familia,
+        #                   base_line_size = .5, base_rect_size = .5 ) %+replace%
+        #     theme(text = element_text(family = familia),
+        #           axis.title = element_text(size = 15),
+        #           legend.title = element_text(size = 15),
+        #           legend.text = element_text(size = 12),
+        #           axis.text = element_text(size = 12),
+        #           panel.grid.minor = element_blank(),
+        #           axis.ticks = element_blank()         )
+
+        br <- function(x,c = corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
         dominio <- seq(0,100,.1)
 
-        sysfonts::font_add_google(familia)
-
-        ggplot() +
-            geom_ribbon(
-                aes(x = dominio, ymin = 0, ymax = br(dominio,corte[2])),
-                fill = sm_vf,alpha = .5) +
-            geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[2]),
-                            ymax = br(dominio,corte[3])), fill = sm_vc,alpha = .5) +
-            geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[3]),
-                            ymax = br(dominio,corte[4])), fill = sm_a,alpha = .5) +
-            geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[4]),
-                            ymax = br(dominio,corte[5])), fill = sm_rc,alpha = .5) +
-            geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[5]),
-                            ymax = 100), fill = sm_rf,alpha = .5) +
-            geom_hline(yintercept = 50) +
-            geom_vline(xintercept = 50) +
-            geom_abline(linetype = "dotted", color = "gray50") +
-            coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
-            labs(y = "Importancia", x = "Cumplimiento", color = "Tema") +
-            xaringanthemer::theme_xaringan() +
-            geom_point(data = bd, aes(
-                x = cumplimiento,
-                y = importancia,
-                color = Nombre), size = 5)+
-            scale_color_manual(values = c("#001C50", "#4DCCBD", "#725E54",
-                                          "#FF6B6B", "#DBD56E", "#C6B9CD",
-                                          "#414535", "#EB6534", "#59A5D8",
-                                          "#DE4797"))+
-            theme_minimal(base_size=12, base_family = familia,
-                          base_line_size = .5, base_rect_size = .5 ) %+replace%
-            theme(text = element_text(family = familia),
-                  axis.title = element_text(size = 15),
-                  legend.title = element_text(size = 15),
-                  legend.text = element_text(size = 12),
-                  axis.text = element_text(size = 12),
-                  panel.grid.minor = element_blank(),
-                  axis.ticks = element_blank()         )
+        # brecha_prob_1 %>%
+        bd$brecha_prob_1 %>%
+            mutate(alpha = prob/max(prob)) %>%
+            ggplot(aes(x = Nombre, y = -sup, fill = color,alpha = prob)) +
+            geom_tile(show.legend = F) +
+            geom_tile(data = bd$brecha_prob_1 %>%
+                          filter(prob == max(prob)), show.legend = F,
+                      color = primario, size = 3) +
+            geom_text(
+                aes(label = scales::percent(prob,accuracy = .1)),
+                color = "black", show.legend = F) +
+            scale_fill_identity() +
+            theme_minimal() +
+            theme(axis.text.y = element_blank()) +
+            labs(x =NULL,y = NULL)
     }
 }
 
@@ -371,38 +390,37 @@ graficar_nbrecha <- function(brecha, thm){
 
     juntos <- brecha %>% pluck(1)
 
-    (a <- juntos %>% ggplot(aes(x = brecha)) + geom_density() +
-            stat_aud(geom="area",
-                     fill = sm_vf,
-                     xlim = cortes[1:2],
-                     alpha = 1)+
-            stat_aud(geom="area",
-                     fill = sm_vc,
-                     xlim = cortes[2:3],
-                     alpha = 1)+
-            stat_aud(geom="area",
-                     fill = sm_a,
-                     xlim = cortes[3:4],
-                     alpha = 1)+
-            stat_aud(geom="area",
-                     fill = sm_rc,
-                     xlim = cortes[4:5],
-                     alpha = 1)+
-            stat_aud(geom="area",
-                     fill = sm_rf,
-                     xlim = cortes[5:6],
-                     alpha = 1)+
-            geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup, aes(color = color, x = 5000, y = .00025), size = 5) +
-            # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
-            scale_color_identity() +
-            geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
-                       aes(xintercept = media)
-            ) +
-            geom_text(data = bd %>% mutate(mean = (inf+sup)/2),
-                      aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = "white") +
-            facet_wrap(~Nombre)+ theme_void() +
-            labs(caption = "* El círculo de color representa la propuesta de semaforización. \n** La línea vertical representa el promedio de la brecha.             ")
-    )
+    Graph <- juntos %>% ggplot(aes(x = brecha)) + geom_density() +
+        stat_aud(geom="area",
+                 fill = sm_vf,
+                 xlim = cortes[1:2],
+                 alpha = 1)+
+        stat_aud(geom="area",
+                 fill = sm_vc,
+                 xlim = cortes[2:3],
+                 alpha = 1)+
+        stat_aud(geom="area",
+                 fill = sm_a,
+                 xlim = cortes[3:4],
+                 alpha = 1)+
+        stat_aud(geom="area",
+                 fill = sm_rc,
+                 xlim = cortes[4:5],
+                 alpha = 1)+
+        stat_aud(geom="area",
+                 fill = sm_rf,
+                 xlim = cortes[5:6],
+                 alpha = 1)+
+        geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup, aes(color = color, x = 5000, y = .00025), size = 5) +
+        # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
+        scale_color_identity() +
+        geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
+                   aes(xintercept = media)
+        ) +
+        geom_text(data = bd %>% mutate(mean = (inf+sup)/2),
+                  aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = "white") +
+        facet_wrap(~Nombre)+ theme_void() +
+        labs(caption = "* El círculo de color representa la propuesta de semaforización. \n** La línea vertical representa el promedio de la brecha.             ")
 
 
     # bd %>% hchart(hcaes(y = prob_pct, x = Categoria), type = "bar") %>%
@@ -426,7 +444,7 @@ graficar_nbrecha <- function(brecha, thm){
     #               min = 0) %>%
     #     hc_add_theme(thm) %>%
     #     hc_chart(style=list(fontFamily = familia))
-
+    return(Graph)
 }
 
 #' Genera la tabla en formato kable con sus colores

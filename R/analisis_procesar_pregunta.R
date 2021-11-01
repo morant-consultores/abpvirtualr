@@ -250,7 +250,7 @@ procesar_numerica <- function(bd, tipo){
 #' @param bd (list) La lista con las tablas necesarias
 #' provistas por la función leer_base.
 #'
-#' @return (tibble) Un tibble con Importancia relaacionada con
+#' @return (list) Un tibble con Importancia relaacionada con
 #' Cumplimiento por medio de la mediana.
 #' @export
 #'
@@ -258,15 +258,44 @@ procesar_numerica <- function(bd, tipo){
 
 procesar_juntos <- function(bd){
 
-    res <- bd$orden_cat %>%
-        select(IdCategoria,IdUsuario, Orden) %>%
-        left_join(bd$calif_cat %>%
-                      select(IdCategoria, IdUsuario,Calificacion)) %>%
-        left_join(bd$categoria) %>%
-        group_by(Nombre) %>%
-        summarise(importancia = base::round(base::mean(Orden)),
-                  cumplimiento = base::round(base::mean(Calificacion)))
+    # res <- bd$orden_cat %>%
+    #     select(IdCategoria,IdUsuario, Orden) %>%
+    #     left_join(bd$calif_cat %>%
+    #                   select(IdCategoria, IdUsuario,Calificacion)) %>%
+    #     left_join(bd$categoria) %>%
+    #     group_by(Nombre) %>%
+    #     summarise(importancia = base::round(base::mean(Orden)),
+    #               cumplimiento = base::round(base::mean(Calificacion)))
 
+    corte <- seq(0,10000,length.out = 6)
+
+    juntos <- bd$orden_cat %>%
+        select(usuario = IdUsuario,Orden,IdCategoria) %>%
+        left_join(
+            bd$calif_cat %>%
+                select(usuario = IdUsuario,Calificacion,IdCategoria)
+        ) %>%
+        na.omit() %>%
+        left_join(bd$categoria) %>%
+        rename(cat = IdCategoria) %>%
+        mutate(brecha = Orden*(100-Calificacion))
+
+    brecha_prob_1 <- juntos %>%
+        split(.$Nombre) %>%
+        purrr::imap(~{
+            acum <- spatstat.core::CDF(density(.x$brecha, from = 0, to = 10000))
+            tibble(inf= corte,sup = lead(corte),
+                   color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,"")) %>%
+                slice(-6) %>%
+                mutate(
+                    prob = acum(sup-.0000001) - acum(inf),
+                    Nombre = .y
+                )
+        }) %>%
+        bind_rows() %>%
+        group_by(Nombre)
+
+    res <- list(juntos = juntos, brecha_prob_1 = brecha_prob_1)
     return(res)
 }
 
@@ -345,4 +374,57 @@ calcular_brecha <- function(bd){
     }) %>% bind_rows() %>% group_by(Nombre)
 
     return(list(juntos, res))
+}
+
+
+
+#' StatAreaUnderDensity
+#'
+#' @param data
+#' @param scales
+#' @param xlim
+#' @param n
+#'
+#' @return
+#' @export
+
+StatAreaUnderDensity <- ggproto(
+    "StatAreaUnderDensity", Stat,
+    required_aes = "x",
+
+    compute_group = function(data, scales, xlim = NULL, n = 50) {
+
+        fun <- approxfun(density(data$x, from = 0, to = 10000))
+        StatFunction$compute_group(data, scales, fun = fun, xlim = xlim, n = n)
+    }
+)
+
+#' stat_aud
+#'
+#' @param mapping
+#' @param data
+#' @param geom
+#' @param position
+#' @param na.rm
+#' @param show.legend
+#' @param inherit.aes
+#' @param n
+#' @param xlim
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+
+stat_aud <- function(mapping = NULL, data = NULL, geom = "area",
+                     position = "identity", na.rm = FALSE, show.legend = NA,
+                     inherit.aes = TRUE, n = 50, xlim=NULL,
+                     ...) {
+
+
+    layer(
+        stat = StatAreaUnderDensity, data = data, mapping = mapping, geom = geom,
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+        params = list(xlim = xlim, n = n, ...))
 }
