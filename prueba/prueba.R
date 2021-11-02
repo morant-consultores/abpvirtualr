@@ -13,11 +13,11 @@ primario_claro <- "#304E83"
 inverso <- "#4C97C8"
 inverso_claro <- "#88B9CF"
 cortes <- c(0,4,8,12,16,25)*20^2
-sm_vf <- "#1C6130"
-sm_vc <- "#55A630"
-sm_a <- "#F5BC38"
-sm_rc <- "#BA181B"
-sm_rf <- "#660708"
+sm_vf <- "#6A994E"
+sm_vc <- "#A7C957"
+sm_a <- "#F9C74F"
+sm_rc <- "#D65A1F"
+sm_rf <- "#B31D1F"
 familia <- "Poppins"
 gris <- "#343a40"
 gris_claro <- "#ced4da"
@@ -83,6 +83,8 @@ calcular_brecha(bd) %>%
 # Tabla de calculo de brecha
 calcular_brecha(bd) %>%
     generar_tabla()
+
+#azul de tablas ·
 
 # sandbox -----------------------------------------------------------------
 library(spatstat)

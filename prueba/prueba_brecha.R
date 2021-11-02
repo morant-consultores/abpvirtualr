@@ -132,22 +132,39 @@ b <- brecha_prob_1 %>%
 
 c <- brecha_prob_1 %>%
     mutate(alpha = prob/max(prob)) %>%
-    ggplot(aes(x = Nombre, y = -sup, fill = color,alpha = prob)) +
-    geom_tile(show.legend = F) +
-    geom_tile(data = brecha_prob_1 %>% filter(prob == max(prob)), show.legend = F, color = primario, size = 3) +
-    geom_text(
+    ggplot(aes(x =  stringr::str_wrap(Nombre, 10), y = -sup, fill = color)) +
+    geom_tile(show.legend = F, aes(alpha = prob)) +
+    geom_tile(data = brecha_prob_1 %>% filter(prob == max(prob)), show.legend = F, color = primario, size = 1) +
+    geom_text(family = familia,
         aes(label = percent(prob,accuracy = .1)), color = "black", show.legend = F) +
     scale_fill_identity()+ theme_minimal() + theme(axis.text.y = element_blank()) +
-    labs(x =NULL,y = NULL)
+    labs(x =NULL,y = NULL)+
+    xaringanthemer::theme_xaringan() +
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1), n.breaks = 4)+
+    theme(panel.grid = element_blank(), text = element_text(family = familia),
+          axis.text = element_text(size = 15))
 
-d <- brecha_prob_1 %>%
+d <-   brecha_prob_1 %>%
     mutate(color = factor(color, levels = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)),
            acum = cumsum(prob)) %>%
     ggplot(aes(x = 1, y = prob, fill = color)) +
-    geom_col(position = "dodge",show.legend = F) +
+    ggchicklet::geom_chicklet(position = "dodge",show.legend = F, alpha = .8, size= 1) +
     # geom_text(aes(label = percent(prob,1), x = acum)) +
     scale_fill_manual(values =c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)) +
-    facet_wrap(~Nombre)
+    facet_wrap(~Nombre)+
+        labs(y = "Probabilidad", x = "Tema")+
+    xaringanthemer::theme_xaringan() +
+        scale_y_continuous(labels=scales::percent_format(accuracy = 1), n.breaks = 4)+
+    theme_minimal(base_size=12, base_family = familia,
+                  base_line_size = .5, base_rect_size = .5 ) %+replace%
+    theme(text = element_text(family = familia),
+          axis.title = element_text(size = 15),
+          legend.title = element_text(size = 15),
+          legend.text = element_text(size = 12),
+          axis.text = element_text(size = 10),
+          panel.grid.minor = element_blank(),
+          axis.ticks = element_blank()
+    )
 
 br <- function(x,c = corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
 dominio <- seq(0,100,.1)

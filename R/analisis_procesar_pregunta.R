@@ -72,7 +72,6 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
 #' @examples #notrun (procesar_r_tema(bd))
 
 procesar_brecha <- function(bd,  otro = "Otro"){
-
     junta <- bd$respuesta_cat %>%
         left_join(bd$respuesta %>%
                       filter(IdEtapa == 2) %>%

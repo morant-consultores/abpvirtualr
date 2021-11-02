@@ -18,6 +18,7 @@ Imports:
     dbplyr,
     dplyr,
     forcats,
+    ggchicklet,
     ggplot2,
     glue,
     grDevices,

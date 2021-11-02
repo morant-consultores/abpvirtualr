@@ -362,26 +362,27 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             ggplot() +
             geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2])),
                         aes(x = a, ymin = 0, ymax = b),
-                        fill = sm_vf,alpha = .5) +
+                        fill = sm_vf,alpha = .4) +
             geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2]), c = br(a,corte[3])),
                         aes(x = a, ymin = b,
-                            ymax = c), fill = sm_vc,alpha = .5) +
+                            ymax = c), fill = sm_vc,alpha = .4) +
             geom_ribbon(data = tibble(a = dominio, b = br(a,corte[3]), c = br(a,corte[4])),
                         aes(x = a, ymin = b,
-                            ymax = c), fill = sm_a,alpha = .5) +
+                            ymax = c), fill = sm_a,alpha = .4) +
             geom_ribbon(data = tibble(a = dominio, b = br(a,corte[4]), c = br(a,corte[5])),
                         aes(x = a, ymin = b,
-                            ymax = c), fill = sm_rc,alpha = .5) +
+                            ymax = c), fill = sm_rc,alpha = .4) +
             geom_ribbon(data = tibble(a = dominio, b = br(a,corte[5])),
                         aes(x = a, ymin = b,
-                            ymax = 100), fill = sm_rf,alpha = .5) + coord_fixed() +
+                            ymax = 100), fill = sm_rf,alpha = .4) + coord_fixed() +
             xlim(c(0,100)) + ylim(c(0,100)) +
             geom_vline(xintercept = 50) +
             geom_hline(yintercept = 50)+
             geom_abline(linetype = "dotted") +
-            geom_hex(aes(x = c, y = i)) +
+            geom_hex(aes(x = c, y = i), ) +
+            scale_fill_gradient(low=inverso_claro ,high=primario)+
             # geom_point(aes(x = c, y = i)) +
-            labs(fill = "", x = "Cumplimiento", y ="Importancia") +
+            labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
             # geom_point(data = sim %>% group_by(tema) %>%
             #                summarise(i = mean(i), c = mean(c)),
             #            aes(x = c, y = i), color = "red", size = 2
@@ -389,21 +390,24 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             facet_wrap(~tema, nrow= 2) +
             scale_y_continuous(breaks = c(0,50,100)) +
             scale_x_continuous(breaks = c(0,50,100)) +
-            scale_fill_gradientn(colours = hcl.colors(50, "YlOrRd", rev = TRUE)#,
-                                 # breaks = seq(0,sim %>% count(tema) %>% summarise(max(n)) %>% pull(1),
-                                 #              length.out = 5)
-                                 ) +
-                xaringanthemer::theme_xaringan() +
-                theme_minimal(base_size=12, base_family = familia,
-                              base_line_size = .5, base_rect_size = .5 ) %+replace%
-                theme(text = element_text(family = familia),
-                      axis.title = element_text(size = 15),
-                      legend.title = element_text(size = 15),
-                      legend.text = element_text(size = 12),
-                      axis.text = element_text(size = 12),
-                      panel.grid.minor = element_blank(),
-                      axis.ticks = element_blank()
-                      )
+            # scale_fill_gradientn(colours = hcl.colors(50, "YlOrRd", rev = TRUE)#,
+            #                      # breaks = seq(0,sim %>% count(tema) %>% summarise(max(n)) %>% pull(1),
+            #                      #              length.out = 5)
+            #                      ) +
+            xaringanthemer::theme_xaringan() +
+            theme_minimal(base_size=12, base_family = familia,
+                          base_line_size = .5, base_rect_size = .5 ) %+replace%
+            theme(text = element_text(family = familia),
+                  axis.title = element_text(size = 15),
+                  legend.title = element_text(size = ),
+                  # legend.position = "bottom",
+                  # legend.direction = "vertical",
+                  legend.text = element_text(size = 8),
+                  legend.key.size = unit(.8,"line"),
+                  axis.text = element_text(size = 12),
+                  panel.grid.minor = element_blank(),
+                  axis.ticks = element_blank()
+            )
         return(e)
     }
 }
@@ -451,7 +455,7 @@ graficar_nbrecha <- function(brecha, thm){
 
     juntos <- brecha %>% purrr::pluck(1)
 
-    Graph <- juntos %>% ggplot(aes(x = brecha)) + geom_density() +
+    Graph <- juntos %>% ggplot(aes(x = brecha)) + geom_density(color = "white", alpha= .9) +
         stat_aud(geom="area",
                  fill = sm_vf,
                  xlim = cortes[1:2],
@@ -472,16 +476,17 @@ graficar_nbrecha <- function(brecha, thm){
                  fill = sm_rf,
                  xlim = cortes[5:6],
                  alpha = 1)+
-        geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup, aes(color = color, x = 5000, y = .00025), size = 5) +
+        geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup, aes(color = color, x = 5000, y = .00022), size = 3) +
         # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
         scale_color_identity() +
         # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
         #            aes(xintercept = media)
         # ) +
-        geom_text(data = bd %>% mutate(mean = (inf+sup)/2), size = 3,
-                  aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = "white") +
+        geom_text(data = bd %>% mutate(mean = (inf+sup)/2), size = 3,family  = familia,
+                  aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
         facet_wrap(~Nombre)+ theme_void() +
-        labs(caption = "* El círculo de color representa la semaforización más frecuente.")
+        labs(caption = "* El círculo de color representa la semaforización más frecuente.")+
+        theme(panel.grid = element_blank(), text = element_text(family = familia))
 
 
     # bd %>% hchart(hcaes(y = prob_pct, x = Categoria), type = "bar") %>%
@@ -527,8 +532,9 @@ generar_tabla <- function(brecha){
 
     tabla_df <- tabla %>%
         mutate(Brecha = scales::percent(brecha_pct, 1),
-               Frecuencia =scales::percent(prob, 1)
-        ) %>%
+               Frecuencia =scales::percent(prob, 1),
+               cumplimiento = paste0(cumplimiento, "%"),
+               importancia= paste0(importancia, "%")  ) %>%
         select( Tema=Nombre ,
                 Brecha,
                 Frecuencia,
@@ -553,7 +559,6 @@ generar_tabla <- function(brecha){
 #' @examples #notrun (generar_tabla_nube(procesar_p_abierta(bd,1,1) %>% pluck(2)))
 
 generar_tabla_nube <- function(bd){
-
     tabla <- bd %>%
         select(Respuesta) %>%
         DT::datatable(
@@ -561,8 +566,8 @@ generar_tabla_nube <- function(bd){
                 language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
                 lengthMenu = c(5, 10, 25, 50, 100),
                 pageLength = 3,
-                scrollY = 300
-            ))
-
+                scrollY = 300   ))
+        # DT::formatStyle(columns=colnames(bd),
+        #                 backgroundColor = '#222222', color = "white")
     return(tabla)
 }
