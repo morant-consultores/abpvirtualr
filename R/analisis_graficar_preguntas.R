@@ -567,7 +567,5 @@ generar_tabla_nube <- function(bd){
                 lengthMenu = c(5, 10, 25, 50, 100),
                 pageLength = 3,
                 scrollY = 300   ))
-        # DT::formatStyle(columns=colnames(bd),
-        #                 backgroundColor = '#222222', color = "white")
     return(tabla)
 }

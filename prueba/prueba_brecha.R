@@ -154,7 +154,8 @@ d <-   brecha_prob_1 %>%
     facet_wrap(~Nombre)+
         labs(y = "Probabilidad", x = "Tema")+
     xaringanthemer::theme_xaringan() +
-        scale_y_continuous(labels=scales::percent_format(accuracy = 1), n.breaks = 4)+
+        scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+    geom_text(family= familia, aes(label = prob %>% scales::percent(accuracy = 1)) , position = position_dodge(width = .9), vjust = -.1)+
     theme_minimal(base_size=12, base_family = familia,
                   base_line_size = .5, base_rect_size = .5 ) %+replace%
     theme(text = element_text(family = familia),
@@ -162,8 +163,12 @@ d <-   brecha_prob_1 %>%
           legend.title = element_text(size = 15),
           legend.text = element_text(size = 12),
           axis.text = element_text(size = 10),
+          axis.text.x = element_blank(),
+          panel.grid.major.x = element_blank(),
           panel.grid.minor = element_blank(),
-          axis.ticks = element_blank()
+          axis.ticks = element_blank(),
+          strip.text = element_text(size = 16)
+
     )
 
 br <- function(x,c = corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
