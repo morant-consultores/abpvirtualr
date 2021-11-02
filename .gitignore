@@ -2,3 +2,5 @@
 test.R
 *.css
 .Rhistory
+.DS_Store
+prueba
