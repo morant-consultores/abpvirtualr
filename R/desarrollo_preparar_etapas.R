@@ -116,7 +116,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
     tabla_df <- generar_tabla(brecha2)
 
     out7 <- knitr::knit_expand(
-        text = imprimir_calc_brecha(brecha2, grafica = FALSE))
+        text = imprimir_calc_brecha(tabla_df, grafica = FALSE))
 
     # Juntarlos
     out <- list()

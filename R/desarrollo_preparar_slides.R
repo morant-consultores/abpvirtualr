@@ -188,18 +188,27 @@ imprimir_juntos <- function(df){
 
 imprimir_calc_brecha <- function(bd, grafica){
 
-    r <- glue::glue("r {grafica}")
+    r <- glue::glue("r densidad_{grafica}")
+    r2 <- glue::glue("r barras")
     r <- paste("{", r, "}", sep="")
+    r2 <- paste("{", r2, "}", sep="")
     sp <- "```"
 
     if(grafica){
-        char <- glue::glue(paste(
+        char1 <- glue::glue(paste(
             "\n\n # Gráfica del cálculo de Brecha",
             "\n\n --- \n\n {sp}{r} \n\n",
             "graficar_nbrecha(brecha2)",
             "\n\n {sp} \n\n ---", sep = " ")
         )
+        char2 <- glue::glue(paste(
+            "\n\n # Gráfica del cálculo de Brecha",
+            "\n\n --- \n\n {sp}{r2} \n\n",
+            "graficar_nbrecha(brecha2,densidad = F)",
+            "\n\n {sp} \n\n ---", sep = " ")
+        )
 
+        char <- char1 %>% append(char2)
     }else{
         char <- glue::glue(paste(
             "\n\n # Tabla del cálculo de Brecha",

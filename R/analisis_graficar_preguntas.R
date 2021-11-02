@@ -379,21 +379,12 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             geom_vline(xintercept = 50) +
             geom_hline(yintercept = 50)+
             geom_abline(linetype = "dotted") +
-            geom_hex(aes(x = c, y = i), ) +
-            scale_fill_gradient(low=inverso_claro ,high=primario)+
-            # geom_point(aes(x = c, y = i)) +
+            geom_hex(aes(x = c, y = i) ) +
+            scale_fill_gradient(low=inverso_claro ,high=primario,)+
             labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
-            # geom_point(data = sim %>% group_by(tema) %>%
-            #                summarise(i = mean(i), c = mean(c)),
-            #            aes(x = c, y = i), color = "red", size = 2
-            # )+
-            facet_wrap(~tema, nrow= 2) +
+            facet_wrap(~stringr::str_wrap(tema, 10), nrow= 2) +
             scale_y_continuous(breaks = c(0,50,100)) +
             scale_x_continuous(breaks = c(0,50,100)) +
-            # scale_fill_gradientn(colours = hcl.colors(50, "YlOrRd", rev = TRUE)#,
-            #                      # breaks = seq(0,sim %>% count(tema) %>% summarise(max(n)) %>% pull(1),
-            #                      #              length.out = 5)
-            #                      ) +
             xaringanthemer::theme_xaringan() +
             theme_minimal(base_size=12, base_family = familia,
                           base_line_size = .5, base_rect_size = .5 ) %+replace%
@@ -406,7 +397,8 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
                   legend.key.size = unit(.8,"line"),
                   axis.text = element_text(size = 12),
                   panel.grid.minor = element_blank(),
-                  axis.ticks = element_blank()
+                  axis.ticks = element_blank(),
+                  strip.text = element_text(size = 12)
             )
         return(e)
     }
@@ -444,7 +436,7 @@ stat_aud <- function(mapping = NULL, data = NULL, geom = "area",
 #'
 #' @examples #notrun ( graficar_nbrecha(calcular_brecha(bd)) )
 
-graficar_nbrecha <- function(brecha, thm){
+graficar_nbrecha <- function(brecha, thm, densidad = T){
     bd <- brecha %>% purrr::pluck(2) %>%
         arrange(desc(prob)) %>%
         mutate(
@@ -454,62 +446,69 @@ graficar_nbrecha <- function(brecha, thm){
         )
 
     juntos <- brecha %>% purrr::pluck(1)
+    Graph <- if(densidad){
+        juntos %>% ggplot(aes(x = brecha)) + geom_density(color = "white", alpha= .9) +
+            stat_aud(geom="area",
+                     fill = sm_vf,
+                     xlim = cortes[1:2],
+                     alpha = 1)+
+            stat_aud(geom="area",
+                     fill = sm_vc,
+                     xlim = cortes[2:3],
+                     alpha = 1)+
+            stat_aud(geom="area",
+                     fill = sm_a,
+                     xlim = cortes[3:4],
+                     alpha = 1)+
+            stat_aud(geom="area",
+                     fill = sm_rc,
+                     xlim = cortes[4:5],
+                     alpha = 1)+
+            stat_aud(geom="area",
+                     fill = sm_rf,
+                     xlim = cortes[5:6],
+                     alpha = 1)+
+            geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup, aes(color = color, x = 5000, y = .00022), size = 3) +
+            # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
+            scale_color_identity() +
+            # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
+            #            aes(xintercept = media)
+            # ) +
+            geom_text(data = bd %>% mutate(mean = (inf+sup)/2), size = 3,family  = familia,
+                      aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
+            facet_wrap(~Nombre)+ theme_void() +
+            labs(caption = "* El círculo de color representa la semaforización más frecuente.")+
+            theme(panel.grid = element_blank(), text = element_text(family = familia),
+                  strip.text = element_text(size = 12))
+    } else{
+        bd %>%
+            mutate(color = factor(color, levels = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)),
+                   acum = cumsum(prob)) %>%
+            ggplot(aes(x = 1, y = prob, fill = color)) +
+            ggchicklet::geom_chicklet(position = "dodge",show.legend = F, alpha = .8, size= 1) +
+            scale_fill_identity() +
+            facet_wrap(~Nombre)+
+            labs(y = "Frecuencia", x = "")+
+            xaringanthemer::theme_xaringan() +
+            scale_y_continuous(labels=scales::percent_format(accuracy = 1), n.breaks = 4)+
+            geom_text(family= familia, aes(label = prob %>% scales::percent(accuracy = 1)), size  = 3,
+                      position = position_dodge(width = .9), vjust = "inward")+
+            theme_minimal(base_size=12, base_family = familia,
+                          base_line_size = .5, base_rect_size = .5 ) %+replace%
+            theme(text = element_text(family = familia),
+                  axis.title = element_text(size = 15),
+                  legend.title = element_text(size = 15),
+                  legend.text = element_text(size = 12),
+                  axis.text = element_text(size = 10),
+                  axis.text.x = element_blank(),
+                  panel.grid.major.x = element_blank(),
+                  panel.grid.minor = element_blank(),
+                  axis.ticks = element_blank(),
+                  strip.text = element_text(size = 12)
 
-    Graph <- juntos %>% ggplot(aes(x = brecha)) + geom_density(color = "white", alpha= .9) +
-        stat_aud(geom="area",
-                 fill = sm_vf,
-                 xlim = cortes[1:2],
-                 alpha = 1)+
-        stat_aud(geom="area",
-                 fill = sm_vc,
-                 xlim = cortes[2:3],
-                 alpha = 1)+
-        stat_aud(geom="area",
-                 fill = sm_a,
-                 xlim = cortes[3:4],
-                 alpha = 1)+
-        stat_aud(geom="area",
-                 fill = sm_rc,
-                 xlim = cortes[4:5],
-                 alpha = 1)+
-        stat_aud(geom="area",
-                 fill = sm_rf,
-                 xlim = cortes[5:6],
-                 alpha = 1)+
-        geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup, aes(color = color, x = 5000, y = .00022), size = 3) +
-        # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
-        scale_color_identity() +
-        # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
-        #            aes(xintercept = media)
-        # ) +
-        geom_text(data = bd %>% mutate(mean = (inf+sup)/2), size = 3,family  = familia,
-                  aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
-        facet_wrap(~Nombre)+ theme_void() +
-        labs(caption = "* El círculo de color representa la semaforización más frecuente.")+
-        theme(panel.grid = element_blank(), text = element_text(family = familia))
+            )
+    }
 
-
-    # bd %>% hchart(hcaes(y = prob_pct, x = Categoria), type = "bar") %>%
-    #     hc_plotOptions(bar = list(colorByPoint = T, borderRadius = 6, borderWidth =0)) %>%
-    #     hc_legend(enabled = F) %>%
-    #     hc_tooltip(
-    #         enabled = T,
-    #         headerFormat = '<span style="font-size: 14px"><b>{point.key}</b></span><br/>',
-    #         pointFormat = ' <br> Brecha: {point.brecha_pct}% <br> Frecuencia: {point.prob_pct}%',
-    #         backgroundColor= '#FFFFFF',
-    #         borderWidth =0,
-    #         style=list(fontSize ="16px", color = gris, fontFamily = familia)) %>%
-    #     hc_xAxis(lineWidth = 3.5, lineColor = primario_claro, zIndex= 5,
-    #              labels = list(style = list(fontSize = etiquetas)),
-    #              title= list(text = "Tema", style = list(fontSize = etiquetas))        ) %>%
-    #     hc_colors(bd %>% pull(color)) %>%
-    #     hc_yAxis( labels = list(format = "{value}%",
-    #                             style = list(fontSize = etiquetas)),
-    #               title = list(text = "Frecuencia"),
-    #               tickAmount = 5,
-    #               min = 0) %>%
-    #     hc_add_theme(thm) %>%
-    #     hc_chart(style=list(fontFamily = familia))
     return(Graph)
 }
 

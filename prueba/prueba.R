@@ -78,7 +78,7 @@ procesar_juntos(bd) %>%
 
 # Gráfica de calculo de brecha
 calcular_brecha(bd) %>%
-    graficar_nbrecha(thm)
+    graficar_nbrecha(thm,densidad = F)
 
 # Tabla de calculo de brecha
 calcular_brecha(bd) %>%

@@ -152,10 +152,11 @@ d <-   brecha_prob_1 %>%
     # geom_text(aes(label = percent(prob,1), x = acum)) +
     scale_fill_manual(values =c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)) +
     facet_wrap(~Nombre)+
-        labs(y = "Probabilidad", x = "Tema")+
+        labs(y = "Probabilidad", x = "")+
     xaringanthemer::theme_xaringan() +
         scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
-    geom_text(family= familia, aes(label = prob %>% scales::percent(accuracy = 1)) , position = position_dodge(width = .9), vjust = -.1)+
+    geom_text(family= familia, aes(label = prob %>% scales::percent(accuracy = 1)) ,
+              position = position_dodge(width = .9), vjust = "inward")+
     theme_minimal(base_size=12, base_family = familia,
                   base_line_size = .5, base_rect_size = .5 ) %+replace%
     theme(text = element_text(family = familia),
