@@ -233,7 +233,7 @@ procesar_numerica <- function(bd, tipo){
     point_range <- histograma %>%
         group_by(Categoria) %>%
         summarise(
-            ggplot2::mean_se(!!sym(tipo),mult = stats::qnorm(.975))
+            ggplot2::mean_se(!!sym(tipo))
         ) %>% mutate(y2 = base::round(y),
                      ymin2 = base::round(ymin),
                      ymax2 = base::round(ymax)
