@@ -379,6 +379,7 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             geom_vline(xintercept = 50) +
             geom_hline(yintercept = 50)+
             geom_abline(linetype = "dotted") +
+            geom_point(aes(x = c, y = i), color = inverso, size = .5) +
             geom_hex(aes(x = c, y = i) ) +
             scale_fill_gradient(low=inverso_claro ,high=primario,)+
             labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
@@ -447,39 +448,87 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
 
     juntos <- brecha %>% purrr::pluck(1)
     Graph <- if(densidad){
-        juntos %>% ggplot(aes(x = brecha)) + geom_density(color = "white", alpha= .9) +
-            stat_aud(geom="area",
-                     fill = sm_vf,
-                     xlim = cortes[1:2],
-                     alpha = 1)+
-            stat_aud(geom="area",
-                     fill = sm_vc,
-                     xlim = cortes[2:3],
-                     alpha = 1)+
-            stat_aud(geom="area",
-                     fill = sm_a,
-                     xlim = cortes[3:4],
-                     alpha = 1)+
-            stat_aud(geom="area",
-                     fill = sm_rc,
-                     xlim = cortes[4:5],
-                     alpha = 1)+
-            stat_aud(geom="area",
-                     fill = sm_rf,
-                     xlim = cortes[5:6],
-                     alpha = 1)+
-            geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup, aes(color = color, x = 5000, y = .00022), size = 3) +
-            # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
-            scale_color_identity() +
-            # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
-            #            aes(xintercept = media)
-            # ) +
-            geom_text(data = bd %>% mutate(mean = (inf+sup)/2), size = 3,family  = familia,
-                      aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
-            facet_wrap(~Nombre)+ theme_void() +
-            labs(caption = "* El círculo de color representa la semaforización más frecuente.")+
-            theme(panel.grid = element_blank(), text = element_text(family = familia),
-                  strip.text = element_text(size = 12))
+        bd %>% filter(prob == max(prob)) %>%
+            mutate(color2 = factor(color, c(sm_rf,sm_rc,sm_a,sm_vc,sm_vf))) %>%
+            split(.$color2) %>% keep(~nrow(.x)>0) %>%
+            map(~{
+                juntos %>% filter(Nombre %in% .x$Nombre) %>%
+                    ggplot(aes(x = brecha)) + geom_density(color = "white", alpha= .9) +
+                    stat_aud(geom="area",
+                             fill = sm_vf,
+                             xlim = cortes[1:2],
+                             alpha = 1)+
+                    stat_aud(geom="area",
+                             fill = sm_vc,
+                             xlim = cortes[2:3],
+                             alpha = 1)+
+                    stat_aud(geom="area",
+                             fill = sm_a,
+                             xlim = cortes[3:4],
+                             alpha = 1)+
+                    stat_aud(geom="area",
+                             fill = sm_rc,
+                             xlim = cortes[4:5],
+                             alpha = 1)+
+                    stat_aud(geom="area",
+                             fill = sm_rf,
+                             xlim = cortes[5:6],
+                             alpha = 1) +
+                    geom_point(data = .x  %>% ungroup %>%
+                                   left_join(juntos %>% filter(Nombre %in% .x$Nombre) %>% group_by(Nombre) %>%
+                                                 summarise(maximo = max(density(brecha)$y))),
+                               aes(color = color, x = 5000, y = maximo*1.2), size = 5) +
+                    # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
+                    scale_color_identity() +
+                    # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
+                    #            aes(xintercept = media)
+                    # ) +
+                    geom_text(data = bd %>% filter(Nombre %in% .x$Nombre) %>%
+                                  mutate(mean = (inf+sup)/2), size = 3,family  = familia,
+                              aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
+                    facet_wrap(~Nombre,scales = "free")+
+                    theme_void() +
+                    labs(caption = "* El círculo de color representa la semaforización más frecuente.")+
+                    theme(panel.grid = element_blank(), text = element_text(family = familia),
+                          strip.text = element_text(size = 12))
+            })
+        # juntos %>% ggplot(aes(x = brecha)) + geom_density(color = "white", alpha= .9) +
+        #     stat_aud(geom="area",
+        #              fill = sm_vf,
+        #              xlim = cortes[1:2],
+        #              alpha = 1)+
+        #     stat_aud(geom="area",
+        #              fill = sm_vc,
+        #              xlim = cortes[2:3],
+        #              alpha = 1)+
+        #     stat_aud(geom="area",
+        #              fill = sm_a,
+        #              xlim = cortes[3:4],
+        #              alpha = 1)+
+        #     stat_aud(geom="area",
+        #              fill = sm_rc,
+        #              xlim = cortes[4:5],
+        #              alpha = 1)+
+        #     stat_aud(geom="area",
+        #              fill = sm_rf,
+        #              xlim = cortes[5:6],
+        #              alpha = 1) +
+        #     geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup %>%
+        #                    left_join(juntos %>% group_by(Nombre) %>%
+        #                                  summarise(maximo = max(density(brecha)$y))),
+        #                aes(color = color, x = 5000, y = maximo*1.2), size = 5) +
+        #     # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
+        #     scale_color_identity() +
+        #     # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
+        #     #            aes(xintercept = media)
+        #     # ) +
+        #     geom_text(data = bd %>% mutate(mean = (inf+sup)/2), size = 3,family  = familia,
+        #               aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
+        #     facet_wrap(~Nombre,scales = "free")+
+        #     theme_void() +
+        #     labs(caption = "* El círculo de color representa la semaforización más frecuente.")+
+        #     theme(panel.grid = element_blank(), text = element_text(family = familia),
+        #           strip.text = element_text(size = 12))
     } else{
         bd %>%
             mutate(color = factor(color, levels = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)),
