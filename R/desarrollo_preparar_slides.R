@@ -195,20 +195,20 @@ imprimir_calc_brecha <- function(bd, grafica){
     sp <- "```"
 
     if(grafica){
-        char1 <- glue::glue(paste(
-            "\n\n # Gráfica del cálculo de Brecha",
-            "\n\n --- \n\n {sp}{r} \n\n",
-            "graficar_nbrecha(brecha2)",
-            "\n\n {sp} \n\n ---", sep = " ")
-        )
-        char2 <- glue::glue(paste(
+        # char1 <- glue::glue(paste(
+        #     "\n\n # Gráfica del cálculo de Brecha",
+        #     "\n\n --- \n\n {sp}{r} \n\n",
+        #     "bd",
+        #     "\n\n {sp} \n\n ---", sep = " ")
+        # )
+        char <- glue::glue(paste(
             "\n\n # Gráfica del cálculo de Brecha",
             "\n\n --- \n\n {sp}{r2} \n\n",
             "graficar_nbrecha(brecha2,densidad = F)",
             "\n\n {sp} \n\n ---", sep = " ")
         )
 
-        char <- char1 %>% append(char2)
+        # char <- char1 %>% append(char2)
     }else{
         char <- glue::glue(paste(
             "\n\n # Tabla del cálculo de Brecha",

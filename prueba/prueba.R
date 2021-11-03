@@ -1,8 +1,11 @@
-library(tidyverse)
+# library(tidyverse)
+library(dplyr)
+library(ggplot2)
 library(dbplyr)
 library(highcharter)
 library(ggpmthemes)
 library(spatstat)
+library(purrr)
 devtools::load_all(here::here())
 # Correr ----------------------------------------------------------------
 
@@ -54,7 +57,7 @@ bd <- leer_base(id_sesion = 3156)
 procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>% pluck(1) %>%
     graficar_nube()
 
-procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>%
+procesar_p_abierta(bd, pregunta = 1, etapa = 1) %>% pluck(2) %>%
     generar_tabla_nube()
 
 # 2 - Treemap brecha
@@ -77,7 +80,7 @@ procesar_juntos(bd) %>%
 
 # Gráfica de calculo de brecha
 calcular_brecha(bd) %>%
-    graficar_nbrecha(thm,densidad = F)
+    graficar_nbrecha(thm,densidad = T)
 
 # Tabla de calculo de brecha
 calcular_brecha(bd) %>%
@@ -88,7 +91,7 @@ calcular_brecha(bd) %>%
 # sandbox -----------------------------------------------------------------
 library(spatstat)
 library(scales)
-library(ggridges)
+# library(ggridges)
 corte <- seq(0,10000,length.out = 6)
 juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
     left_join(
