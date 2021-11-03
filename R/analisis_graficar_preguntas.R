@@ -487,9 +487,12 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
                                   mutate(mean = (inf+sup)/2), size = 3,family  = familia,
                               aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
                     facet_wrap(~Nombre,scales = "free")+
-                    theme_void() +
-                    labs(caption = "* El círculo de color representa la semaforización más frecuente.")+
+                    geom_hline(yintercept = 0)+
+                    scale_x_continuous(labels = function(x) x/10000) +
+                    labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente.")+
                     theme(panel.grid = element_blank(), text = element_text(family = familia),
+                          rect = element_blank(), axis.text.y = element_blank(),
+                          axis.ticks.y = element_blank(),
                           strip.text = element_text(size = 12))
             })
         # juntos %>% ggplot(aes(x = brecha)) + geom_density(color = "white", alpha= .9) +
