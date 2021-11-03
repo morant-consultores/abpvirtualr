@@ -15,6 +15,13 @@ output:
       highlightLines: true
       ratio: 16:9
       countIncrementalSlides: true
+
+resource_files:
+- R/analisis_graficar_preguntas.R
+- R/analisis_procesar_pregunta.R
+- R/desarrollo_preparar_etapas.R
+- R/desarrollo_preparar_slides.R
+- R/utilitaria_colectar_base.R
 ---
 
 
@@ -48,7 +55,7 @@ knitr::opts_chunk$set(
   message = FALSE, 
   warning = FALSE,
   hiline = TRUE,
-  fig.showtext = T
+  fig.showtext = F
 ) 
 
 
@@ -65,13 +72,24 @@ style_mono_accent(base_color =  primario,
 options(htmltools.dir.version = FALSE, htmltools.preserve.raw = FALSE)
 ```
 
-```{r, cache = F}
+```{r}
+library(dplyr)
+library(ggplot2)
+library(purrr)
+library(dbplyr)
+library(highcharter)
+library(readr)
+library(odbc)
+library(hexbin)
 # library(abpvirtualr)
 
-devtools::load_all(here::here())
+# devtools::load_all(here::here())
+
 ```
 
-```{r}
+```{r, include = F}
+list.files("R",full.names = T) %>% map(~source(.x))
+
 thm <- tema_high(font = familia, color = "black", size = "15px")
 bd <- leer_base( id_sesion = 3156)
 ```

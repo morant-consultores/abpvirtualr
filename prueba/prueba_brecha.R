@@ -2,7 +2,6 @@ library(tidyverse)
 library(dbplyr)
 library(highcharter)
 library(ggpmthemes)
-library(showtext)
 library(spatstat)
 library(scales)
 devtools::load_all(here::here())
@@ -112,7 +111,7 @@ brecha_prob_1 <- juntos %>%
         # ) +
         geom_text(data = brecha_prob_1 %>% mutate(mean = (inf+sup)/2),
                   aes(x = mean, y = 0, label = percent(prob,.1)),nudge_y = .00001, color = "white") +
-        facet_wrap(~Nombre)+ theme_void() +
+        facet_wrap(~stringr::str_wrap(Nombre, 10))+ theme_void() +
         labs(caption = "* El círculo de color representa la propuesta de semaforización. \n** La línea vertical representa el promedio de la brecha.             ")
 )
 
@@ -144,18 +143,18 @@ c <- brecha_prob_1 %>%
     theme(panel.grid = element_blank(), text = element_text(family = familia),
           axis.text = element_text(size = 15))
 
-d <-   brecha_prob_1 %>%
+brecha_prob_1 %>%
     mutate(color = factor(color, levels = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)),
            acum = cumsum(prob)) %>%
     ggplot(aes(x = 1, y = prob, fill = color)) +
     ggchicklet::geom_chicklet(position = "dodge",show.legend = F, alpha = .8, size= 1) +
     # geom_text(aes(label = percent(prob,1), x = acum)) +
-    scale_fill_manual(values =c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)) +
+    scale_fill_identity() +
     facet_wrap(~Nombre)+
         labs(y = "Probabilidad", x = "")+
     xaringanthemer::theme_xaringan() +
-        scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
-    geom_text(family= familia, aes(label = prob %>% scales::percent(accuracy = 1)) ,
+        scale_y_continuous(labels=scales::percent_format(accuracy = 1),n.breaks = 4)+
+    geom_text(family= familia, aes(label = prob %>% scales::percent(accuracy = 1)) , size = 3,
               position = position_dodge(width = .9), vjust = "inward")+
     theme_minimal(base_size=12, base_family = familia,
                   base_line_size = .5, base_rect_size = .5 ) %+replace%

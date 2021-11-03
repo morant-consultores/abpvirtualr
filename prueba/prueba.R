@@ -2,7 +2,6 @@ library(tidyverse)
 library(dbplyr)
 library(highcharter)
 library(ggpmthemes)
-library(showtext)
 library(spatstat)
 devtools::load_all(here::here())
 # Correr ----------------------------------------------------------------
