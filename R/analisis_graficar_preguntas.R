@@ -593,7 +593,7 @@ generar_tabla <- function(brecha){
                 Importancia = importancia) %>%
         kableExtra::kbl() %>%
         kableExtra::kable_paper("striped", full_width = F) %>%
-        kableExtra::column_spec(2:3, color = "white",
+        kableExtra::column_spec(1, color = "white",
                                 background = colores) %>%
         kableExtra::kable_classic(full_width = F, html_font = familia)
     return(tabla_df)
