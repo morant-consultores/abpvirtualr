@@ -344,7 +344,8 @@ calcular_brecha <- function(bd){
     res <- juntos %>% split(.$Nombre) %>% purrr::imap(~{
         acum <- spatstat.core::CDF(stats::density(.x$brecha, from = 0, to = 10000))
         tibble(inf= cortes,
-               sup = lead(cortes), color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,"")) %>%
+               sup = lead(cortes), color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,""),
+               nombre_color = c("vf","vc","a","rc","rf","")) %>%
             na.omit() %>%
             mutate(
                 prob = acum(sup-.0000001) - acum(inf),

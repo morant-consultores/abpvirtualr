@@ -67,7 +67,9 @@ library(xaringanthemer)
 style_mono_accent(base_color =  primario,
                   header_font_google = google_font(familia),
                   text_font_google   = google_font(familia),
-                  code_font_google   = google_font(familia))
+                  code_font_google   = google_font(familia),
+                  colors = c("rf" = sm_rf, "rc" = sm_rc,"a" = sm_a,"vc" = sm_vc, "vf" = sm_vf)
+)
 
 options(htmltools.dir.version = FALSE, htmltools.preserve.raw = FALSE)
 ```

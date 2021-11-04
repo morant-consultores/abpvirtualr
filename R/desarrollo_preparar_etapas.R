@@ -116,7 +116,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
         r <- paste("{", r, "}", sep="")
         sp <- "```"
 
-        a1 <- knitr::knit_expand(text = glue::glue("\n\n # Gráfica del cálculo de Brecha")) # título
+        a1 <- knitr::knit_expand(text = glue::glue("\n\n # Temas con brecha .{.y}[⬤]")) # título
         a2 <- knitr::knit_expand(text = glue::glue("\n\n --- \n\n {sp}{r} \n\n")) # empezar chunk
         a3 <- knitr::knit_expand(text = sprintf("\n\n print(hc[['%s']])", .y)) # gráfica
         a4 <- knitr::knit_expand(text = glue::glue("\n\n {sp} \n\n ---")) # terminar chunk
@@ -124,8 +124,8 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
 
     })
 
-    out6.2 <- knitr::knit_expand(
-        text = imprimir_calc_brecha(brecha2, grafica = TRUE))
+    # out6.2 <- knitr::knit_expand(
+    #     text = imprimir_calc_brecha(brecha2, grafica = TRUE))
 
     # Tabla de calculo de brecha
     tabla_df <- generar_tabla(brecha2)
@@ -143,7 +143,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
         append(out4) %>%
         append(out5) %>%
         append(out6) %>%
-        append(out6.2) %>%
+        # append(out6.2) %>%
         append(out7)
 
     knitr::knit(text = paste(out, collapse = '\n'))

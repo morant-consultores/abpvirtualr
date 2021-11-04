@@ -449,7 +449,7 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
     juntos <- brecha %>% purrr::pluck(1)
     Graph <- if(densidad){
         bd %>% filter(prob == max(prob)) %>%
-            mutate(color2 = factor(color, c(sm_rf,sm_rc,sm_a,sm_vc,sm_vf))) %>%
+            mutate(color2 = factor(nombre_color, c("rf","rc","a","vc","vf"))) %>%
             split(.$color2) %>% keep(~nrow(.x)>0) %>%
             map(~{
                 juntos %>% filter(Nombre %in% .x$Nombre) %>%
@@ -474,21 +474,21 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
                              fill = sm_rf,
                              xlim = cortes[5:6],
                              alpha = 1) +
-                    geom_point(data = .x  %>% ungroup %>%
-                                   left_join(juntos %>% filter(Nombre %in% .x$Nombre) %>% group_by(Nombre) %>%
-                                                 summarise(maximo = max(density(brecha)$y))),
-                               aes(color = color, x = 5000, y = maximo*1.2), size = 5) +
+                    # geom_point(data = .x  %>% ungroup %>%
+                    #                left_join(juntos %>% filter(Nombre %in% .x$Nombre) %>% group_by(Nombre) %>%
+                    #                              summarise(maximo = max(density(brecha)$y))),
+                    #            aes(color = color, x = 5000, y = maximo*1.2), size = 5) +
                     # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
-                    scale_color_identity() +
+                    # scale_color_identity() +
                     # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
                     #            aes(xintercept = media)
                     # ) +
                     geom_text(data = bd %>% filter(Nombre %in% .x$Nombre) %>%
                                   mutate(mean = (inf+sup)/2), size = 3,family  = familia,
                               aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
-                    facet_wrap(~Nombre,scales = "free")+
+                    facet_wrap(~Nombre)+
                     geom_hline(yintercept = 0)+
-                    scale_x_continuous(labels = function(x) x/10000) +
+                    scale_x_continuous(labels = function(x) x/10000, n.breaks = 4) +
                     labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente.")+
                     theme(panel.grid = element_blank(), text = element_text(family = familia),
                           rect = element_blank(), axis.text.y = element_blank(),
