@@ -449,7 +449,7 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
     juntos <- brecha %>% purrr::pluck(1)
     Graph <- if(densidad){
         bd %>% filter(prob == max(prob)) %>%
-            mutate(color2 = factor(nombre_color, c("rf","rc","a","vc","vf"))) %>%
+            mutate(color2 = factor(nombre_color, rev(c("rf","rc","a","vc","vf")))) %>%
             split(.$color2) %>% keep(~nrow(.x)>0) %>%
             map(~{
                 juntos %>% filter(Nombre %in% .x$Nombre) %>%
@@ -578,19 +578,17 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
 generar_tabla <- function(brecha){
     tabla <- brecha %>% purrr::pluck(2) %>%
         filter(prob == max(prob)) %>% ungroup %>%
-        arrange(desc(brecha))
+        arrange(brecha)
     colores <- tabla %>% pull(color)
 
     tabla_df <- tabla %>%
         mutate(Brecha = scales::percent(brecha_pct, 1),
-               Frecuencia =scales::percent(prob, 1),
                cumplimiento = paste0(cumplimiento, "%"),
                importancia= paste0(importancia, "%")  ) %>%
         select( Tema=Nombre ,
                 Brecha,
-                Frecuencia,
-                Cumplimiento = cumplimiento,
-                Importancia = importancia) %>%
+                Importancia = importancia,
+                Cumplimiento = cumplimiento) %>%
         kableExtra::kbl() %>%
         kableExtra::kable_paper("striped", full_width = F) %>%
         kableExtra::column_spec(1, color = "white",
