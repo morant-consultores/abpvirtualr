@@ -15,6 +15,10 @@ slides_nubes <- function(bd, etapa){
         filter(IdEtapa == etapa) %>%
         pull(IdPregunta)
 
+    if(etapa == 5){
+        preguntas <- preguntas[1]
+    }
+
     out <- list()
 
     for (i in preguntas){
