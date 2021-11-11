@@ -384,8 +384,8 @@ graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
             scale_fill_gradient(low=inverso_claro ,high=primario,)+
             labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
             facet_wrap(~stringr::str_wrap(tema, 10), nrow= 2) +
-            scale_y_continuous(breaks = c(0,50,100)) +
-            scale_x_continuous(breaks = c(0,50,100)) +
+            scale_y_continuous(breaks = c(0,50,100), labels = function(x) scales::percent(x/100)) +
+            scale_x_continuous(breaks = c(50,100), labels = function(x) scales::percent(x/100)) +
             xaringanthemer::theme_xaringan() +
             theme_minimal(base_size=12, base_family = familia,
                           base_line_size = .5, base_rect_size = .5 ) %+replace%
@@ -488,7 +488,7 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
                               aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
                     facet_wrap(~Nombre)+
                     geom_hline(yintercept = 0)+
-                    scale_x_continuous(labels = function(x) x/10000, n.breaks = 4) +
+                    scale_x_continuous(labels = function(x) scales::percent(x/10000), n.breaks = 4) +
                     labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente.")+
                     theme(panel.grid = element_blank(), text = element_text(family = familia),
                           rect = element_blank(), axis.text.y = element_blank(),
