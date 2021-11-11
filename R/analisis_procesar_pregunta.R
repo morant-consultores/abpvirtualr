@@ -342,15 +342,14 @@ calcular_brecha <- function(bd){
         mutate(brecha = Orden*(100-Calificacion))
 
     res <- juntos %>% split(.$Nombre) %>% purrr::imap(~{
-        acum <- spatstat.core::CDF(stats::density(.x$brecha, from = 0, to = 10000))
         tibble(inf= cortes,
                sup = lead(cortes), color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,""),
                nombre_color = c("vf","vc","a","rc","rf","")) %>%
             na.omit() %>%
             mutate(
-                prob = acum(sup-.0000001) - acum(inf),
                 Nombre = .y,
                 brecha = base::mean(.x$brecha),
+                semaforo = corte(brecha),
                 cumplimiento = base::round(base::mean(.x$Calificacion)),
                 importancia = base::round(base::mean(.x$Orden)),
                 brecha_pct = brecha/10000
