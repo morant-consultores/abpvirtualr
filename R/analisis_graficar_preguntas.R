@@ -71,8 +71,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 # }(Highcharts)
                 # "),
                 pointFormat= "
-                Respuestas con la palabra <b>{point.palabra}<b/>: <br>
-                {point.completa}
+                Frecuencia: <b>{point.n}<b/>
                 ",
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
@@ -207,7 +206,7 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                 hc_legend(enabled = T) %>%
                 hc_tooltip(
                     enabled = T,
-                    pointFormat = 'Media: {point.mediana} <br> límites: inferior {point.ymin2} - superior {point.ymax2}   ',
+                    pointFormat = 'Media: {point.mediana}% <br> límites: inferior {point.ymin2}% - superior {point.ymax2}%   ',
                     headerFormat = '',
                     borderWidth= 0,
                     backgroundColor= '#FFFFFF',
@@ -216,12 +215,14 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                               hcaes(x = Categoria, y = y),
                               color = inverso_claro) %>%
                 hc_xAxis(title = list(text = "Tema",
+                                      labels = list(format = "{value:,.0f}%"),
                                       style = list(fontSize = etiquetas)),
                          lineWidth = 3.5, lineColor = inverso_claro,
                          labels = list(style = list(fontSize = etiquetas))) %>%
                 hc_yAxis(title = list(text = ""),
                          tickAmount = 5, min = 0, max= 100,
-                         labels = list(style = list(fontSize = etiquetas))) %>%
+                         labels = list(style = list(fontSize = etiquetas),
+                                       format = "{value}%")) %>%
                 hc_plotOptions(columnrange = list(pointWidth = 7, borderRadius = 4),
                                scatter = list(marker = list(radius = 6.5))) %>%
                 hc_add_theme(thm) %>%
@@ -439,16 +440,13 @@ stat_aud <- function(mapping = NULL, data = NULL, geom = "area",
 
 graficar_nbrecha <- function(brecha, thm, densidad = T){
     bd <- brecha %>% purrr::pluck(2) %>%
-        arrange(desc(prob)) %>%
         mutate(
-            prob_pct = base::round(prob*100),
             brecha_pct = base::round(brecha_pct*100),
-            Categoria = forcats::fct_reorder(Nombre, prob)
         )
 
     juntos <- brecha %>% purrr::pluck(1)
     Graph <- if(densidad){
-        bd %>% filter(prob == max(prob)) %>%
+        bd %>% filter(color == semaforo) %>%
             mutate(color2 = factor(nombre_color, rev(c("rf","rc","a","vc","vf")))) %>%
             split(.$color2) %>% keep(~nrow(.x)>0) %>%
             map(~{
@@ -480,16 +478,13 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
                     #            aes(color = color, x = 5000, y = maximo*1.2), size = 5) +
                     # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
                     # scale_color_identity() +
-                    # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
-                    #            aes(xintercept = media)
-                    # ) +
-                    geom_text(data = bd %>% filter(Nombre %in% .x$Nombre) %>%
-                                  mutate(mean = (inf+sup)/2), size = 3,family  = familia,
-                              aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
+                    geom_vline(data = juntos %>% filter(Nombre %in% .x$Nombre) %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
+                               aes(xintercept = media)
+                    ) +
                     facet_wrap(~Nombre)+
                     geom_hline(yintercept = 0)+
                     scale_x_continuous(labels = function(x) scales::percent(x/10000), n.breaks = 4) +
-                    labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente.")+
+                    labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente. \n ** La línea vertical representa el promedio de la brecha.")+
                     theme(panel.grid = element_blank(), text = element_text(family = familia),
                           rect = element_blank(), axis.text.y = element_blank(),
                           axis.ticks.y = element_blank(),
@@ -577,7 +572,7 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
 
 generar_tabla <- function(brecha){
     tabla <- brecha %>% purrr::pluck(2) %>%
-        filter(prob == max(prob)) %>% ungroup %>%
+        filter(color == semaforo) %>% ungroup %>%
         arrange(brecha)
     colores <- tabla %>% pull(color)
 
