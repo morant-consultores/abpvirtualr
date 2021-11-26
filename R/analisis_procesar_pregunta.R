@@ -12,7 +12,7 @@
 #' @importFrom spatstat.core CDF
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
 
-procesar_p_abierta <- function(bd, pregunta, etapa){
+procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
 
     df <- bd$respuesta %>%
         left_join(bd$pregunta) %>%
@@ -41,9 +41,9 @@ procesar_p_abierta <- function(bd, pregunta, etapa){
     tokens_clean <- tokens_clean %>%
         anti_join(nums, by = "palabra") %>%
         mutate(colores = case_when(
-            n<=quantile(n,probs=.75)~ "#4C97C8",
-            n>quantile(n,probs=.75) & n<=quantile(n,probs=.90)~"#304E83",
-            n>quantile(n,probs=.90)~"#232B58"),
+            n<=quantile(n,probs=.75)~ parametros$inverso,
+            n>quantile(n,probs=.75) & n<=quantile(n,probs=.90)~parametros$primario_claro,
+            n>quantile(n,probs=.90)~ parametros$primario_obscuro),
             Pregunta = bd$pregunta %>%
                 filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
                 pull(Nombre)
@@ -241,8 +241,21 @@ procesar_numerica <- function(bd, tipo){
 
     res <- list(histograma = histograma,
                 point_range = point_range)
+    return(res)
 }
 
+procesar_juntos_promedio <- function(bd){
+    res <- bd$orden_cat %>%
+        select(IdCategoria,IdUsuario, Orden) %>%
+        left_join(bd$calif_cat %>%
+                      select(IdCategoria, IdUsuario,Calificacion)) %>%
+        left_join(bd$categoria) %>%
+        group_by(Nombre) %>%
+        summarise(importancia = base::round(base::mean(Orden)),
+                  cumplimiento = base::round(base::mean(Calificacion)))
+
+    return(res)
+}
 #' Procesa la importancia y el cumplimiento juntos por
 #' medio de sus medianas.
 #'
@@ -256,16 +269,6 @@ procesar_numerica <- function(bd, tipo){
 #' @examples #notrun(procesar_juntos(bd))
 
 procesar_juntos <- function(bd){
-
-    # res <- bd$orden_cat %>%
-    #     select(IdCategoria,IdUsuario, Orden) %>%
-    #     left_join(bd$calif_cat %>%
-    #                   select(IdCategoria, IdUsuario,Calificacion)) %>%
-    #     left_join(bd$categoria) %>%
-    #     group_by(Nombre) %>%
-    #     summarise(importancia = base::round(base::mean(Orden)),
-    #               cumplimiento = base::round(base::mean(Calificacion)))
-
 
     juntos <- bd$orden_cat %>%
         select(usuario = IdUsuario,Orden,IdCategoria) %>%
@@ -315,10 +318,10 @@ mode <- function(codes){
 #'
 #' @examples #notrun (corte(brecha))
 
-corte <- function(brecha, corte = cortes,
-                  colores = c(sm_vf,sm_vc,sm_a, sm_rc,sm_rf)){
+corte <- function(brecha, parametros){
 
-    as.character(cut(brecha, corte, labels = colores, include.lowest = T))
+    as.character(cut(brecha, parametros$corte, labels = c(parametros$sm_vf,parametros$sm_vc,parametros$sm_a, parametros$sm_rc,parametros$sm_rf),
+                     include.lowest = T))
 }
 
 #' Realiza el marco de datos del cálculo de la brecha
@@ -334,7 +337,9 @@ corte <- function(brecha, corte = cortes,
 #' @import dplyr
 #' @examples #notrun (calcular_brecha(bd))
 
-calcular_brecha <- function(bd){
+calcular_brecha <- function(bd, corte, parametros){
+
+
     juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
         left_join(
             bd$calif_cat %>% select(usuario = IdUsuario,Calificacion,IdCategoria)
@@ -342,14 +347,14 @@ calcular_brecha <- function(bd){
         mutate(brecha = Orden*(100-Calificacion))
 
     res <- juntos %>% split(.$Nombre) %>% purrr::imap(~{
-        tibble(inf= cortes,
-               sup = lead(cortes), color = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf,""),
+        tibble(inf= parametros$cortes,
+               sup = lead(parametros$cortes), color = c(parametros$sm_vf,parametros$sm_vc,parametros$sm_a,parametros$sm_rc,parametros$sm_rf,""),
                nombre_color = c("vf","vc","a","rc","rf","")) %>%
             na.omit() %>%
             mutate(
                 Nombre = .y,
                 brecha = base::mean(.x$brecha),
-                semaforo = corte(brecha),
+                semaforo = corte(brecha, parametros),
                 cumplimiento = base::round(base::mean(.x$Calificacion)),
                 importancia = base::round(base::mean(.x$Orden)),
                 brecha_pct = brecha/10000
@@ -357,57 +362,4 @@ calcular_brecha <- function(bd){
     }) %>% bind_rows() %>% group_by(Nombre)
 
     return(list(juntos, res))
-}
-
-
-
-#' StatAreaUnderDensity
-#'
-#' @param data
-#' @param scales
-#' @param xlim
-#' @param n
-#'
-#' @return
-#' @export
-
-StatAreaUnderDensity <- ggproto(
-    "StatAreaUnderDensity", Stat,
-    required_aes = "x",
-
-    compute_group = function(data, scales, xlim = NULL, n = 50) {
-
-        fun <- approxfun(density(data$x, from = 0, to = 10000))
-        StatFunction$compute_group(data, scales, fun = fun, xlim = xlim, n = n)
-    }
-)
-
-#' stat_aud
-#'
-#' @param mapping
-#' @param data
-#' @param geom
-#' @param position
-#' @param na.rm
-#' @param show.legend
-#' @param inherit.aes
-#' @param n
-#' @param xlim
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @examples
-
-stat_aud <- function(mapping = NULL, data = NULL, geom = "area",
-                     position = "identity", na.rm = FALSE, show.legend = NA,
-                     inherit.aes = TRUE, n = 50, xlim=NULL,
-                     ...) {
-
-
-    layer(
-        stat = StatAreaUnderDensity, data = data, mapping = mapping, geom = geom,
-        position = position, show.legend = show.legend, inherit.aes = inherit.aes,
-        params = list(xlim = xlim, n = n, ...))
 }

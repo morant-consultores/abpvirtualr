@@ -10,7 +10,8 @@
 #' @import dplyr
 #' @examples #notrun (slides_nubes(bd, etapa = 1))
 
-slides_nubes <- function(bd, etapa){
+slides_nubes <- function(bd, etapa, parametros, thm){
+
     preguntas <- bd$pregunta %>%
         filter(IdEtapa == etapa) %>%
         pull(IdPregunta)
@@ -18,11 +19,10 @@ slides_nubes <- function(bd, etapa){
     if(etapa == 5){
         preguntas <- preguntas[1]
     }
-
     out <- list()
 
     for (i in preguntas){
-        a <- procesar_p_abierta(bd, pregunta = i, etapa = etapa)
+        a <- procesar_p_abierta(bd, pregunta = i, etapa = etapa, parametros = parametros)
 
         a1 <- a %>% purrr::pluck(1)
         a2 <- a %>% purrr::pluck(2)
@@ -34,7 +34,7 @@ slides_nubes <- function(bd, etapa){
 
 
         x1 <- glue::glue(
-        "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}))"
+        "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
         )
         x2 <- glue::glue(
             "knitr::knit_expand(text = imprimir_tabla_nube(q_{i}, {i}))"
@@ -66,11 +66,10 @@ slides_nubes <- function(bd, etapa){
 #' @import dplyr
 #' @examples
 
-slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
-
+slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
     # Slide brecha
     p_4 <- procesar_brecha(bd, otro = "Otro")
-    out1 <- knitr::knit_expand(text = imprimir_brecha(p_4))
+    out1 <- knitr::knit_expand(text = imprimir_brecha(p_4, parametros, thm))
 
     # Slides p clave
     brecha <- procesar_r_tema(
@@ -98,22 +97,25 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
     # Slide 3: Cumplimiento e Importancia
     g_1 <- bd %>% procesar_numerica("Calificacion")
     out3 <- knitr::knit_expand(
-        text = imprimir_numerica_p(g_1, tipo = "Cumplimiento", 1)
+        text = imprimir_numerica_p(g_1, tipo = "Cumplimiento", 1, parametros, thm)
     )
 
     # Slide Importancia
     g_2 <- bd %>% procesar_numerica("Orden")
     out4 <- knitr::knit_expand(
-        text = imprimir_numerica_p(g_2, tipo = "Importancia", 2)
+        text = imprimir_numerica_p(g_2, tipo = "Importancia", 2, parametros, thm)
     )
 
     # Analisis conjunto
     p_7 <- procesar_juntos(bd)
-    out5 <- knitr::knit_expand(text = imprimir_juntos(p_7))
+    out5 <- knitr::knit_expand(text = imprimir_juntos(p_7, parametros))
+
+    p_7.1 <- procesar_juntos_promedio(bd)
+    out5.1 <- knitr::knit_expand(text = imprimir_juntos_promedio(p_7.1, parametros))
 
     # Gráfica de calculo de brecha
-    brecha2 <- calcular_brecha(bd)
-    hc <- brecha2 %>% graficar_nbrecha()
+    brecha2 <- calcular_brecha(bd, corte = corte, parametros = parametros)
+    hc <- brecha2 %>% graficar_nbrecha(parametros)
 
     out6 <- purrr::imap(hc, ~{
         r <- glue::glue('r densidad_{gsub("#","",.y)}')
@@ -132,7 +134,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
     #     text = imprimir_calc_brecha(brecha2, grafica = TRUE))
 
     # Tabla de calculo de brecha
-    tabla_df <- generar_tabla(brecha2)
+    tabla_df <- generar_tabla(brecha2, parametros = parametros)
 
     out7 <- knitr::knit_expand(
         text = imprimir_calc_brecha(tabla_df, grafica = FALSE))
@@ -146,6 +148,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro"){
         append(out4) %>%
         append(out3) %>%
         append(out5) %>%
+        append(out5.1) %>%
         append(out6) %>%
         # append(out6.2) %>%
         append(out7)

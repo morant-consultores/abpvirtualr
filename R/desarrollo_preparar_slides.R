@@ -10,7 +10,7 @@
 #' @import dplyr
 #' @examples #notrun (imprimir_nube(p_1, 1))
 
-imprimir_nube <- function(df, i){
+imprimir_nube <- function(df, i, parametros){
     t <- df %>%
         pull(Pregunta) %>%
         unique()
@@ -19,7 +19,7 @@ imprimir_nube <- function(df, i){
     r1 <- glue::glue("r {t1}, eval=requireNamespace('highcharter', quietly=TRUE)")
     r1 <- paste("{", r1, "}", sep="")
 
-    nube <- glue::glue("```{r1} \n graficar_nube(p_{i}) \n ```")
+    nube <- glue::glue("```{r1} \n graficar_nube(p_{i}, parametros = parametros) \n ```")
 
     # Sólo nube
     #char <- glue::glue("\n\n  ## {t} \n\n --- \n\n {nube} \n\n ---")
@@ -91,7 +91,8 @@ imprimir_tabla_nube <- function(df, i){
 #' @export
 #' @examples #notrun (imprimir_brecha(p_4))
 
-imprimir_brecha <- function(df){
+imprimir_brecha <- function(df, parametros, thm){
+
     t1 <- df %>% pull(pregunta) %>%
         unique()
 
@@ -100,7 +101,7 @@ imprimir_brecha <- function(df){
     sp <- "```"
 
     char <- glue::glue(
-        " \n\n # {t1} \n\n --- \n\n {sp}{r} \n\n graficar_brecha(p_4, interactivo = TRUE, inverso, primario, thm) \n\n {sp} \n\n ---")
+        " \n\n # {t1} \n\n --- \n\n {sp}{r} \n\n graficar_brecha(p_4, interactivo = TRUE, parametros, thm) \n\n {sp} \n\n ---")
 
 
     return(char)
@@ -120,7 +121,7 @@ imprimir_brecha <- function(df){
 #'
 #' @examples #notrun ( imprimir_numerica_p(g_1, tipo = "Cumplimiento", 1) )
 
-imprimir_numerica_p <- function(df, tipo, i){
+imprimir_numerica_p <- function(df, tipo, i, parametros, thm){
 
     r <- glue::glue("r {tipo}")
     r <- paste("{", r, "}", sep="")
@@ -130,14 +131,30 @@ imprimir_numerica_p <- function(df, tipo, i){
         "\n\n # {tipo}",
         "\n\n --- \n\n",
         "{sp}{r} \n\n ",
-        "graficar_numerica(g_{i}, tipo = 'point_range', interactivo = TRUE, thm)",
+        "graficar_numerica(g_{i}, tipo = 'point_range', interactivo = TRUE, parametros, thm)",
         "\n\n {sp} \n\n ---", sep = " ")
         )
 
     return(char)
 }
 
+imprimir_juntos_promedio <- function(df, parametros){
 
+    t1 <- "Análisis Conjunto Promedio"
+
+    r <- glue::glue("r etapa_3-4-1")
+    r <- paste("{", r, "}", sep="")
+    sp <- "```"
+
+    char <- glue::glue(paste(
+        "\n\n # {t1} ",
+        "\n\n --- \n\n",
+        "{sp}{r}",
+        "\n\n graficar_juntos_promedio(p_7.1, parametros) \n\n",
+        "{sp} \n\n ---", sep = " "))
+
+    return(char)
+}
 
 #' Crea el chunk de xaringan para poner la gráfica de
 #'  cumplimiento vs importancia.
@@ -152,7 +169,7 @@ imprimir_numerica_p <- function(df, tipo, i){
 #' @examples #notrun (imprimir_juntos(p_7))
 #'
 
-imprimir_juntos <- function(df){
+imprimir_juntos <- function(df, parametros){
 
     t1 <- "Análisis Conjunto"
 
@@ -164,7 +181,7 @@ imprimir_juntos <- function(df){
     "\n\n # {t1} ",
     "\n\n --- \n\n",
     "{sp}{r}",
-    "\n\n graficar_juntos(p_7,interactivo = FALSE,  corte = cortes, thm) \n\n",
+    "\n\n graficar_juntos(p_7, parametros) \n\n",
     "{sp} \n\n ---", sep = " "))
 
     return(char)
@@ -186,7 +203,7 @@ imprimir_juntos <- function(df){
 
 #' @examples
 
-imprimir_calc_brecha <- function(bd, grafica){
+imprimir_calc_brecha <- function(bd, grafica, parametros){
 
     r <- glue::glue("r densidad_{grafica}")
     r2 <- glue::glue("r barras")
@@ -204,7 +221,7 @@ imprimir_calc_brecha <- function(bd, grafica){
         char <- glue::glue(paste(
             "\n\n # Gráfica del cálculo de Brecha",
             "\n\n --- \n\n {sp}{r2} \n\n",
-            "graficar_nbrecha(brecha2,densidad = F)",
+            "graficar_nbrecha(brecha2,parametros,densidad = F)",
             "\n\n {sp} \n\n ---", sep = " ")
         )
 

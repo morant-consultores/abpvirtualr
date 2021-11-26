@@ -44,14 +44,14 @@ tema_high <- function(font, color, size){
 #'
 #' @examples #notrun (graficar_nube(p_1))
 
-graficar_nube <- function(tokens_clean, interactivo = TRUE){
+graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
 
     if(interactivo){
 
         tokens_clean %>%
             hchart(hcaes(x= palabra, weight =log(n),
                          color=colores), type= "wordcloud") %>%
-            hc_chart(style=list(fontFamily =familia))   %>%
+            hc_chart(style=list(fontFamily = parametros$familia))   %>%
             # hc_yAxis( scrollbar= list(enabled=F)) %>%
             hc_tooltip(
                 # positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
@@ -75,7 +75,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
                 ",
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
-                style=list(fontSize = "20px", color = gris, 'overflow-y' = "scroll", scrollbar = TRUE)) %>%
+                style=list(fontSize = "20px", color = parametros$gris, 'overflow-y' = "scroll", scrollbar = TRUE)) %>%
             hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2))
 
 
@@ -105,8 +105,7 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE){
 #'
 #' @examples #notrun (graficar_brecha(bd, inverso, primario, tema_highcharter()))
 
-graficar_brecha <- function(bd, interactivo = TRUE,
-                            inverso, primario, thm){
+graficar_brecha <- function(bd, interactivo = TRUE ,parametros, thm){
 
     if(interactivo){
         bd %>%
@@ -115,7 +114,7 @@ graficar_brecha <- function(bd, interactivo = TRUE,
                    hcaes(x = Categoria, value = pct_r, color = pct_r)) %>%
             hc_colorAxis(
                 stops = color_stops(colors =
-                                        grDevices::colorRampPalette(c(inverso, primario))(11))
+                                        grDevices::colorRampPalette(c(parametros$inverso, parametros$primario))(11))
             ) %>%
             hc_tooltip(enabled=T,
                        pointFormat= paste(
@@ -125,9 +124,9 @@ graficar_brecha <- function(bd, interactivo = TRUE,
                            ' {point.pct} <br/>', sep = ""),
                        headerFormat= '',
                        backgroundColor= '#FFFFFF',
-                       style=list(fontSize ="15px", color = gris, fontFamily = familia) ) %>%
+                       style=list(fontSize ="15px", color = parametros$gris, fontFamily = parametros$familia) ) %>%
             hc_plotOptions(treemap = list(borderRadius = 10,
-                                          dataLabels = list( style = list(fontFamily = familia,
+                                          dataLabels = list( style = list(fontFamily = parametros$familia,
                                                                           fontSize = "14px")))   ) %>%
             hc_add_theme(thm) %>%
             hc_legend(enabled = F)
@@ -146,7 +145,6 @@ graficar_brecha <- function(bd, interactivo = TRUE,
 #' @examples #notrun (graficar_claves(brecha$pclave$p_clave))
 
 graficar_claves <- function(df){
-
     res <- df %>%
         pull(feature) %>%
         paste(collapse = ", ")
@@ -170,7 +168,8 @@ graficar_claves <- function(df){
 #' @import ggplot2
 #' @examples #notrun (graficar_numerica(bd %>% procesar_numerica("Calificacion"), tipo = 'point_range',tema_highcharter()) )
 
-graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
+graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
+
     if (interactivo == TRUE){
         if (tipo == "histograma"){
 
@@ -202,7 +201,7 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
             df %>%
                 hchart(type = "columnrange",
                        hcaes(x = Categoria,y = y, low= ymin, high = ymax),
-                       color = primario_claro) %>%
+                       color = parametros$primario_claro) %>%
                 hc_legend(enabled = T) %>%
                 hc_tooltip(
                     enabled = T,
@@ -210,23 +209,22 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
                     headerFormat = '',
                     borderWidth= 0,
                     backgroundColor= '#FFFFFF',
-                    style=list(fontSize ="18px", color = gris)) %>%
+                    style=list(fontSize ="18px", color = parametros$gris)) %>%
                 hc_add_series(df, "point",
                               hcaes(x = Categoria, y = y),
-                              color = inverso_claro) %>%
+                              color = parametros$inverso_claro) %>%
                 hc_xAxis(title = list(text = "Tema",
-                                      labels = list(format = "{value:,.0f}%"),
-                                      style = list(fontSize = etiquetas)),
-                         lineWidth = 3.5, lineColor = inverso_claro,
-                         labels = list(style = list(fontSize = etiquetas))) %>%
+                                      style = list(fontSize = parametros$etiquetas)),
+                         lineWidth = 3.5, lineColor = parametros$inverso_claro,
+                         labels = list(style = list(fontSize = parametros$etiquetas))) %>%
                 hc_yAxis(title = list(text = ""),
                          tickAmount = 5, min = 0, max= 100,
-                         labels = list(style = list(fontSize = etiquetas),
-                                       format = "{value}%")) %>%
+                         labels = list(style = list(fontSize = parametros$etiquetas),
+                                       format = "{value:,.0f}%")) %>%
                 hc_plotOptions(columnrange = list(pointWidth = 7, borderRadius = 4),
                                scatter = list(marker = list(radius = 6.5))) %>%
                 hc_add_theme(thm) %>%
-                hc_chart(inverted = T, style = list(fontFamily = familia))
+                hc_chart(inverted = T, style = list(fontFamily = parametros$familia))
 
         }else{NULL}
 
@@ -257,7 +255,52 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
     }
 }
 
+graficar_juntos_promedio <- function(res, parametros){
 
+    sysfonts::font_add_google(parametros$familia)
+    br <- function(x,c = parametros$corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
+    dominio <- seq(0,100,.1)
+
+    e <- ggplot() +
+        geom_ribbon(
+            aes(x = dominio, ymin = 0, ymax = br(dominio,parametros$corte[2])),
+            fill = parametros$sm_vf,alpha = .5) +
+        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$corte[2]),
+                        ymax = br(dominio,parametros$corte[3])), fill = parametros$sm_vc,alpha = .5) +
+        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$corte[3]),
+                        ymax = br(dominio,parametros$corte[4])), fill = parametros$sm_a,alpha = .5) +
+        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$corte[4]),
+                        ymax = br(dominio,parametros$corte[5])), fill = parametros$sm_rc,alpha = .5) +
+        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$corte[5]),
+                        ymax = 100), fill = parametros$sm_rf,alpha = .5) +
+        geom_hline(yintercept = 50) +
+        geom_vline(xintercept = 50) +
+        geom_abline(linetype = "dotted", color = "gray50") +
+        coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
+        labs(y = "Importancia", x = "Cumplimiento", color = "Tema") +
+        xaringanthemer::theme_xaringan() +
+        geom_point(data = res, aes(
+            x = cumplimiento,
+            y = importancia,
+            color = Nombre), size = 5)+
+        scale_color_manual(values = c("#001C50", "#4DCCBD", "#725E54",
+                                      "#FF6B6B", "#DBD56E", "#C6B9CD",
+                                      "#414535", "#EB6534", "#59A5D8",
+                                      "#DE4797"))+
+        theme_minimal(base_size=12, base_family = parametros$familia,
+                      base_line_size = .5, base_rect_size = .5 ) %+replace%
+        theme(text = element_text(family = parametros$familia),
+              axis.title = element_text(size = 15),
+              legend.title = element_text(size = 15),
+              legend.text = element_text(size = 12),
+              axis.text = element_text(size = 12),
+              panel.grid.minor = element_blank(),
+              axis.ticks = element_blank()         )
+
+
+
+    return(e)
+}
 #' Gráfica conjunta de Importancia y Cumplimiento.
 #'
 #' @param bd (tibble) Marco de datos provisto por la función
@@ -273,137 +316,66 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, thm){
 #'
 #' @examples #notrun ( graficar_juntos(procesar_juntos(bd), tema_highcharter()) )
 
-graficar_juntos <- function(bd, interactivo = FALSE, corte = cortes, thm){
+graficar_juntos <- function(bd, parametros){
 
-    if(interactivo){
+    sysfonts::font_add_google(parametros$familia)
 
-        bd %>%
-            hchart("scatter",
-                   hcaes(x = importancia,
-                         y = cumplimiento, group = Nombre)) %>%
-            hc_add_theme(thm)
 
-    }
-    else{
+    br <- function(x,c = corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
+    dominio <- seq(0,100,.1)
+    sim <- bd %>% group_by(Nombre) %>%
+        summarise(media_i = mean(Orden), sd_i = sqrt(var(Orden/5)),
+                  media_c = mean(Calificacion), sd_c = sqrt(var(Calificacion/5))) %>%
+        purrr::pmap(function(Nombre, media_i,sd_i,media_c,sd_c){
+            tibble::tibble(tema = Nombre, i = rnorm(100,media_i, sd_i),
+                           c = rnorm(100,media_c, sd_c),b = i*(100-c))
+        }) %>% bind_rows()
 
-        # br <- function(x,c) purrr::map_dbl(x, ~ min(c/(100-.x),100))
-        # dominio <- seq(0,100,.1)
-        #
-        sysfonts::font_add_google(familia)
-        #
-        # ggplot() +
-        #     geom_ribbon(
-        #         aes(x = dominio, ymin = 0, ymax = br(dominio,corte[2])),
-        #         fill = sm_vf,alpha = .5) +
-        #     geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[2]),
-        #                     ymax = br(dominio,corte[3])), fill = sm_vc,alpha = .5) +
-        #     geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[3]),
-        #                     ymax = br(dominio,corte[4])), fill = sm_a,alpha = .5) +
-        #     geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[4]),
-        #                     ymax = br(dominio,corte[5])), fill = sm_rc,alpha = .5) +
-        #     geom_ribbon(aes(x = dominio, ymin = br(dominio,corte[5]),
-        #                     ymax = 100), fill = sm_rf,alpha = .5) +
-        #     geom_hline(yintercept = 50) +
-        #     geom_vline(xintercept = 50) +
-        #     geom_abline(linetype = "dotted", color = "gray50") +
-        #     coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
-        #     labs(y = "Importancia", x = "Cumplimiento", color = "Tema") +
-        #     xaringanthemer::theme_xaringan() +
-        #     geom_point(data = bd, aes(
-        #         x = cumplimiento,
-        #         y = importancia,
-        #         color = Nombre), size = 5)+
-        #     scale_color_manual(values = c("#001C50", "#4DCCBD", "#725E54",
-        #                                   "#FF6B6B", "#DBD56E", "#C6B9CD",
-        #                                   "#414535", "#EB6534", "#59A5D8",
-        #                                   "#DE4797"))+
-        #     theme_minimal(base_size=12, base_family = familia,
-        #                   base_line_size = .5, base_rect_size = .5 ) %+replace%
-        #     theme(text = element_text(family = familia),
-        #           axis.title = element_text(size = 15),
-        #           legend.title = element_text(size = 15),
-        #           legend.text = element_text(size = 12),
-        #           axis.text = element_text(size = 12),
-        #           panel.grid.minor = element_blank(),
-        #           axis.ticks = element_blank()         )
-
-        br <- function(x,c = corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
-        dominio <- seq(0,100,.1)
-        sim <- bd %>% group_by(Nombre) %>%
-            summarise(media_i = mean(Orden), sd_i = sqrt(var(Orden/5)),
-                      media_c = mean(Calificacion), sd_c = sqrt(var(Calificacion/5))) %>%
-            purrr::pmap(function(Nombre, media_i,sd_i,media_c,sd_c){
-                tibble::tibble(tema = Nombre, i = rnorm(100,media_i, sd_i),
-                               c = rnorm(100,media_c, sd_c),b = i*(100-c))
-            }) %>% bind_rows()
-        # e <- bd %>% ggplot() +
-        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2])),
-        #                 aes(x = a, ymin = 0, ymax = b), fill = sm_vf,alpha = .5) +
-        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2]), c = br(a,corte[3])),
-        #                 aes(x = a, ymin = b, ymax = c), fill = sm_vc,alpha = .5) +
-        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[3]), c = br(a,corte[4])),
-        #                 aes(x = a, ymin = b, ymax = c), fill = sm_a,alpha = .5) +
-        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[4]), c = br(a,corte[5])),
-        #                 aes(x = a, ymin = b, ymax = c), fill = sm_rc,alpha = .5) +
-        #     geom_ribbon(data = tibble(a = dominio, b = br(a,corte[5])),
-        #                 aes(x = a, ymin = b,
-        #                     ymax = 100), fill = sm_rf,alpha = .5) + coord_fixed() +
-        #     xlim(c(0,100)) + ylim(c(0,100)) +
-        #     geom_vline(xintercept = 50, fill = primario) +
-        #     geom_hline(yintercept = 50)+
-        #     geom_abline(linetype = "dotted") +
-        #     geom_hex(aes(x = Calificacion, y = Orden)) +
-        #     labs(fill = "Respuestas") +
-        #     facet_wrap(~Nombre, nrow= 2) +
-        #     theme_void() +# theme(legend.position = "bottom") +
-        #     scale_fill_gradientn(colours = hcl.colors(50, "YlOrRd", rev = TRUE),
-        #                          breaks = seq(0,bd %>% count(Nombre) %>% summarise(max(n)) %>% pull(1),
-        #                                       length.out = 5))
-        e <- sim %>%
-            ggplot() +
-            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2])),
-                        aes(x = a, ymin = 0, ymax = b),
-                        fill = sm_vf,alpha = .4) +
-            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[2]), c = br(a,corte[3])),
-                        aes(x = a, ymin = b,
-                            ymax = c), fill = sm_vc,alpha = .4) +
-            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[3]), c = br(a,corte[4])),
-                        aes(x = a, ymin = b,
-                            ymax = c), fill = sm_a,alpha = .4) +
-            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[4]), c = br(a,corte[5])),
-                        aes(x = a, ymin = b,
-                            ymax = c), fill = sm_rc,alpha = .4) +
-            geom_ribbon(data = tibble(a = dominio, b = br(a,corte[5])),
-                        aes(x = a, ymin = b,
-                            ymax = 100), fill = sm_rf,alpha = .4) + coord_fixed() +
-            xlim(c(0,100)) + ylim(c(0,100)) +
-            geom_vline(xintercept = 50) +
-            geom_hline(yintercept = 50)+
-            geom_abline(linetype = "dotted") +
-            geom_point(aes(x = c, y = i), color = inverso, size = .5) +
-            geom_hex(aes(x = c, y = i) ) +
-            scale_fill_gradient(low=inverso_claro ,high=primario,)+
-            labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
-            facet_wrap(~stringr::str_wrap(tema, 10), nrow= 2) +
-            scale_y_continuous(breaks = c(0,50,100), labels = function(x) scales::percent(x/100)) +
-            scale_x_continuous(breaks = c(50,100), labels = function(x) scales::percent(x/100)) +
-            xaringanthemer::theme_xaringan() +
-            theme_minimal(base_size=12, base_family = familia,
-                          base_line_size = .5, base_rect_size = .5 ) %+replace%
-            theme(text = element_text(family = familia),
-                  axis.title = element_text(size = 15),
-                  legend.title = element_text(size = ),
-                  # legend.position = "bottom",
-                  # legend.direction = "vertical",
-                  legend.text = element_text(size = 8),
-                  legend.key.size = unit(.8,"line"),
-                  axis.text = element_text(size = 12),
-                  panel.grid.minor = element_blank(),
-                  axis.ticks = element_blank(),
-                  strip.text = element_text(size = 12)
-            )
-        return(e)
-    }
+    # sim <- bd %>% transmute(i = Orden, c = Calificacion, tema = Nombre)
+    e <- sim %>%
+        ggplot() +
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[2])),
+                    aes(x = a, ymin = 0, ymax = b),
+                    fill = parametros$sm_vf,alpha = .4) +
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[2]), c = br(a,parametros$corte[3])),
+                    aes(x = a, ymin = b,
+                        ymax = c), fill = parametros$sm_vc,alpha = .4) +
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[3]), c = br(a,parametros$corte[4])),
+                    aes(x = a, ymin = b,
+                        ymax = c), fill = parametros$sm_a,alpha = .4) +
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[4]), c = br(a,parametros$corte[5])),
+                    aes(x = a, ymin = b,
+                        ymax = c), fill = parametros$sm_rc,alpha = .4) +
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[5])),
+                    aes(x = a, ymin = b,
+                        ymax = 100), fill = parametros$sm_rf,alpha = .4) + coord_fixed() +
+        xlim(c(0,100)) + ylim(c(0,100)) +
+        geom_vline(xintercept = 50) +
+        geom_hline(yintercept = 50)+
+        geom_abline(linetype = "dotted") +
+        # geom_point(aes(x = c, y = i), color = inverso, size = .5) +
+        geom_hex(aes(x = c, y = i) ) +
+        scale_fill_gradient(low=parametros$inverso_claro ,high=parametros$primario)+
+        labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
+        facet_wrap(~stringr::str_wrap(tema, 10), nrow= 2) +
+        scale_y_continuous(breaks = c(0,50,100), labels = function(x) scales::percent(x/100)) +
+        scale_x_continuous(breaks = c(50,100), labels = function(x) scales::percent(x/100)) +
+        xaringanthemer::theme_xaringan() +
+        theme_minimal(base_size=12, base_family = parametros$familia,
+                      base_line_size = .5, base_rect_size = .5 ) %+replace%
+        theme(text = element_text(family = parametros$familia),
+              axis.title = element_text(size = 15),
+              # legend.title = element_text(size = ),
+              # legend.position = "bottom",
+              # legend.direction = "vertical",
+              legend.text = element_text(size = 8),
+              legend.key.size = unit(.8,"line"),
+              axis.text = element_text(size = 12),
+              panel.grid.minor = element_blank(),
+              axis.ticks = element_blank(),
+              strip.text = element_text(size = 12)
+        )
+    return(e)
 }
 
 
@@ -438,7 +410,8 @@ stat_aud <- function(mapping = NULL, data = NULL, geom = "area",
 #'
 #' @examples #notrun ( graficar_nbrecha(calcular_brecha(bd)) )
 
-graficar_nbrecha <- function(brecha, thm, densidad = T){
+graficar_nbrecha <- function(brecha, parametros,densidad = T){
+
     bd <- brecha %>% purrr::pluck(2) %>%
         mutate(
             brecha_pct = base::round(brecha_pct*100),
@@ -448,29 +421,29 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
     Graph <- if(densidad){
         bd %>% filter(color == semaforo) %>%
             mutate(color2 = factor(nombre_color, rev(c("rf","rc","a","vc","vf")))) %>%
-            split(.$color2) %>% keep(~nrow(.x)>0) %>%
-            map(~{
+            split(.$color2) %>% purrr::keep(~nrow(.x)>0) %>%
+            purrr::map(~{
                 juntos %>% filter(Nombre %in% .x$Nombre) %>%
                     ggplot(aes(x = brecha)) + geom_density(color = "white", alpha= .9) +
                     stat_aud(geom="area",
-                             fill = sm_vf,
-                             xlim = cortes[1:2],
+                             fill = parametros$sm_vf,
+                             xlim = parametros$cortes[1:2],
                              alpha = 1)+
                     stat_aud(geom="area",
-                             fill = sm_vc,
-                             xlim = cortes[2:3],
+                             fill = parametros$sm_vc,
+                             xlim = parametros$cortes[2:3],
                              alpha = 1)+
                     stat_aud(geom="area",
-                             fill = sm_a,
-                             xlim = cortes[3:4],
+                             fill = parametros$sm_a,
+                             xlim = parametros$cortes[3:4],
                              alpha = 1)+
                     stat_aud(geom="area",
-                             fill = sm_rc,
-                             xlim = cortes[4:5],
+                             fill = parametros$sm_rc,
+                             xlim = parametros$cortes[4:5],
                              alpha = 1)+
                     stat_aud(geom="area",
-                             fill = sm_rf,
-                             xlim = cortes[5:6],
+                             fill = parametros$sm_rf,
+                             xlim = parametros$cortes[5:6],
                              alpha = 1) +
                     # geom_point(data = .x  %>% ungroup %>%
                     #                left_join(juntos %>% filter(Nombre %in% .x$Nombre) %>% group_by(Nombre) %>%
@@ -478,58 +451,24 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
                     #            aes(color = color, x = 5000, y = maximo*1.2), size = 5) +
                     # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
                     # scale_color_identity() +
-                    geom_vline(data = juntos %>% filter(Nombre %in% .x$Nombre) %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
+                    geom_vline(data = juntos %>% filter(Nombre %in% .x$Nombre) %>%
+                                   group_by(Nombre) %>%
+                                   summarise(media = mean(brecha)),
                                aes(xintercept = media)
                     ) +
                     facet_wrap(~Nombre)+
                     geom_hline(yintercept = 0)+
                     scale_x_continuous(labels = function(x) scales::percent(x/10000), n.breaks = 4) +
-                    labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente. \n ** La línea vertical representa el promedio de la brecha.")+
-                    theme(panel.grid = element_blank(), text = element_text(family = familia),
+                    labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente.  \n ** La línea vertical representa el promedio de la brecha.")+
+                    theme(panel.grid = element_blank(), text = element_text(family = parametros$familia),
                           rect = element_blank(), axis.text.y = element_blank(),
                           axis.ticks.y = element_blank(),
                           strip.text = element_text(size = 12))
             })
-        # juntos %>% ggplot(aes(x = brecha)) + geom_density(color = "white", alpha= .9) +
-        #     stat_aud(geom="area",
-        #              fill = sm_vf,
-        #              xlim = cortes[1:2],
-        #              alpha = 1)+
-        #     stat_aud(geom="area",
-        #              fill = sm_vc,
-        #              xlim = cortes[2:3],
-        #              alpha = 1)+
-        #     stat_aud(geom="area",
-        #              fill = sm_a,
-        #              xlim = cortes[3:4],
-        #              alpha = 1)+
-        #     stat_aud(geom="area",
-        #              fill = sm_rc,
-        #              xlim = cortes[4:5],
-        #              alpha = 1)+
-        #     stat_aud(geom="area",
-        #              fill = sm_rf,
-        #              xlim = cortes[5:6],
-        #              alpha = 1) +
-        #     geom_point(data = bd %>% filter(prob == max(prob)) %>% ungroup %>%
-        #                    left_join(juntos %>% group_by(Nombre) %>%
-        #                                  summarise(maximo = max(density(brecha)$y))),
-        #                aes(color = color, x = 5000, y = maximo*1.2), size = 5) +
-        #     # geom_point(data = brecha_prob_2, aes(color = color, x = 7500, y = .00025), size = 5) +
-        #     scale_color_identity() +
-        #     # geom_vline(data = juntos %>% group_by(Nombre) %>% summarise(media = mean(brecha)),
-        #     #            aes(xintercept = media)
-        #     # ) +
-        #     geom_text(data = bd %>% mutate(mean = (inf+sup)/2), size = 3,family  = familia,
-        #               aes(x = mean, y = 0, label = scales::percent(prob,.1)),nudge_y = .00001, color = gris) +
-        #     facet_wrap(~Nombre,scales = "free")+
-        #     theme_void() +
-        #     labs(caption = "* El círculo de color representa la semaforización más frecuente.")+
-        #     theme(panel.grid = element_blank(), text = element_text(family = familia),
-        #           strip.text = element_text(size = 12))
+
     } else{
         bd %>%
-            mutate(color = factor(color, levels = c(sm_vf,sm_vc,sm_a,sm_rc,sm_rf)),
+            mutate(color = factor(color, levels = c(parametros$sm_vf,parametros$sm_vc,parametros$sm_a,parametros$sm_rc,parametros$sm_rf)),
                    acum = cumsum(prob)) %>%
             ggplot(aes(x = 1, y = prob, fill = color)) +
             ggchicklet::geom_chicklet(position = "dodge",show.legend = F, alpha = .8, size= 1) +
@@ -538,11 +477,11 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
             labs(y = "Frecuencia", x = "")+
             xaringanthemer::theme_xaringan() +
             scale_y_continuous(labels=scales::percent_format(accuracy = 1), n.breaks = 4)+
-            geom_text(family= familia, aes(label = prob %>% scales::percent(accuracy = 1)), size  = 3,
+            geom_text(family= parametros$familia, aes(label = prob %>% scales::percent(accuracy = 1)), size  = 3,
                       position = position_dodge(width = .9), vjust = "inward")+
-            theme_minimal(base_size=12, base_family = familia,
+            theme_minimal(base_size=12, base_family = parametros$familia,
                           base_line_size = .5, base_rect_size = .5 ) %+replace%
-            theme(text = element_text(family = familia),
+            theme(text = element_text(family = parametros$familia),
                   axis.title = element_text(size = 15),
                   legend.title = element_text(size = 15),
                   legend.text = element_text(size = 12),
@@ -570,7 +509,8 @@ graficar_nbrecha <- function(brecha, thm, densidad = T){
 #' @examples #notrun (generar_tabla(brecha2))
 #'
 
-generar_tabla <- function(brecha){
+generar_tabla <- function(brecha, parametros){
+
     tabla <- brecha %>% purrr::pluck(2) %>%
         filter(color == semaforo) %>% ungroup %>%
         arrange(brecha)
@@ -583,12 +523,13 @@ generar_tabla <- function(brecha){
         select( Tema=Nombre ,
                 Brecha,
                 Importancia = importancia,
-                Cumplimiento = cumplimiento) %>%
+                Cumplimiento = cumplimiento
+        ) %>%
         kableExtra::kbl() %>%
         kableExtra::kable_paper("striped", full_width = F) %>%
         kableExtra::column_spec(1, color = "white",
                                 background = colores) %>%
-        kableExtra::kable_classic(full_width = F, html_font = familia)
+        kableExtra::kable_classic(full_width = F, html_font = parametros$familia)
     return(tabla_df)
 }
 
@@ -603,6 +544,7 @@ generar_tabla <- function(brecha){
 #' @examples #notrun (generar_tabla_nube(procesar_p_abierta(bd,1,1) %>% pluck(2)))
 
 generar_tabla_nube <- function(bd){
+
     tabla <- bd %>%
         select(Respuesta) %>%
         DT::datatable(

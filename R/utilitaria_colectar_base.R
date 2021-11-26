@@ -11,7 +11,12 @@
 #' @examples #notrun (leer_base(con, id_sesion = "Todo"))
 
 leer_base <- function(id_sesion = NULL){
-
+    conexion <- list(Driver = "ODBC Driver 17 for SQL Server",
+                     Server = "database.negox.com",
+                     Database = "CIDFares2020_ABPVirtualTest",
+                     UID = "CIDFares2020_CIDFares2020",
+                     PWD = "CIDFares@BP2021",
+                     Port = 1433)
     con <- pool::dbPool(odbc::odbc(),
                         Driver = conexion$Driver,
                         Server = conexion$Server,
@@ -21,12 +26,12 @@ leer_base <- function(id_sesion = NULL){
                         Port = conexion$Port)
 
     id_sesion <- if(is.null(id_sesion)) tbl(con,
-    in_schema("General","Sesion")) %>%
-        summarise(max(id_sesion)) %>%
+                                            in_schema("General","Sesion")) %>%
+        summarise(max(IdSesion)) %>%
         pull(1) else id_sesion
 
     id_sesion <- if(id_sesion == "Todo") tbl(con,
-        in_schema("General","Sesion")) %>%
+                                             in_schema("General","Sesion")) %>%
         pull(IdSesion) else id_sesion
 
     etapa <- tbl(con,in_schema("Catalogo", "Etapa")) %>%
@@ -43,17 +48,17 @@ leer_base <- function(id_sesion = NULL){
         collect()
 
     respuesta_cat <- tbl(con,
-        in_schema("Cuestionario", "RespuestaCategoria")) %>%
+                         in_schema("Cuestionario", "RespuestaCategoria")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
         collect()
 
     orden_cat <- tbl(con,
                      in_schema("Cuestionario", "OrdenCategoria")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
-        collect() %>%  mutate(Orden= Orden*10)
+        collect()
 
     calif_cat <- tbl(con,
-        in_schema("Cuestionario", "CalificacionCategoria")) %>%
+                     in_schema("Cuestionario", "CalificacionCategoria")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
         collect()
 
