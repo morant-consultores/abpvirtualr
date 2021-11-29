@@ -363,3 +363,49 @@ calcular_brecha <- function(bd, corte, parametros){
 
     return(list(juntos, res))
 }
+
+
+#' A partir de la bd de respuesta, genera una base de datos con bigramas
+#'
+#' @param bd (list) La lista con las tablas necesarias
+#'  provistas por la función leer_base.
+#' @param pregunta (int) Número de pregunta de la etapa.
+#' @param etapa (int) Número de la etapa.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+procesar_bigramas <- function(bd, pregunta, etapa, parametros){
+
+    load("data/altisonantes.rda")
+    altisonantes_str <- altisonantes  %>%
+        summarise(palabra=paste0(palabra %>%  tolower(),
+                                 collapse="|")) %>% pull
+
+    stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
+
+    df <- bd$respuesta %>%
+        left_join(bd$pregunta) %>%
+        filter(IdPregunta == pregunta, IdEtapa == etapa)
+
+
+    bigramas <- df %>%
+        tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2 ) %>%
+        separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
+        filter(!palabra1 %in% stop_words$palabra,
+               !palabra2 %in% stop_words$palabra,
+               !str_detect(palabra1, altisonantes_str),
+               !str_detect(palabra2, altisonantes_str)  ) %>%
+        count(palabra1, palabra2, sort = T) %>%
+        filter(n>quantile(bigramas$n, probs = .7)) %>%
+        slice(1:30)
+
+
+    res <- bigramas
+
+    return(res)
+}
+
+
+
