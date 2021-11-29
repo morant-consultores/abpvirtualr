@@ -582,11 +582,11 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
                font.strokeWidth=2, font.strokeColor= color)
 
 
-    plot <- visNetwork(nodos , bd_bigramas %>%  rename(from = palabra1, to = palabra2, value =n),
+    plot <- visNetwork::visNetwork(nodos , bd_bigramas %>%  rename(from = palabra1, to = palabra2, value =n),
                height = "500px") %>%
-        visIgraphLayout(layout = "layout_nicely") %>%
-        visNodes(size = 10) %>%
-        visOptions(highlightNearest = list(enabled = T, hover = T),
+        visNetwork::visIgraphLayout(layout = "layout_nicely") %>%
+        visNetwork::visNodes(size = 10) %>%
+        visNetwork::visOptions(highlightNearest = list(enabled = T, hover = T),
                    nodesIdSelection = T)
     return(plot)
 }
