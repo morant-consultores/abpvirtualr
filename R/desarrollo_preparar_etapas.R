@@ -107,8 +107,8 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
     )
 
     # Analisis conjunto
-    p_7 <- procesar_juntos(bd)
-    out5 <- knitr::knit_expand(text = imprimir_juntos(p_7, parametros))
+    # p_7 <- procesar_juntos(bd)
+    # out5 <- knitr::knit_expand(text = imprimir_juntos(p_7, parametros))
 
     p_7.1 <- procesar_juntos_promedio(bd)
     out5.1 <- knitr::knit_expand(text = imprimir_juntos_promedio(p_7.1, parametros))
@@ -147,7 +147,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
         append(out2) %>%
         append(out4) %>%
         append(out3) %>%
-        append(out5) %>%
+        # append(out5) %>%
         append(out5.1) %>%
         append(out6) %>%
         # append(out6.2) %>%
