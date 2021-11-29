@@ -392,12 +392,13 @@ procesar_bigramas <- function(bd, pregunta, etapa, parametros){
 
     bigramas <- df %>%
         tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2 ) %>%
-        separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
+        tidyr::separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
         filter(!palabra1 %in% stop_words$palabra,
                !palabra2 %in% stop_words$palabra,
-               !str_detect(palabra1, altisonantes_str),
-               !str_detect(palabra2, altisonantes_str)  ) %>%
-        count(palabra1, palabra2, sort = T) %>%
+               !stringr::str_detect(palabra1, altisonantes_str),
+               !stringr::str_detect(palabra2, altisonantes_str)  ) %>%
+        count(palabra1, palabra2, sort = T)
+    bigramas <- bigramas %>%
         filter(n>quantile(bigramas$n, probs = .7)) %>%
         slice(1:30)
 
