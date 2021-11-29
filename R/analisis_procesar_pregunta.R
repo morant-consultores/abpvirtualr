@@ -29,7 +29,7 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
     quitar <- aux %>% semi_join(altisonantes) %>% distinct(Respuesta)
 
     tokens_clean <- aux %>%
-        ant_join(quitar) %>%
+        anti_join(quitar) %>%
         anti_join(stop_words) %>%
         group_by(palabra) %>%
         mutate(num = paste0(row_number(),") ")) %>%
