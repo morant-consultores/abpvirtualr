@@ -40,6 +40,7 @@ Imports:
     tidyr,
     tidytext,
     tm,
+    visNetwork,
     wordcloud,
     xaringanthemer
 Depends: 

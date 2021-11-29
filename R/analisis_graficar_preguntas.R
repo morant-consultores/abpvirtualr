@@ -555,3 +555,38 @@ generar_tabla_nube <- function(bd){
                 scrollY = 300   ))
     return(tabla)
 }
+
+#' Para graficar una red de palabras
+#'
+#' @param bd_bigramas base de datos que contenga 3 columnas: palabra1, palabra2 y n
+#' @param titulo Título del plot
+#' @param color color base del plot
+#' @param familia familia tipográfica
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_bigramas <- function(bd_bigramas, titulo = "",
+                              color = "#2A3D6E", familia = "Poppins"){
+    nodos<-bd_bigramas %>%
+        gather(key =  "grupo","id", c("palabra1", "palabra2") ) %>% select(-grupo) %>%
+        distinct(id, .keep_all = T) %>%
+        mutate(value =n, label = id, group = "algo",
+               shape = "circle",
+               main = titulo,
+               color= color, shadow = F,
+               opacity = .9,
+               color.border = "#FFFFFF",
+               font.color = "#FFFFFF",font.face = familia, font.size= 25,
+               font.strokeWidth=2, font.strokeColor= color)
+
+
+    plot <- visNetwork::visNetwork(nodos , bd_bigramas %>%  rename(from = palabra1, to = palabra2, value =n),
+               height = "500px") %>%
+        visNetwork::visIgraphLayout(layout = "layout_nicely") %>%
+        visNetwork::visNodes(size = 10) %>%
+        visNetwork::visOptions(highlightNearest = list(enabled = T, hover = T),
+                   nodesIdSelection = T)
+    return(plot)
+}
