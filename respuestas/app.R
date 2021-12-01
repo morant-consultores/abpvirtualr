@@ -88,7 +88,7 @@ ui <- dashboardPage(
     dashboardBody(
         selectInput(inputId = "sesion",label = "Sesión",choices = rev(c("Todas" = "Todo", "Última" = NA))),
         actionButton("actualizar","Actualizar"),
-        selectInput(inputId = "etapa", label = "Etapa", choices = c("Cargando..."="")),
+        selectInput(inputId = "etapa", label = "Etapa", choices = 1),
         withSpinner(plotOutput("abierta")),
         fluidRow(
             valueBoxOutput("respuesta_cat"),
