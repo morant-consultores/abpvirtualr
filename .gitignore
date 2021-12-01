@@ -5,3 +5,5 @@ test.R
 .DS_Store
 prueba_deb_cache
 rsconnect
+*.html
+prueba_deb_files
