@@ -3,4 +3,7 @@ test.R
 *.css
 .Rhistory
 .DS_Store
-prueba
+prueba_deb_cache
+rsconnect
+*.html
+prueba_deb_files

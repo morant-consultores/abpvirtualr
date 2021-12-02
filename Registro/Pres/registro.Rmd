@@ -1,0 +1,70 @@
+---
+title: "ABP"
+author: "Registro de participantes"
+output:
+  powerpoint_presentation:
+    reference_doc: plantilla.pptx
+    slide_level: 3
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggfittext)
+library(ggchicklet)
+
+bd <- read_csv("../Data/bd_prueba.csv")
+asistentes <- nrow(bd)
+fecha <- "Jueves 02 de diciembre 2021"
+lugar<- bd %>% count(Municipio) %>%  summarise(paste(Municipio, collapse = ", "))
+```
+
+
+### Perfil de los participantes
+:::::::::::::: {.columns}
+::: {.column}
+Al evento "ABP Virtual" llevado a cabo el`r fecha`, asistió un total de `r asistentes` participantes. Los cuales provienen de los municipios de `r lugar`.
+:::
+::: {.column}
+```{r, dpi = 300, echo=FALSE, warning=FALSE}
+bd %>% count(Sexo, Edad) %>%  
+    mutate(n2=case_when(Sexo  == "Femenino"~n*-1, T~n %>%  as.double())) %>% 
+    ggplot(aes(x = Edad, y = n2, group= Sexo, fill = Sexo))+
+    geom_chicklet(stat = "identity", width = .5)+
+        coord_flip()+
+    theme_minimal()
+
+```
+:::
+::::::::::::::
+
+### Antigüedad y dependencia laboral
+:::::::::::::: {.columns}
+::: {.column}
+```{r, dpi = 300, echo=FALSE, warning=FALSE}
+bd %>%  count(`Secretaría a la que perteneces`, sort = T) %>% 
+    mutate(n = round(n/sum(n),2)) %>% 
+    ggplot(aes(x = fct_reorder(`Secretaría a la que perteneces`, n), y =n))+
+    geom_chicklet(width =.5, fill = "#2F5597")+
+    coord_flip()+
+    labs(x = NULL, y = NULL)+
+    theme_minimal()
+```
+:::
+::: {.column}
+```{r, dpi = 300, echo=FALSE, warning=FALSE}
+bd %>%  select(`Antigüedad en el puesto de trabajo actual`:`Antigüedad en el gobierno del estado`) %>% 
+    gather(key = "grupo", value = "antiguedad") %>% 
+    group_by(grupo) %>% 
+    count(antiguedad) %>% 
+    mutate(n = round(n/sum(n),2)) %>% 
+    ggplot(aes(x = antiguedad, y = n, group = grupo, fill = grupo))+
+    geom_chicklet(width =.5, position = position_dodge())+
+    theme_minimal()+
+    labs(y = NULL, y= NULL, fill = NULL)+
+    theme(legend.position = "bottom")
+
+```
+:::
+::::::::::::::
+
+

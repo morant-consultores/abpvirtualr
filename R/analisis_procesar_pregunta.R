@@ -18,11 +18,18 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
 
+    load("data/altisonantes.rda")
+
     stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
 
-    tokens_clean <- df %>%
+    aux <- df %>%
         tidytext::unnest_tokens(
-            output = palabra, input = Respuesta, drop = FALSE) %>%
+            output = palabra, input = Respuesta, drop = FALSE)
+
+    quitar <- aux %>% semi_join(altisonantes) %>% distinct(Respuesta)
+
+    tokens_clean <- aux %>%
+        anti_join(quitar) %>%
         anti_join(stop_words) %>%
         group_by(palabra) %>%
         mutate(num = paste0(row_number(),") ")) %>%
@@ -379,9 +386,7 @@ calcular_brecha <- function(bd, corte, parametros){
 procesar_bigramas <- function(bd, pregunta, etapa, parametros){
 
     load("data/altisonantes.rda")
-    altisonantes_str <- altisonantes  %>%
-        summarise(palabra=paste0(palabra %>%  tolower(),
-                                 collapse="|")) %>% pull
+
 
     stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
 
@@ -389,17 +394,21 @@ procesar_bigramas <- function(bd, pregunta, etapa, parametros){
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
 
-
-    bigramas <- df %>%
-        tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2 ) %>%
+    aux <- df %>%
+        tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2,drop = F ) %>%
         tidyr::separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
-        filter(!palabra1 %in% stop_words$palabra,
-               !palabra2 %in% stop_words$palabra,
-               !stringr::str_detect(palabra1, altisonantes_str),
-               !stringr::str_detect(palabra2, altisonantes_str)  ) %>%
-        count(palabra1, palabra2, sort = T)
-    bigramas <- bigramas %>%
-        filter(n>quantile(bigramas$n, probs = .7)) %>%
+        anti_join(stop_words, by = c("palabra1" = "palabra")) %>%
+        anti_join(stop_words, by = c("palabra2" = "palabra"))
+
+    quitar <- aux %>% semi_join(altisonantes, by = c("palabra1" = "palabra")) %>%
+        bind_rows(
+            aux %>% semi_join(altisonantes, by = c("palabra2" = "palabra"))
+        ) %>% distinct(Respuesta)
+
+    bigramas <- aux %>%
+        anti_join(quitar) %>%
+        count(palabra1, palabra2, sort = T) %>%
+        filter(n>quantile(n, probs = .7)) %>%
         slice(1:30)
 
 
