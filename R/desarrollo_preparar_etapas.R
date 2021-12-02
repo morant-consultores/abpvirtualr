@@ -50,36 +50,36 @@ slides_nubes <- function(bd, etapa, parametros, thm){
     knitr::knit(text = paste(out, collapse = '\n'))
 }
 
-slides_bigramas <- function(bd, etapa, parametros, thm){
-    preguntas <- bd$pregunta %>%
-        filter(IdEtapa == etapa) %>%
-        pull(IdPregunta)
-
-    if(etapa == 5){
-        preguntas <- preguntas[1]
-    }
-    out <- list()
-
-    for (i in preguntas){
-        a <- procesar_bigramas( bd, pregunta = i, etapa = etapa)
-
-        b1 <- glue::glue("p_{i} <- a")
-        eval(parse(text = b1))
-
-
-        x1 <- glue::glue(
-            "knitr::knit_expand(text = imprimir_bigramas(p_{i}, {i}, parametros))"
-        )
-
-
-        y1 <- eval(parse(text = x1))
-
-
-        out <- append(out, y1)
-    }
-
-    knitr::knit(text = paste(out, collapse = '\n'))
-}
+# slides_bigramas <- function(bd, etapa, parametros, thm){
+#     preguntas <- bd$pregunta %>%
+#         filter(IdEtapa == etapa) %>%
+#         pull(IdPregunta)
+#
+#     if(etapa == 5){
+#         preguntas <- preguntas[1]
+#     }
+#     out <- list()
+#
+#     for (i in preguntas){
+#         a <- procesar_bigramas( bd, pregunta = i, etapa = etapa)
+#
+#         b1 <- glue::glue("p_{i} <- a")
+#         eval(parse(text = b1))
+#
+#
+#         x1 <- glue::glue(
+#             "knitr::knit_expand(text = imprimir_bigramas(p_{i}, {i}, parametros))"
+#         )
+#
+#
+#         y1 <- eval(parse(text = x1))
+#
+#
+#         out <- append(out, y1)
+#     }
+#
+#     knitr::knit(text = paste(out, collapse = '\n'))
+# }
 #' Esta función es utilizada para crear los chuncks correspondientes
 #' a la etapa 2.
 #'

@@ -80,7 +80,6 @@ options(htmltools.dir.version = FALSE, htmltools.preserve.raw = FALSE)
 
 ```{r}
 library(dplyr)
-library(tidyverse)
 library(ggplot2)
 library(purrr)
 library(dbplyr)
@@ -108,7 +107,6 @@ bd <- leer_base( id_sesion = NULL)
 ---
 
 `r slides_nubes(bd, etapa = 1, parametros, thm)`
-
 
 class: inverse, middle, center
 
