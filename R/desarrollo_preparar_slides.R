@@ -57,9 +57,9 @@ imprimir_bigramas <- function(){
     r1 <- glue::glue("r {t1}, eval=requireNamespace('visNetwork', quietly=TRUE)")
     r1 <- paste("{", r1, "}", sep="")
 
-    nube <- glue::glue("```{r1} \n graficar_bigramas(p_{i}, parametros = parametros) \n ```")
-    nube <- glue::glue("\n\n  # {t} \n\n --- \n\n {nube} \n\n ---")
-    char <- nube
+    net <- glue::glue("```{r1} \n graficar_bigramas(p_{i}, parametros = parametros) \n ```")
+    net <- glue::glue("\n\n  # {t} \n\n --- \n\n {net} \n\n ---")
+    char <- net
 
 
     return(char)
