@@ -127,7 +127,7 @@ graficar_brecha <- function(bd, interactivo = TRUE ,parametros, thm){
                        style=list(fontSize ="15px", color = parametros$gris, fontFamily = parametros$familia) ) %>%
             hc_plotOptions(treemap = list(borderRadius = 10,
                                           dataLabels = list( style = list(fontFamily = parametros$familia,
-                                                                          fontSize = "14px")))   ) %>%
+                                                                          fontSize = "20px")))   ) %>%
             hc_add_theme(thm) %>%
             hc_legend(enabled = F)
 
@@ -214,9 +214,11 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
                               hcaes(x = Categoria, y = y),
                               color = parametros$inverso_claro) %>%
                 hc_xAxis(title = list(text = "Tema",
+                                      allowOverlap= T,
+                                      padding = 3,
                                       style = list(fontSize = parametros$etiquetas)),
                          lineWidth = 3.5, lineColor = parametros$inverso_claro,
-                         labels = list(style = list(fontSize = parametros$etiquetas))) %>%
+                         labels = list(style = list(fontSize = "16px"))) %>%
                 hc_yAxis(title = list(text = ""),
                          tickAmount = 5, min = 0, max= 100,
                          labels = list(style = list(fontSize = parametros$etiquetas),
@@ -234,11 +236,10 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
             bd %>%
                 purrr::pluck(1) %>%
                 ggplot(aes(x = Calificacion,
-                           fill = Categoria)) +
+                           fill = stringr::str_wrap(Categoria, 20))) +
                 geom_histogram(binwidth = 3) +
                 theme_minimal() +
-                facet_wrap(~Categoria, ncol = 5)
-
+                facet_wrap(~stringr::str_wrap(Categoria, 20), ncol = 5)
         }else if (tipo == "point_range"){
 
             bd %>%
@@ -357,7 +358,7 @@ graficar_juntos <- function(bd, parametros){
         geom_hex(aes(x = c, y = i) ) +
         scale_fill_gradient(low=parametros$inverso_claro ,high=parametros$primario)+
         labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
-        facet_wrap(~stringr::str_wrap(tema, 10), nrow= 2) +
+        facet_wrap(~stringr::str_wrap(tema, 20), nrow= 2) +
         scale_y_continuous(breaks = c(0,50,100), labels = function(x) scales::percent(x/100)) +
         scale_x_continuous(breaks = c(50,100), labels = function(x) scales::percent(x/100)) +
         xaringanthemer::theme_xaringan() +
@@ -456,7 +457,7 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
                                    summarise(media = mean(brecha)),
                                aes(xintercept = media)
                     ) +
-                    facet_wrap(~Nombre)+
+                    facet_wrap(~stringr::str_wrap(Nombre, 20))+
                     geom_hline(yintercept = 0)+
                     scale_x_continuous(labels = function(x) scales::percent(x/10000), n.breaks = 4) +
                     labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente.  \n ** La línea vertical representa el promedio de la brecha.")+
@@ -473,7 +474,7 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
             ggplot(aes(x = 1, y = prob, fill = color)) +
             ggchicklet::geom_chicklet(position = "dodge",show.legend = F, alpha = .8, size= 1) +
             scale_fill_identity() +
-            facet_wrap(~Nombre)+
+            facet_wrap(~stringr::str_wrap(Nombre, 20))+
             labs(y = "Frecuencia", x = "")+
             xaringanthemer::theme_xaringan() +
             scale_y_continuous(labels=scales::percent_format(accuracy = 1), n.breaks = 4)+
@@ -529,7 +530,8 @@ generar_tabla <- function(brecha, parametros){
         kableExtra::kable_paper("striped", full_width = F) %>%
         kableExtra::column_spec(1, color = "white",
                                 background = colores) %>%
-        kableExtra::kable_classic(full_width = F, html_font = parametros$familia)
+        kableExtra::kable_classic(full_width = T, html_font = parametros$familia) %>%
+        kableExtra::kable_styling(font_size = 25)
     return(tabla_df)
 }
 
@@ -552,7 +554,13 @@ generar_tabla_nube <- function(bd){
                 language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
                 lengthMenu = c(5, 10, 25, 50, 100),
                 pageLength = 3,
-                scrollY = 300   ))
+                scrollY = 300,
+                initComplete = JS(
+                    "function(settings, json) {",
+                    "$(this.api().table().header()).css({'font-size': '25px' });",
+                    # "$(this.api().table().footer()).css({'font-size': '10px});",
+                    "}"))) %>%
+        DT::formatStyle(columns = c(1,2,3) ,fontSize = '120%')
     return(tabla)
 }
 
