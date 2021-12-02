@@ -116,7 +116,7 @@ class: inverse, middle, center
 
 ---
 
-`r slides_etapa_2(bd, top_p = 5, top_r = 2, parametros = parametros, thm = thm)`
+`r if(nrow(bd$calif_cat) > 0) slides_etapa_2(bd, top_p = 5, top_r = 2, parametros = parametros, thm = thm)`
 
 class: inverse, middle, center
 
