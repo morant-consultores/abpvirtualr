@@ -23,6 +23,7 @@ resource_files:
 - R/desarrollo_preparar_etapas.R
 - R/desarrollo_preparar_slides.R
 - R/utilitaria_colectar_base.R
+- data/conexion.rda
 ---
 
 
