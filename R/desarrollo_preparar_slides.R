@@ -48,22 +48,23 @@ imprimir_nube <- function(df, i, parametros){
     return(char)
 }
 
-# imprimir_bigramas <- function(){
-#     t <- df %>%
-#         pull(Pregunta) %>%
-#         unique()
-#
-#     t1 <- paste(t, i, 1, sep ="")
-#     r1 <- glue::glue("r {t1}, eval=requireNamespace('visNetwork', quietly=TRUE)")
-#     r1 <- paste("{", r1, "}", sep="")
-#
-#     net <- glue::glue("```{r1} \n graficar_bigramas(p_{i}, parametros = parametros) \n ```")
-#     net <- glue::glue("\n\n  # {t} \n\n --- \n\n {net} \n\n ---")
-#     char <- net
-#
-#
-#     return(char)
-# }
+imprimir_bigramas <- function(){
+    t <- df %>%
+        pull(Pregunta) %>%
+        unique()
+    browser()
+
+    t1 <- paste(t, i, 1, sep ="")
+    r1 <- glue::glue("r {t1}, eval=requireNamespace('visNetwork', quietly=TRUE)")
+    r1 <- paste("{", r1, "}", sep="")
+
+    net <- glue::glue("```{r1} \n graficar_bigramas(p_{i}, parametros = parametros) \n ```")
+    net <- glue::glue("\n\n  # {t} \n\n --- \n\n {net} \n\n ---")
+    char <- net
+
+
+    return(char)
+}
 
 #' Title
 #'
