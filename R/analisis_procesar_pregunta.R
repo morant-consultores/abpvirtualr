@@ -383,7 +383,7 @@ calcular_brecha <- function(bd, corte, parametros){
 #' @export
 #'
 #' @examples
-procesar_bigramas <- function(bd, pregunta, etapa, parametros){
+procesar_bigramas <- function(bd, pregunta, etapa){
 
     load("data/altisonantes.rda")
 

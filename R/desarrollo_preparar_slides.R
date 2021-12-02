@@ -48,6 +48,23 @@ imprimir_nube <- function(df, i, parametros){
     return(char)
 }
 
+imprimir_bigramas <- function(){
+    t <- df %>%
+        pull(Pregunta) %>%
+        unique()
+
+    t1 <- paste(t, i, 1, sep ="")
+    r1 <- glue::glue("r {t1}, eval=requireNamespace('visNetwork', quietly=TRUE)")
+    r1 <- paste("{", r1, "}", sep="")
+
+    nube <- glue::glue("```{r1} \n graficar_bigramas(p_{i}, parametros = parametros) \n ```")
+    nube <- glue::glue("\n\n  # {t} \n\n --- \n\n {nube} \n\n ---")
+    char <- nube
+
+
+    return(char)
+}
+
 #' Title
 #'
 #' @param df (Tibble) El segundo elemento que retorna la función procesar_p_brecha
@@ -133,7 +150,7 @@ imprimir_numerica_p <- function(df, tipo, i, parametros, thm){
         "{sp}{r} \n\n ",
         "graficar_numerica(g_{i}, tipo = 'point_range', interactivo = TRUE, parametros, thm)",
         "\n\n {sp} \n\n ---", sep = " ")
-        )
+    )
 
     return(char)
 }
@@ -178,11 +195,11 @@ imprimir_juntos <- function(df, parametros){
     sp <- "```"
 
     char <- glue::glue(paste(
-    "\n\n # {t1} ",
-    "\n\n --- \n\n",
-    "{sp}{r}",
-    "\n\n graficar_juntos(p_7, parametros) \n\n",
-    "{sp} \n\n ---", sep = " "))
+        "\n\n # {t1} ",
+        "\n\n --- \n\n",
+        "{sp}{r}",
+        "\n\n graficar_juntos(p_7, parametros) \n\n",
+        "{sp} \n\n ---", sep = " "))
 
     return(char)
 }

@@ -568,7 +568,8 @@ generar_tabla_nube <- function(bd){
 #'
 #' @examples
 graficar_bigramas <- function(bd_bigramas, titulo = "",
-                              color = "#2A3D6E", familia = "Poppins"){
+                              color = parametros$primario, familia = parametros$familia,
+                              parametros){
     nodos<-bd_bigramas %>%
         gather(key =  "grupo","id", c("palabra1", "palabra2") ) %>% select(-grupo) %>%
         distinct(id, .keep_all = T) %>%

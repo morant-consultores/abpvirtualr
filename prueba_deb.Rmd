@@ -107,6 +107,7 @@ bd <- leer_base( id_sesion = NULL)
 ---
 
 `r slides_nubes(bd, etapa = 1, parametros, thm)`
+`r slides_bigramas(bd, etapa = 1, parametros, thm)`
 
 class: inverse, middle, center
 
