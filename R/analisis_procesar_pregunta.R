@@ -394,7 +394,6 @@ procesar_bigramas <- function(bd, pregunta, etapa, parametros){
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
 
-
     aux <- df %>%
         tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2,drop = F ) %>%
         tidyr::separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
