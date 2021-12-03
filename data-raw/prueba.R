@@ -20,7 +20,7 @@ parametros <- list(
 )
 
 thm <- tema_high(font = parametros$familia, color = "black", size = "15px")
-bd <- leer_base( id_sesion = 3169)
+bd <- leer_base( id_sesion = NULL)
 
 
 # Etapa 1 -----------------------------------------------------------------
@@ -45,8 +45,6 @@ procesar_numerica(bd = bd, tipo = "Calificacion") %>% graficar_numerica(tipo = "
 procesar_juntos_promedio(bd) %>% graficar_juntos_promedio(parametros = parametros)
 
 calcular_brecha(bd, corte = corte, parametros = parametros) %>% graficar_nbrecha(parametros = parametros)
-
-calcular_brecha(bd, corte = corte, parametros = parametros) %>% graficar_nbrecha(parametros = parametros, densidad = F)
 
 calcular_brecha(bd, corte = corte, parametros = parametros) %>% generar_tabla(parametros = parametros)
 
