@@ -34,6 +34,9 @@ bd <- leer_base( id_sesion = 3169)
 procesar_p_abierta(bd, pregunta = 2, etapa = 1,parametros = parametros) %>%
     purrr::pluck(1) %>% graficar_nube(parametros = parametros)
 
+procesar_p_abierta(bd, pregunta = 2, etapa = 1,parametros = parametros, quitar_altisonantes = F) %>%
+    purrr::pluck(2) %>%
+    generar_tabla_nube()
 # Etapa 2 -----------------------------------------------------------------
 
 procesar_brecha(bd) %>% graficar_brecha(parametros = parametros, thm = thm)
