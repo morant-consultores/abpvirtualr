@@ -250,7 +250,8 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
                 geom_pointrange(
                     aes(xmin = prom-se, xmax=prom+se),
                     colour="orange", alpha=0.9, size=0.7) +
-                theme_minimal()
+                theme_minimal()+
+                theme(strip.text.x = element_text(size = 10))
 
         }else{NULL}
     }
@@ -374,7 +375,7 @@ graficar_juntos <- function(bd, parametros){
               axis.text = element_text(size = 12),
               panel.grid.minor = element_blank(),
               axis.ticks = element_blank(),
-              strip.text = element_text(size = 12)
+              strip.text = element_text(size = 10)
         )
     return(e)
 }
@@ -460,11 +461,11 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
                     facet_wrap(~stringr::str_wrap(Nombre, 20))+
                     geom_hline(yintercept = 0)+
                     scale_x_continuous(labels = function(x) scales::percent(x/10000), n.breaks = 4) +
-                    labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente.  \n ** La línea vertical representa el promedio de la brecha.")+
+                    labs(x = "",y = "", caption = "* El círculo de color representa la semaforización más frecuente.  \n ** La línea vertical representa el promedio de la brecha.")+
                     theme(panel.grid = element_blank(), text = element_text(family = parametros$familia),
                           rect = element_blank(), axis.text.y = element_blank(),
                           axis.ticks.y = element_blank(),
-                          strip.text = element_text(size = 12))
+                          strip.text = element_text(size = 10))
             })
 
     } else{
@@ -491,7 +492,7 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
                   panel.grid.major.x = element_blank(),
                   panel.grid.minor = element_blank(),
                   axis.ticks = element_blank(),
-                  strip.text = element_text(size = 12)
+                  strip.text = element_text(size = 10)
 
             )
     }
