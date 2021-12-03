@@ -52,7 +52,6 @@ imprimir_bigramas <- function(){
     t <- df %>%
         pull(Pregunta) %>%
         unique()
-    browser()
 
     t1 <- paste(t, i, 1, sep ="")
     r1 <- glue::glue("r {t1}, eval=requireNamespace('visNetwork', quietly=TRUE)")

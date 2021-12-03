@@ -84,6 +84,7 @@ library(ggplot2)
 library(purrr)
 library(dbplyr)
 library(highcharter)
+library(rmarkdown)
 # library(readr)
 # library(odbc)
 # library(hexbin)
@@ -107,7 +108,6 @@ bd <- leer_base( id_sesion = NULL)
 ---
 
 `r slides_nubes(bd, etapa = 1, parametros, thm)`
-`r slides_bigramas(bd, etapa = 1, parametros, thm)`
 
 class: inverse, middle, center
 
