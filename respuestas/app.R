@@ -135,7 +135,7 @@ server <- function(input, output, session) {
         )
         valueBox(value = bd() %>% pluck("respuesta_cat") %>% count(IdUsuario) %>% tally() %>% pull(1),
                  subtitle = "Finalizaron categorización",
-                 color = "aqua", icon = "f02b"
+                 color = "aqua", icon = icon("tag")
         )
     })
 
@@ -145,7 +145,7 @@ server <- function(input, output, session) {
         )
         valueBox(value = bd() %>% pluck("orden_cat") %>% count(IdUsuario) %>% tally() %>% pull(1),
                  subtitle = "Finalizaron importancia",
-                 color = "teal", icon = "f0ca"
+                 color = "teal", icon = icon("list-ul")
         )
 
     })
@@ -156,7 +156,7 @@ server <- function(input, output, session) {
         )
         valueBox(value = bd() %>% pluck("calif_cat") %>% count(IdUsuario) %>% tally() %>% pull(1),
                  subtitle = "Finalizaron cumplimiento",
-                 color = "fuchsia", icon = "f03a"
+                 color = "fuchsia", icon = icon("list")
         )
 
     })
