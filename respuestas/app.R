@@ -18,8 +18,8 @@ library(shinycssloaders)
 leer_base <- function(id_sesion = NA){
     conexion <- list(Driver = "ODBC Driver 17 for SQL Server",
                      Server = "database.negox.com",
-                     Database = "CIDFares2020_ABPVirtualTest",
-                     UID = "CIDFares2020_CIDFares2020",
+                     Database = "viajeporchiapas_abpvirtual",
+                     UID = "viajeporchiapas_abp_user",
                      PWD = "CIDFares@BP2021",
                      Port = 1433)
     con <- pool::dbPool(odbc::odbc(),
