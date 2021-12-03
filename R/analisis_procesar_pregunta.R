@@ -69,6 +69,12 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros, quitar_altisonan
         respuestas <- respuestas %>% anti_join(quitar)
     }
 
+    respuestas <- respuestas %>% left_join(
+        aux %>% group_by(palabra) %>% mutate(n = n()) %>%
+            select(palabra, n,Respuesta) %>% ungroup %>%
+            count(Respuesta, wt = n)
+    ) %>% arrange(desc(n))
+
     res <- list(tokens_clean, respuestas)
 
     return(res)
