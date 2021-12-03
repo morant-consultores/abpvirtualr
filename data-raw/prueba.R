@@ -1,11 +1,5 @@
 devtools::load_all()
-# junio y julio
-# phizer
-# morelos
-# 1000
-# certificado
-# curp
-# credencial elector frontal, telefono, correo electronico, edad cumplida
+
 parametros <- list(
     primario = "#2A3D6E",
     primario_claro = "#304E83",
