@@ -30,7 +30,7 @@ slides_nubes <- function(bd, etapa, parametros, thm){
 
         b1 <- glue::glue("p_{i} <- a1")
         b2 <- glue::glue("q_{i} <- a2")
-        b3 <- glue::glue("q_{i} <- a3")
+        b3 <- glue::glue("r_{i} <- a3")
         eval(parse(text = b1))
         eval(parse(text = b2))
         eval(parse(text = b3))
@@ -43,7 +43,7 @@ slides_nubes <- function(bd, etapa, parametros, thm){
             "knitr::knit_expand(text = imprimir_tabla_nube(q_{i}, {i}))"
         )
         x3 <- glue::glue(
-            "knitr::knit_expand(text = imprimir_bigramas(q_{i}, {i}, parametros))"
+            "knitr::knit_expand(text = imprimir_bigramas(r_{i}, {i}, parametros))"
         )
 
         y1 <- eval(parse(text = x1))

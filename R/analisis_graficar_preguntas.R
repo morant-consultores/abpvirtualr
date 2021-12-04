@@ -44,9 +44,9 @@ tema_high <- function(font, color, size){
 #'
 #' @examples #notrun (graficar_nube(p_1))
 
-graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
+graficar_nube <- function(tokens_clean, parametros){
 
-    if(interactivo){
+    if(nrow(tokens_clean)>0){
 
         tokens_clean %>%
             hchart(hcaes(x= palabra, weight =log(n),
@@ -80,12 +80,8 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
 
 
     }else{
+        NULL
 
-        pal <- RColorBrewer::brewer.pal(8,"Dark2")
-        tokens_clean %>% with(
-            wordcloud::wordcloud(palabra, n,
-                                 random.order = FALSE, min.freq = 1,
-                                 max.words = 50, colors=pal))
 
     }
 }
@@ -127,7 +123,7 @@ graficar_brecha <- function(bd, interactivo = TRUE ,parametros, thm){
                        style=list(fontSize ="15px", color = parametros$gris, fontFamily = parametros$familia) ) %>%
             hc_plotOptions(treemap = list(borderRadius = 10,
                                           dataLabels = list( style = list(fontFamily = parametros$familia,
-                                                                          fontSize = "14px")))   ) %>%
+                                                                          fontSize = "20px")))   ) %>%
             hc_add_theme(thm) %>%
             hc_legend(enabled = F)
 
@@ -214,9 +210,11 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
                               hcaes(x = Categoria, y = y),
                               color = parametros$inverso_claro) %>%
                 hc_xAxis(title = list(text = "Tema",
+                                      allowOverlap= T,
+                                      padding = 3,
                                       style = list(fontSize = parametros$etiquetas)),
                          lineWidth = 3.5, lineColor = parametros$inverso_claro,
-                         labels = list(style = list(fontSize = parametros$etiquetas))) %>%
+                         labels = list(style = list(fontSize = "16px"))) %>%
                 hc_yAxis(title = list(text = ""),
                          tickAmount = 5, min = 0, max= 100,
                          labels = list(style = list(fontSize = parametros$etiquetas),
@@ -234,11 +232,10 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
             bd %>%
                 purrr::pluck(1) %>%
                 ggplot(aes(x = Calificacion,
-                           fill = Categoria)) +
+                           fill = stringr::str_wrap(Categoria, 20))) +
                 geom_histogram(binwidth = 3) +
                 theme_minimal() +
-                facet_wrap(~Categoria, ncol = 5)
-
+                facet_wrap(~stringr::str_wrap(Categoria, 20), ncol = 5)
         }else if (tipo == "point_range"){
 
             bd %>%
@@ -249,7 +246,8 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
                 geom_pointrange(
                     aes(xmin = prom-se, xmax=prom+se),
                     colour="orange", alpha=0.9, size=0.7) +
-                theme_minimal()
+                theme_minimal()+
+                theme(strip.text.x = element_text(size = 10))
 
         }else{NULL}
     }
@@ -279,6 +277,10 @@ graficar_juntos_promedio <- function(res, parametros){
         coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
         labs(y = "Importancia", x = "Cumplimiento", color = "Tema") +
         xaringanthemer::theme_xaringan() +
+        scale_y_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)}) +
+        scale_x_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)})+
         geom_point(data = res, aes(
             x = cumplimiento,
             y = importancia,
@@ -357,10 +359,12 @@ graficar_juntos <- function(bd, parametros){
         geom_hex(aes(x = c, y = i) ) +
         scale_fill_gradient(low=parametros$inverso_claro ,high=parametros$primario)+
         labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
-        facet_wrap(~stringr::str_wrap(tema, 10), nrow= 2) +
-        scale_y_continuous(breaks = c(0,50,100), labels = function(x) scales::percent(x/100)) +
-        scale_x_continuous(breaks = c(50,100), labels = function(x) scales::percent(x/100)) +
+        facet_wrap(~stringr::str_wrap(tema, 20), nrow= 2) +
         xaringanthemer::theme_xaringan() +
+        scale_y_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)}) +
+        scale_x_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)}) +
         theme_minimal(base_size=12, base_family = parametros$familia,
                       base_line_size = .5, base_rect_size = .5 ) %+replace%
         theme(text = element_text(family = parametros$familia),
@@ -373,7 +377,7 @@ graficar_juntos <- function(bd, parametros){
               axis.text = element_text(size = 12),
               panel.grid.minor = element_blank(),
               axis.ticks = element_blank(),
-              strip.text = element_text(size = 12)
+              strip.text = element_text(size = 10)
         )
     return(e)
 }
@@ -456,14 +460,14 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
                                    summarise(media = mean(brecha)),
                                aes(xintercept = media)
                     ) +
-                    facet_wrap(~Nombre)+
+                    facet_wrap(~stringr::str_wrap(Nombre, 20))+
                     geom_hline(yintercept = 0)+
                     scale_x_continuous(labels = function(x) scales::percent(x/10000), n.breaks = 4) +
-                    labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente.  \n ** La línea vertical representa el promedio de la brecha.")+
+                    labs(x = "",y = "", caption = "* El círculo de color representa la semaforización más frecuente y la línea vertical representa el promedio de la brecha.")+
                     theme(panel.grid = element_blank(), text = element_text(family = parametros$familia),
                           rect = element_blank(), axis.text.y = element_blank(),
                           axis.ticks.y = element_blank(),
-                          strip.text = element_text(size = 12))
+                          strip.text = element_text(size = 10))
             })
 
     } else{
@@ -473,7 +477,7 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
             ggplot(aes(x = 1, y = prob, fill = color)) +
             ggchicklet::geom_chicklet(position = "dodge",show.legend = F, alpha = .8, size= 1) +
             scale_fill_identity() +
-            facet_wrap(~Nombre)+
+            facet_wrap(~stringr::str_wrap(Nombre, 20))+
             labs(y = "Frecuencia", x = "")+
             xaringanthemer::theme_xaringan() +
             scale_y_continuous(labels=scales::percent_format(accuracy = 1), n.breaks = 4)+
@@ -490,7 +494,7 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
                   panel.grid.major.x = element_blank(),
                   panel.grid.minor = element_blank(),
                   axis.ticks = element_blank(),
-                  strip.text = element_text(size = 12)
+                  strip.text = element_text(size = 10)
 
             )
     }
@@ -529,7 +533,8 @@ generar_tabla <- function(brecha, parametros){
         kableExtra::kable_paper("striped", full_width = F) %>%
         kableExtra::column_spec(1, color = "white",
                                 background = colores) %>%
-        kableExtra::kable_classic(full_width = F, html_font = parametros$familia)
+        kableExtra::kable_classic(full_width = T, html_font = parametros$familia) %>%
+        kableExtra::kable_styling(font_size = 25)
     return(tabla_df)
 }
 
@@ -552,7 +557,13 @@ generar_tabla_nube <- function(bd){
                 language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
                 lengthMenu = c(5, 10, 25, 50, 100),
                 pageLength = 3,
-                scrollY = 300   ))
+                scrollY = 300,
+                initComplete = JS(
+                    "function(settings, json) {",
+                    "$(this.api().table().header()).css({'font-size': '25px' });",
+                    # "$(this.api().table().footer()).css({'font-size': '10px});",
+                    "}"))) %>%
+        DT::formatStyle(columns = c(1,2,3) ,fontSize = '120%')
     return(tabla)
 }
 
@@ -571,7 +582,7 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
                               color = parametros$primario, familia = parametros$familia,
                               parametros){
     nodos<-bd_bigramas %>%
-        gather(key =  "grupo","id", c("palabra1", "palabra2") ) %>% select(-grupo) %>%
+        tidyr::gather(key =  "grupo","id", c("palabra1", "palabra2") ) %>% select(-grupo) %>%
         distinct(id, .keep_all = T) %>%
         mutate(value =n, label = id, group = "algo",
                shape = "circle",
