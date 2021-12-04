@@ -246,7 +246,8 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
                 geom_pointrange(
                     aes(xmin = prom-se, xmax=prom+se),
                     colour="orange", alpha=0.9, size=0.7) +
-                theme_minimal()
+                theme_minimal()+
+                theme(strip.text.x = element_text(size = 10))
 
         }else{NULL}
     }
@@ -276,6 +277,10 @@ graficar_juntos_promedio <- function(res, parametros){
         coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
         labs(y = "Importancia", x = "Cumplimiento", color = "Tema") +
         xaringanthemer::theme_xaringan() +
+        scale_y_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)}) +
+        scale_x_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)})+
         geom_point(data = res, aes(
             x = cumplimiento,
             y = importancia,
@@ -355,9 +360,11 @@ graficar_juntos <- function(bd, parametros){
         scale_fill_gradient(low=parametros$inverso_claro ,high=parametros$primario)+
         labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
         facet_wrap(~stringr::str_wrap(tema, 20), nrow= 2) +
-        scale_y_continuous(breaks = c(0,50,100), labels = function(x) scales::percent(x/100)) +
-        scale_x_continuous(breaks = c(50,100), labels = function(x) scales::percent(x/100)) +
         xaringanthemer::theme_xaringan() +
+        scale_y_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)}) +
+        scale_x_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)}) +
         theme_minimal(base_size=12, base_family = parametros$familia,
                       base_line_size = .5, base_rect_size = .5 ) %+replace%
         theme(text = element_text(family = parametros$familia),
@@ -370,7 +377,7 @@ graficar_juntos <- function(bd, parametros){
               axis.text = element_text(size = 12),
               panel.grid.minor = element_blank(),
               axis.ticks = element_blank(),
-              strip.text = element_text(size = 12)
+              strip.text = element_text(size = 10)
         )
     return(e)
 }
@@ -456,11 +463,11 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
                     facet_wrap(~stringr::str_wrap(Nombre, 20))+
                     geom_hline(yintercept = 0)+
                     scale_x_continuous(labels = function(x) scales::percent(x/10000), n.breaks = 4) +
-                    labs(x = "Brecha",y = "", caption = "* El círculo de color representa la semaforización más frecuente.  \n ** La línea vertical representa el promedio de la brecha.")+
+                    labs(x = "",y = "", caption = "* El círculo de color representa la semaforización más frecuente y la línea vertical representa el promedio de la brecha.")+
                     theme(panel.grid = element_blank(), text = element_text(family = parametros$familia),
                           rect = element_blank(), axis.text.y = element_blank(),
                           axis.ticks.y = element_blank(),
-                          strip.text = element_text(size = 12))
+                          strip.text = element_text(size = 10))
             })
 
     } else{
@@ -487,7 +494,7 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
                   panel.grid.major.x = element_blank(),
                   panel.grid.minor = element_blank(),
                   axis.ticks = element_blank(),
-                  strip.text = element_text(size = 12)
+                  strip.text = element_text(size = 10)
 
             )
     }

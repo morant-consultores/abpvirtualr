@@ -1,2 +1,2 @@
-altisonantes <- readr::read_csv("data/altisonantes.csv")
-usethis::use_data(altisonantes)
+altisonantes <- readr::read_csv("data-raw/altisonantes.csv")
+usethis::use_data(altisonantes, overwrite = T)
