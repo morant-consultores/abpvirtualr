@@ -277,6 +277,10 @@ graficar_juntos_promedio <- function(res, parametros){
         coord_fixed(ylim = c(0,100), xlim = c(0,100)) +
         labs(y = "Importancia", x = "Cumplimiento", color = "Tema") +
         xaringanthemer::theme_xaringan() +
+        scale_y_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)}) +
+        scale_x_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)})+
         geom_point(data = res, aes(
             x = cumplimiento,
             y = importancia,
@@ -356,11 +360,11 @@ graficar_juntos <- function(bd, parametros){
         scale_fill_gradient(low=parametros$inverso_claro ,high=parametros$primario)+
         labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
         facet_wrap(~stringr::str_wrap(tema, 20), nrow= 2) +
+        xaringanthemer::theme_xaringan() +
         scale_y_continuous(breaks = c(0,50,100), labels = function(x){
             scales::percent(x/100)}) +
-        scale_x_continuous(breaks = c(50,100), labels = function(x){
+        scale_x_continuous(breaks = c(0,50,100), labels = function(x){
             scales::percent(x/100)}) +
-        xaringanthemer::theme_xaringan() +
         theme_minimal(base_size=12, base_family = parametros$familia,
                       base_line_size = .5, base_rect_size = .5 ) %+replace%
         theme(text = element_text(family = parametros$familia),
