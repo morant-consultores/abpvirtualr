@@ -120,14 +120,13 @@ class: inverse, middle, center
 
 ---
 
-`r if(nrow(bd$calif_cat) > 0) slides_etapa_2(bd, top_p = 5, top_r = 2, parametros = parametros, thm = thm)`
+`r if(nrow(bd$respuesta_cat) > 0 & nrow(bd$calif_cat) > 0) slides_etapa_2(bd, top_p = 5, top_r = 2, parametros = parametros, thm = thm)`
 
 class: inverse, middle, center
 
 
 
 ## ETAPA 3: CIERRE
-
 ---
 
 `r slides_nubes(bd, etapa = 5, parametros, thm)`

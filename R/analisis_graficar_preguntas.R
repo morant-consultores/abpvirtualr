@@ -44,9 +44,9 @@ tema_high <- function(font, color, size){
 #'
 #' @examples #notrun (graficar_nube(p_1))
 
-graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
+graficar_nube <- function(tokens_clean, parametros){
 
-    if(interactivo){
+    if(nrow(tokens_clean)>0){
 
         tokens_clean %>%
             hchart(hcaes(x= palabra, weight =log(n),
@@ -80,12 +80,8 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
 
 
     }else{
+        NULL
 
-        pal <- RColorBrewer::brewer.pal(8,"Dark2")
-        tokens_clean %>% with(
-            wordcloud::wordcloud(palabra, n,
-                                 random.order = FALSE, min.freq = 1,
-                                 max.words = 50, colors=pal))
 
     }
 }
