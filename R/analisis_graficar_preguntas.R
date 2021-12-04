@@ -360,8 +360,10 @@ graficar_juntos <- function(bd, parametros){
         scale_fill_gradient(low=parametros$inverso_claro ,high=parametros$primario)+
         labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
         facet_wrap(~stringr::str_wrap(tema, 20), nrow= 2) +
-        scale_y_continuous(breaks = c(0,50,100), labels = function(x) scales::percent(x/100)) +
-        scale_x_continuous(breaks = c(50,100), labels = function(x) scales::percent(x/100)) +
+        scale_y_continuous(breaks = c(0,50,100), labels = function(x){
+            scales::percent(x/100)}) +
+        scale_x_continuous(breaks = c(50,100), labels = function(x){
+            scales::percent(x/100)}) +
         xaringanthemer::theme_xaringan() +
         theme_minimal(base_size=12, base_family = parametros$familia,
                       base_line_size = .5, base_rect_size = .5 ) %+replace%
@@ -461,7 +463,7 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
                     facet_wrap(~stringr::str_wrap(Nombre, 20))+
                     geom_hline(yintercept = 0)+
                     scale_x_continuous(labels = function(x) scales::percent(x/10000), n.breaks = 4) +
-                    labs(x = "",y = "", caption = "* El círculo de color representa la semaforización más frecuente.  \n ** La línea vertical representa el promedio de la brecha.")+
+                    labs(x = "",y = "", caption = "* El círculo de color representa la semaforización más frecuente y la línea vertical representa el promedio de la brecha.")+
                     theme(panel.grid = element_blank(), text = element_text(family = parametros$familia),
                           rect = element_blank(), axis.text.y = element_blank(),
                           axis.ticks.y = element_blank(),
