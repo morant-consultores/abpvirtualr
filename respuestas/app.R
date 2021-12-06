@@ -18,8 +18,8 @@ library(shinycssloaders)
 leer_base <- function(id_sesion = NA){
     conexion <- list(Driver = "ODBC Driver 17 for SQL Server",
                      Server = "database.negox.com",
-                     Database = "CIDFares2020_ABPVirtualTest",
-                     UID = "CIDFares2020_CIDFares2020",
+                     Database = "viajeporchiapas_abpvirtual",
+                     UID = "viajeporchiapas_abp_user",
                      PWD = "CIDFares@BP2021",
                      Port = 1433)
     con <- pool::dbPool(odbc::odbc(),
@@ -121,8 +121,11 @@ server <- function(input, output, session) {
             need(input$etapa, "Seleccione etapa")
         )
         bd() %>% pluck("respuesta") %>% filter(IdEtapa == input$etapa) %>% count(IdPregunta) %>%
-            ggplot(aes(x = factor(IdPregunta), y = n, label = n)) + geom_col() +
-            geom_label() + theme_minimal()
+            ggplot(aes(x = factor(IdPregunta), y = n, label = n)) + geom_col(fill = "#126782",
+                                                                             width = .7, alpha =.8) +
+            geom_label(label.size = 0.9) + theme_minimal()+
+            labs(y = "Respuestas", x = "Pregunta")+
+            theme(panel.grid.minor = element_blank())
 
     })
 
@@ -132,7 +135,7 @@ server <- function(input, output, session) {
         )
         valueBox(value = bd() %>% pluck("respuesta_cat") %>% count(IdUsuario) %>% tally() %>% pull(1),
                  subtitle = "Finalizaron categorización",
-                 color = "aqua"
+                 color = "aqua", icon = icon("tag")
         )
     })
 
@@ -142,7 +145,7 @@ server <- function(input, output, session) {
         )
         valueBox(value = bd() %>% pluck("orden_cat") %>% count(IdUsuario) %>% tally() %>% pull(1),
                  subtitle = "Finalizaron importancia",
-                 color = "teal"
+                 color = "teal", icon = icon("list-ul")
         )
 
     })
@@ -153,7 +156,7 @@ server <- function(input, output, session) {
         )
         valueBox(value = bd() %>% pluck("calif_cat") %>% count(IdUsuario) %>% tally() %>% pull(1),
                  subtitle = "Finalizaron cumplimiento",
-                 color = "fuchsia"
+                 color = "fuchsia", icon = icon("list")
         )
 
     })

@@ -12,24 +12,29 @@
 #' @importFrom spatstat.core CDF
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
 
-procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
+procesar_p_abierta <- function(bd, pregunta, etapa, parametros, quitar_altisonantes = T){
 
     df <- bd$respuesta %>%
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
 
-    load("data/altisonantes.rda")
+
 
     stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
 
     aux <- df %>%
         tidytext::unnest_tokens(
             output = palabra, input = Respuesta, drop = FALSE)
+    aux <- if(quitar_altisonantes){
+        load("data/altisonantes.rda")
+        quitar <- aux %>% semi_join(altisonantes %>% mutate(palabra = tolower(palabra))) %>% distinct(Respuesta)
+        aux %>% anti_join(quitar)
+    } else{
+        aux
+    }
 
-    quitar <- aux %>% semi_join(altisonantes) %>% distinct(Respuesta)
 
     tokens_clean <- aux %>%
-        anti_join(quitar) %>%
         anti_join(stop_words) %>%
         group_by(palabra) %>%
         mutate(num = paste0(row_number(),") ")) %>%
@@ -45,23 +50,35 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
         select(palabra) %>%
         unique()
 
+    pregunta <- bd$pregunta %>%
+        filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
+        pull(Nombre)
+
     tokens_clean <- tokens_clean %>%
         anti_join(nums, by = "palabra") %>%
         mutate(colores = case_when(
             n<=quantile(n,probs=.75)~ parametros$inverso,
             n>quantile(n,probs=.75) & n<=quantile(n,probs=.90)~parametros$primario_claro,
             n>quantile(n,probs=.90)~ parametros$primario_obscuro),
-            Pregunta = bd$pregunta %>%
-                filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
-                pull(Nombre)
+            Pregunta = pregunta
         )
 
     respuestas <- df %>% select(Respuesta) %>%
-        mutate(Pregunta = bd$pregunta %>%
-                   filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
-                   pull(Nombre))
+        mutate(Pregunta = pregunta)
+    if(quitar_altisonantes){
+        respuestas <- respuestas %>% anti_join(quitar)
+    }
 
-    res <- list(tokens_clean, respuestas)
+    respuestas <- respuestas %>% left_join(
+        aux %>% group_by(palabra) %>% mutate(n = n()) %>%
+            select(palabra, n,Respuesta) %>% ungroup %>%
+            count(Respuesta, wt = n)
+    ) %>% arrange(desc(n))
+
+
+   bigramas <- procesar_bigramas(df = df, pregunta = pregunta)
+
+    res <- list(tokens_clean, respuestas, bigramas)
 
     return(res)
 }
@@ -78,7 +95,7 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
 #' @export
 #' @examples #notrun (procesar_r_tema(bd))
 
-procesar_brecha <- function(bd,  otro = "Otro"){
+procesar_brecha <- function(bd,  otro = "Otro", quitar_altisonantes = T){
     junta <- bd$respuesta_cat %>%
         left_join(bd$respuesta %>%
                       filter(IdEtapa == 2) %>%
@@ -88,14 +105,19 @@ procesar_brecha <- function(bd,  otro = "Otro"){
                       select(IdCategoria, Nombre)) %>%
         tidyr::replace_na(list(Nombre = otro))
 
+    sw <- if(quitar_altisonantes){
+        load("data/altisonantes.rda")
+        stopwords::stopwords("es") %>% append(altisonantes %>% mutate(palabra = tolower(palabra)) %>% pull(palabra))
+    } else{
+        stopwords::stopwords("es")
+    }
 
     dfmat_news <- junta %>%
         quanteda::corpus(text = "Respuesta") %>%
         quanteda::tokens(
             remove_punct = TRUE, remove_symbols = T,
             remove_url = T, remove_separators = T) %>%
-        quanteda::tokens_remove(
-            stopwords::stopwords("es")) %>%
+        quanteda::tokens_remove(sw) %>%
         quanteda::tokens_group(groups = Nombre) %>%
         quanteda::dfm()
 
@@ -116,7 +138,6 @@ procesar_brecha <- function(bd,  otro = "Otro"){
         filter(IdEtapa == 2) %>%
         pull(Nombre) %>%
         unique()
-
 
     res <- junta %>%
         group_by(Respuesta, Nombre) %>%
@@ -156,7 +177,7 @@ procesar_brecha <- function(bd,  otro = "Otro"){
 #' @examples #notrun(procesar_r_tema(bd, top_p = 5, top_r = 2, otro = "Otro"))
 
 
-procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
+procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro", quitar_altisonantes = T){
 
     junta <- bd$respuesta_cat %>%
         left_join(bd$respuesta %>%
@@ -166,15 +187,30 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
                       select(IdCategoria,Nombre)) %>%
         tidyr::replace_na(list(Nombre = otro))
 
+    sw <- if(quitar_altisonantes){
+        load("data/altisonantes.rda")
+        altisonantes <- altisonantes %>% mutate(palabra = tolower(palabra))
+        stopwords::stopwords("es") %>% append(altisonantes %>% pull(palabra))
+    } else{
+        stopwords::stopwords("es")
+    }
+
     dfmat_news <- junta %>%
         quanteda::corpus(text = "Respuesta") %>%
         quanteda::tokens(
             remove_punct = TRUE, remove_symbols = T,
             remove_url = T, remove_separators = T) %>%
-        quanteda::tokens_remove(
-            stopwords::stopwords("es")) %>%
+        quanteda::tokens_remove(sw) %>%
         quanteda::tokens_group(groups = Nombre) %>%
         quanteda::dfm()
+
+    if(quitar_altisonantes){
+        aux <- junta %>%
+            tidytext::unnest_tokens(
+                output = palabra, input = Respuesta, drop = F)
+        quitar <- aux %>% semi_join(altisonantes) %>% distinct(Respuesta)
+        junta <- junta %>% anti_join(quitar)
+    }
 
     respuestas <- junta %>%
         group_by(Respuesta,Nombre) %>%
@@ -383,39 +419,41 @@ calcular_brecha <- function(bd, corte, parametros){
 #' @export
 #'
 #' @examples
-procesar_bigramas <- function(bd, pregunta, etapa){
 
-    load("data/altisonantes.rda")
-
-
+procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
     stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
 
-    df <- bd$respuesta %>%
-        left_join(bd$pregunta) %>%
-        filter(IdPregunta == pregunta, IdEtapa == etapa)
 
     aux <- df %>%
         tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2,drop = F ) %>%
         tidyr::separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
         anti_join(stop_words, by = c("palabra1" = "palabra")) %>%
-        anti_join(stop_words, by = c("palabra2" = "palabra"))
+        anti_join(stop_words, by = c("palabra2" = "palabra")) %>%
+        filter(!is.na(palabra1)|!is.na(palabra2))
 
-    quitar <- aux %>% semi_join(altisonantes, by = c("palabra1" = "palabra")) %>%
-        bind_rows(
-            aux %>% semi_join(altisonantes, by = c("palabra2" = "palabra"))
-        ) %>% distinct(Respuesta)
+    if(quitar_altisonantes){
+        load("data/altisonantes.rda")
+        altisonantes <- altisonantes %>% mutate(palabra = tolower(palabra))
+        quitar <- aux %>% semi_join(altisonantes, by = c("palabra1" = "palabra")) %>%
+            bind_rows(
+                aux %>% semi_join(altisonantes, by = c("palabra2" = "palabra"))
+            ) %>% distinct(Respuesta)
+        aux <- aux %>%
+            anti_join(quitar)
+    }
+
 
     bigramas <- aux %>%
-        anti_join(quitar) %>%
         count(palabra1, palabra2, sort = T) %>%
-        filter(n>quantile(n, probs = .7)) %>%
-        slice(1:30)
+        # filter(n>quantile(n, probs = .7)) %>%
+        slice(1:30) %>%  mutate(Pregunta = pregunta)
 
 
     res <- bigramas
 
     return(res)
 }
+
 
 
 

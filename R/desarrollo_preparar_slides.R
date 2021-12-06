@@ -15,8 +15,8 @@ imprimir_nube <- function(df, i, parametros){
         pull(Pregunta) %>%
         unique()
 
-    t1 <- paste(t, i, 1, sep ="")
-    r1 <- glue::glue("r {t1}, eval=requireNamespace('highcharter', quietly=TRUE)")
+    t1 <- paste(t, i, sep ="")
+    r1 <- glue::glue("r {i}, eval=requireNamespace('highcharter', quietly=TRUE)")
     r1 <- paste("{", r1, "}", sep="")
 
     nube <- glue::glue("```{r1} \n graficar_nube(p_{i}, parametros = parametros) \n ```")
@@ -48,17 +48,16 @@ imprimir_nube <- function(df, i, parametros){
     return(char)
 }
 
-imprimir_bigramas <- function(){
+imprimir_bigramas <- function(df, i, parametros){
     t <- df %>%
         pull(Pregunta) %>%
         unique()
-    browser()
 
     t1 <- paste(t, i, 1, sep ="")
-    r1 <- glue::glue("r {t1}, eval=requireNamespace('visNetwork', quietly=TRUE)")
+    r1 <- glue::glue("r {i}3, eval=requireNamespace('visNetwork', quietly=TRUE)")
     r1 <- paste("{", r1, "}", sep="")
 
-    net <- glue::glue("```{r1} \n graficar_bigramas(p_{i}, parametros = parametros) \n ```")
+    net <- glue::glue("```{r1} \n graficar_bigramas(r_{i}, parametros = parametros) \n ```")
     net <- glue::glue("\n\n  # {t} \n\n --- \n\n {net} \n\n ---")
     char <- net
 
@@ -82,8 +81,8 @@ imprimir_tabla_nube <- function(df, i){
         pull(Pregunta) %>%
         unique()
 
-    t2 <- paste(t, i, 2, sep="")
-    r2 <- glue::glue("r {t2}")
+    t2 <- paste(t, i, sep="")
+    r2 <- glue::glue("r {i}tabla")
     r2 <- paste("{", r2, "}", sep="")
 
     tabla <- glue::glue("```{r2} \n generar_tabla_nube(q_{i}) \n ```")
