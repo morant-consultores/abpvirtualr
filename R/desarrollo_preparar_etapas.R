@@ -26,31 +26,68 @@ slides_nubes <- function(bd, etapa, parametros, thm){
 
         a1 <- a %>% purrr::pluck(1)
         a2 <- a %>% purrr::pluck(2)
+        a3 <- a %>% purrr::pluck(3)
 
         b1 <- glue::glue("p_{i} <- a1")
         b2 <- glue::glue("q_{i} <- a2")
+        b3 <- glue::glue("r_{i} <- a3")
         eval(parse(text = b1))
         eval(parse(text = b2))
+        eval(parse(text = b3))
 
 
         x1 <- glue::glue(
-        "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
+            "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
         )
         x2 <- glue::glue(
             "knitr::knit_expand(text = imprimir_tabla_nube(q_{i}, {i}))"
         )
+        x3 <- glue::glue(
+            "knitr::knit_expand(text = imprimir_bigramas(r_{i}, {i}, parametros))"
+        )
 
         y1 <- eval(parse(text = x1))
         y2 <- eval(parse(text = x2))
+        y3 <- eval(parse(text = x3))
 
         out <- append(out, y1) %>%
-            append(y2)
+            append(y2) %>%
+            append(y3)
     }
 
     knitr::knit(text = paste(out, collapse = '\n'))
 }
 
+slides_bigramas <- function(bd, etapa, parametros, thm){
+    preguntas <- bd$pregunta %>%
+        filter(IdEtapa == etapa) %>%
+        pull(IdPregunta)
 
+    if(etapa == 5){
+        preguntas <- preguntas[1]
+    }
+    out <- list()
+
+    for (i in preguntas){
+        a <- procesar_bigramas( bd, pregunta = i, etapa = etapa)
+
+        b1 <- glue::glue("p_{i} <- a")
+        eval(parse(text = b1))
+
+
+        x1 <- glue::glue(
+            "knitr::knit_expand(text = imprimir_bigramas(p_{i}, {i}, parametros))"
+        )
+
+
+        y1 <- eval(parse(text = x1))
+
+
+        out <- append(out, y1)
+    }
+
+    knitr::knit(text = paste(out, collapse = '\n'))
+}
 #' Esta función es utilizada para crear los chuncks correspondientes
 #' a la etapa 2.
 #'
@@ -83,8 +120,8 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
             text = "\n --- \n .pull-left[")
 
         a1.3 <- knitr::knit_expand(text = sprintf(
-        "\n Las <b> palabras  </b>más representativas son: \n\n * %s \n \n]\n",
-        graficar_claves(.x$p_clave)))
+            "\n Las <b> palabras  </b>más representativas son: \n\n * %s \n \n]\n",
+            graficar_claves(.x$p_clave)))
 
         a2 <- knitr::knit_expand(text = ".pull-right[")
         a3 <- knitr::knit_expand(text = sprintf(

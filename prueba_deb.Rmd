@@ -1,6 +1,6 @@
 ---
-title: "Análisis de Brechas Percibidas"
-subtitle: "Digital"  
+title: " . "
+subtitle: "Análisis de Brechas Percibidas <br> Digital"  
 author:   <img src="img/logo2.png" width="900" height="200" />
             "Gerencia del Poder"
 
@@ -55,7 +55,7 @@ options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(
   fig.width=9, fig.height=4, fig.retina=3,
   out.width = "100%",
-  cache = T,
+  cache = F,
   echo = F,
   message = FALSE, 
   warning = FALSE,
@@ -73,6 +73,10 @@ style_mono_accent(base_color =  parametros$primario,
                   header_font_google = google_font(parametros$familia),
                   text_font_google   = google_font(parametros$familia),
                   code_font_google   = google_font(parametros$familia),
+                  base_font_size = "25px",
+                  header_h1_font_size = "1rem",
+                  header_h2_font_size = "2rem",
+                  header_h3_font_size = "1.5rem",
                   colors = c("rf" = parametros$sm_rf, "rc" = parametros$sm_rc,"a" = parametros$sm_a,"vc" = parametros$sm_vc, "vf" = parametros$sm_vf)
 )
 
@@ -85,6 +89,7 @@ library(ggplot2)
 library(purrr)
 library(dbplyr)
 library(highcharter)
+library(rmarkdown)
 # library(readr)
 # library(odbc)
 # library(hexbin)
@@ -98,12 +103,12 @@ library(highcharter)
 list.files("R",full.names = T) %>% map(~source(.x))
 
 thm <- tema_high(font = parametros$familia, color = "black", size = "15px")
-bd <- leer_base( id_sesion = NULL)
+bd <- leer_base( id_sesion = 3169)
 ```
 
 
 
-# ETAPA 1: INICIO
+## ETAPA 1: INICIO
 
 ---
 
@@ -112,22 +117,21 @@ bd <- leer_base( id_sesion = NULL)
 class: inverse, middle, center
 
 
-# ETAPA 2: BRECHA
+## ETAPA 2: BRECHA
 
 ---
 
-`r if(nrow(bd$calif_cat) > 0) slides_etapa_2(bd, top_p = 5, top_r = 2, parametros = parametros, thm = thm)`
+`r if(nrow(bd$respuesta_cat) > 0 & nrow(bd$calif_cat) > 0) slides_etapa_2(bd, top_p = 5, top_r = 2, parametros = parametros, thm = thm)`
 
 class: inverse, middle, center
 
 
 
-# ETAPA 3: CIERRE
-
+## ETAPA 3: CIERRE
 ---
 
 `r slides_nubes(bd, etapa = 5, parametros, thm)`
 
 class: inverse, middle, center
 
-# Gracias
+## Gracias
