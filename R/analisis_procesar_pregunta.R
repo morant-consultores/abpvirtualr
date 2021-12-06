@@ -421,12 +421,16 @@ calcular_brecha <- function(bd, corte, parametros){
 #' @examples
 
 procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
-    stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
-    stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es"))) %>%  pull(palabra)
+    stop_words <- c(stopwords::stopwords("es"))
 
 
     aux <- df %>%
-        mutate(Respuesta = stringr::str_replace_all(string = Respuesta, pattern = stop_words)) %>%
+        mutate(Respuesta = strsplit(Respuesta, " ")) %>% mutate(Respuesta = purrr::map_chr(Respuesta,~{
+            paste(.x[is.na(match(.x,stop_words))], collapse = " ")
+        })) %>%
+        # mutate(Respuesta = stringr::str_replace_all(string = Respuesta,
+        #                                             pattern = stop_words,
+        #                                             replacement = "")) %>%
         tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2,drop = F ) %>%
         tidyr::separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
         # anti_join(stop_words, by = c("palabra1" = "palabra")) %>%
