@@ -12,7 +12,8 @@ library(tidyverse)
 library(ggfittext)
 library(ggchicklet)
 
-bd <- read_csv("../Data/bd_prueba.csv")
+bd <- list.files(pattern = "*.csv", path = "../Data/") %>%  map_df(~read_csv( file = paste0("../Data/", .))) 
+
 asistentes <- nrow(bd)
 fecha <- "Jueves 02 de diciembre 2021"
 lugar<- bd %>% count(Municipio) %>%  summarise(paste(Municipio, collapse = ", "))
@@ -26,12 +27,18 @@ Al evento "ABP Virtual" llevado a cabo el`r fecha`, asistió un total de `r asis
 :::
 ::: {.column}
 ```{r, dpi = 300, echo=FALSE, warning=FALSE}
+
 bd %>% count(Sexo, Edad) %>%  
     mutate(n2=case_when(Sexo  == "Femenino"~n*-1, T~n %>%  as.double())) %>% 
     ggplot(aes(x = Edad, y = n2, group= Sexo, fill = Sexo))+
-    geom_chicklet(stat = "identity", width = .5)+
-        coord_flip()+
-    theme_minimal()
+    geom_chicklet(stat = "identity", width = .5, alpha =.8)+
+    coord_flip()+
+    scale_fill_manual(values = c("#4056F4", "#CE2D4F"))+
+    labs(y= "Rango de edad", x ="Participantes", fill = "Sexo", title = "Pirámide poblacional")+
+    scale_y_continuous(labels=scales::percent)+
+    theme_minimal()+
+    theme(panel.grid.minor = element_blank())
+    
 
 ```
 :::
