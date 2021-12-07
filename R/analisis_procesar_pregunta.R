@@ -224,6 +224,7 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro", quitar_altisonantes
         slice(1:top_r) %>%
         ungroup %>%
         filter(pct_r >= .1) %>%
+        filter(dense_rank(-pct_r) <= 3) %>%
         mutate(
             Nombre = forcats::fct_reorder(Nombre,-pct_r)
         ) %>%
