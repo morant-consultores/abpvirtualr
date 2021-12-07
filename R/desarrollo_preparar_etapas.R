@@ -25,33 +25,33 @@ slides_nubes <- function(bd, etapa, parametros, thm){
         a <- procesar_p_abierta(bd, pregunta = i, etapa = etapa, parametros = parametros)
 
         a1 <- a %>% purrr::pluck(1)
-        a2 <- a %>% purrr::pluck(2)
+        # a2 <- a %>% purrr::pluck(2)
         a3 <- a %>% purrr::pluck(3)
 
         b1 <- glue::glue("p_{i} <- a1")
-        b2 <- glue::glue("q_{i} <- a2")
+        # b2 <- glue::glue("q_{i} <- a2")
         b3 <- glue::glue("r_{i} <- a3")
         eval(parse(text = b1))
-        eval(parse(text = b2))
+        # eval(parse(text = b2))
         eval(parse(text = b3))
 
 
         x1 <- glue::glue(
             "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
         )
-        x2 <- glue::glue(
-            "knitr::knit_expand(text = imprimir_tabla_nube(q_{i}, {i}))"
-        )
+        # x2 <- glue::glue(
+        #     "knitr::knit_expand(text = imprimir_tabla_nube(q_{i}, {i}))"
+        # )
         x3 <- glue::glue(
             "knitr::knit_expand(text = imprimir_bigramas(r_{i}, {i}, parametros))"
         )
 
         y1 <- eval(parse(text = x1))
-        y2 <- eval(parse(text = x2))
+        # y2 <- eval(parse(text = x2))
         y3 <- eval(parse(text = x3))
 
         out <- append(out, y1) %>%
-            append(y2) %>%
+            # append(y2) %>%
             append(y3)
     }
 
