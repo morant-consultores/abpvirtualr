@@ -587,18 +587,19 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
         mutate(value =n, label = id, group = "algo",
                shape = "circle",
                main = titulo,
-               color= color, shadow = F,
-               opacity = .9,
-               color.border = "#FFFFFF",
-               font.color = "#FFFFFF",font.face = familia, font.size= 25,
-               font.strokeWidth=2, font.strokeColor= color)
+               color= list(colo="#FFFFFF"), shadow = T,
+               # opacity = .9,
+               color.border = color,
+               font.color = ,font.face = familia, font.size= 35,
+               font.strokeWidth=2, font.strokeColor= "#001c44")
 
 
     plot <- visNetwork::visNetwork(nodos , bd_bigramas %>%  rename(from = palabra1, to = palabra2, value =n),
                height = "500px") %>%
         visNetwork::visIgraphLayout(layout = "layout_nicely") %>%
         visNetwork::visNodes(size = 10) %>%
-        visNetwork::visOptions(highlightNearest = list(enabled = T, hover = T),
-                   nodesIdSelection = T)
+        visNetwork::visOptions(highlightNearest = list(enabled = F, hover = F),
+                   nodesIdSelection = T) %>%
+        visNetwork::visEdges(color = list(color = "#001c44"))
     return(plot)
 }
