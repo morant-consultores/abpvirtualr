@@ -428,7 +428,7 @@ procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
     aux <- df %>%
         tidytext::unnest_tokens(
             output = palabra, input = Respuesta, drop = FALSE)
-
+    load("data/altisonantes.rda")
     quitar <- aux %>% semi_join(altisonantes %>% mutate(palabra = tolower(palabra))) %>% distinct(Respuesta)
 
     palabras <- aux %>% anti_join(quitar) %>%

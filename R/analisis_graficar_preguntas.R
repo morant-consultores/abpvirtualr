@@ -602,13 +602,13 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
                color= list(colo="#FFFFFF"), shadow = T,
                # opacity = .9,
                color.border = color,
-               font.color = ,font.face = familia, font.size= 35,
+               font.color = ,font.face = familia, font.size= 30,
                font.strokeWidth=2, font.strokeColor= "#001c44")
 
 
     plot <- visNetwork::visNetwork(nodos , bd_bigramas %>%  rename(from = palabra1, to = palabra2, value =n),
                                    physics=T, idToLabel=T,
-               height = "700px", width = "100%") %>%
+               height = "500px", width = "100%") %>%
         visNetwork::visIgraphLayout(layout = "layout_nicely") %>%
         visNetwork::visNodes(size = 10) %>%
         visNetwork::visOptions(highlightNearest = list(enabled = F, hover = F),
