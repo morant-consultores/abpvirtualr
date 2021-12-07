@@ -424,6 +424,7 @@ procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
 
 
     stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
+    stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es"))) %>%  pull(palabra)
 
     aux <- df %>%
         tidytext::unnest_tokens(
@@ -442,10 +443,11 @@ procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
         ungroup() %>%  select(palabra, palabra_n = n)
 
     aux <- df %>%
+        mutate(Respuesta = stringr::str_replace_all(string = Respuesta, pattern = stop_words)) %>%
         tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2,drop = F ) %>%
         tidyr::separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
-        anti_join(stop_words, by = c("palabra1" = "palabra")) %>%
-        anti_join(stop_words, by = c("palabra2" = "palabra")) %>%
+        # anti_join(stop_words, by = c("palabra1" = "palabra")) %>%
+        # anti_join(stop_words, by = c("palabra2" = "palabra")) %>%
         filter(!is.na(palabra1)|!is.na(palabra2))
 
     if(quitar_altisonantes){
