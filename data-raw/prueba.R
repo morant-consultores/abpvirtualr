@@ -20,7 +20,7 @@ parametros <- list(
 )
 
 thm <- tema_high(font = parametros$familia, color = "black", size = "15px")
-bd <- leer_base( id_sesion = 3169)
+bd <- leer_base( id_sesion = NULL)
 
 
 # Etapa 1 -----------------------------------------------------------------

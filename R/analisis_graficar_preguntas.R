@@ -581,11 +581,23 @@ generar_tabla_nube <- function(bd){
 graficar_bigramas <- function(bd_bigramas, titulo = "",
                               color = parametros$primario, familia = parametros$familia,
                               parametros){
+
+
+    palabra1 <-bd_bigramas %>%  select(palabra =palabra1, palabra_n =palabra1_n)
+    palabra2 <-bd_bigramas %>%  select(palabra =palabra2, palabra_n =palabra2_n)
+
+    palabras <- bind_rows(palabra1, palabra2) %>%  distinct()
+
     nodos<-bd_bigramas %>%
-        tidyr::gather(key =  "grupo","id", c("palabra1", "palabra2") ) %>% select(-grupo) %>%
+        tidyr::gather(key =  "grupo","id", c("palabra1", "palabra2") ) %>%
+        select(-grupo) %>%
         distinct(id, .keep_all = T) %>%
-        mutate(value =n, label = id, group = "algo",
+        left_join(palabras, by = c("id"= "palabra")) %>%
+        mutate(value =n,
+               label = id,
+               group = "algo",
                shape = "circle",
+               title =paste(id, ": ", palabra_n),
                main = titulo,
                color= list(colo="#FFFFFF"), shadow = T,
                # opacity = .9,
@@ -595,11 +607,13 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
 
 
     plot <- visNetwork::visNetwork(nodos , bd_bigramas %>%  rename(from = palabra1, to = palabra2, value =n),
-               height = "500px") %>%
+                                   physics=T, idToLabel=T,
+               height = "700px", width = "100%") %>%
         visNetwork::visIgraphLayout(layout = "layout_nicely") %>%
         visNetwork::visNodes(size = 10) %>%
         visNetwork::visOptions(highlightNearest = list(enabled = F, hover = F),
                    nodesIdSelection = F) %>%
-        visNetwork::visEdges(color = list(color = "#001c44"))
+        visNetwork::visEdges(color = list(color = "#001c44"),
+                             arrows =list(to = list(enabled = TRUE)))
     return(plot)
 }
