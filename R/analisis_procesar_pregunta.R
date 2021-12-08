@@ -432,7 +432,7 @@ procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
     quitar <- aux %>% semi_join(altisonantes %>% mutate(palabra = tolower(palabra))) %>% distinct(Respuesta)
 
     palabras <- aux %>% anti_join(quitar) %>%
-        anti_join(stop_words) %>%
+        anti_join(tibble(palabra = stop_words)) %>%
         group_by(palabra) %>%
         mutate(num = paste0(row_number(),") ")) %>%
         summarise(
