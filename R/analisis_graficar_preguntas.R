@@ -555,9 +555,9 @@ generar_tabla_nube <- function(bd){
         DT::datatable(
             options = list(
                 language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
-                lengthMenu = c(5, 10, 25, 50, 100),
+                lengthMenu = c(1,2,3,4,5),
                 pageLength = 3,
-                scrollY = 300,
+                # scrollY = 300,
                 initComplete = JS(
                     "function(settings, json) {",
                     "$(this.api().table().header()).css({'font-size': '25px' });",

@@ -36,8 +36,8 @@ parametros <- list(
   primario_obscuro = "#232B58",
   inverso = "#4C97C8",
   inverso_claro = "#88B9CF",
-  cortes = seq(0,10000,length.out = 6),
-  # cortes = c(0,4,7.5,11,16,25)*20^2,
+  # cortes = seq(0,10000,length.out = 6),
+  cortes = c(0,4,7.5,11,16,25)*20^2,
   sm_vf = "#6A994E",
   sm_vc = "#A7C957",
   sm_a = "#F9C74F",
@@ -104,7 +104,7 @@ library(visNetwork)
 list.files("R",full.names = T) %>% map(~source(.x))
 
 thm <- tema_high(font = parametros$familia, color = "black", size = "15px")
-bd <- leer_base( id_sesion = 3169)
+bd <- leer_base( id_sesion = NULL)
 ```
 
 

@@ -224,6 +224,7 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro", quitar_altisonantes
         slice(1:top_r) %>%
         ungroup %>%
         filter(pct_r >= .1) %>%
+        filter(dense_rank(-pct_r) <= 3) %>%
         mutate(
             Nombre = forcats::fct_reorder(Nombre,-pct_r)
         ) %>%
@@ -422,9 +423,7 @@ calcular_brecha <- function(bd, corte, parametros){
 
 procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
 
-
-    stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
-    stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es"))) %>%  pull(palabra)
+    stop_words <- c(stopwords::stopwords("es"))
 
     aux <- df %>%
         tidytext::unnest_tokens(
@@ -443,7 +442,12 @@ procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
         ungroup() %>%  select(palabra, palabra_n = n)
 
     aux <- df %>%
-        mutate(Respuesta = stringr::str_replace_all(string = Respuesta, pattern = stop_words)) %>%
+        mutate(Respuesta = strsplit(Respuesta, " ")) %>% mutate(Respuesta = purrr::map_chr(Respuesta,~{
+            paste(.x[is.na(match(.x,stop_words))], collapse = " ")
+        })) %>%
+        # mutate(Respuesta = stringr::str_replace_all(string = Respuesta,
+        #                                             pattern = stop_words,
+        #                                             replacement = "")) %>%
         tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2,drop = F ) %>%
         tidyr::separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
         # anti_join(stop_words, by = c("palabra1" = "palabra")) %>%
