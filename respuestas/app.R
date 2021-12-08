@@ -39,41 +39,33 @@ leer_base <- function(id_sesion = NA){
                                              in_schema("General","Sesion")) %>%
         pull(IdSesion) else id_sesion
 
-    etapa <- tbl(con,in_schema("Catalogo", "Etapa")) %>%
-        collect()
 
-    pregunta <- tbl(con,in_schema("Cuestionario", "Pregunta")) %>%
-        collect()
 
     respuesta <- tbl(con,in_schema("Cuestionario", "Respuesta")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
+        count(IdEtapa,IdPregunta) %>%
         collect()
 
-    categoria <- tbl(con,in_schema("Catalogo", "Categoria")) %>%
-        collect()
 
     respuesta_cat <- tbl(con,
                          in_schema("Cuestionario", "RespuestaCategoria")) %>%
-        filter(IdSesion %in% !! id_sesion) %>%
+        filter(IdSesion %in% !! id_sesion) %>% count(IdUsuario) %>% tally() %>%
         collect()
 
     orden_cat <- tbl(con,
                      in_schema("Cuestionario", "OrdenCategoria")) %>%
-        filter(IdSesion %in% !! id_sesion) %>%
+        filter(IdSesion %in% !! id_sesion) %>% count(IdUsuario) %>% tally() %>%
         collect()
 
     calif_cat <- tbl(con,
                      in_schema("Cuestionario", "CalificacionCategoria")) %>%
-        filter(IdSesion %in% !! id_sesion) %>%
+        filter(IdSesion %in% !! id_sesion) %>% count(IdUsuario) %>% tally() %>%
         collect()
 
     pool::poolClose(con)
 
     res <- list(
-        etapa = etapa,
-        pregunta = pregunta,
         respuesta = respuesta,
-        categoria = categoria,
         respuesta_cat = respuesta_cat,
         orden_cat = orden_cat,
         calif_cat = calif_cat
@@ -105,7 +97,7 @@ server <- function(input, output, session) {
     })
 
     etapas <- reactive(
-        unique(isolate(bd)() %>% pluck("respuesta") %>% pull(IdEtapa))
+        bd() %>% pluck("respuesta") %>% pull(IdEtapa) %>% unique
     )
 
     seleccionado <- eventReactive(input$etapa,{
@@ -120,7 +112,7 @@ server <- function(input, output, session) {
         validate(
             need(input$etapa, "Seleccione etapa")
         )
-        bd() %>% pluck("respuesta") %>% filter(IdEtapa == input$etapa) %>% count(IdPregunta) %>%
+        bd() %>% pluck("respuesta") %>% filter(IdEtapa == input$etapa) %>%
             ggplot(aes(x = factor(IdPregunta), y = n, label = n)) + geom_col(fill = "#126782",
                                                                              width = .7, alpha =.8) +
             geom_label(label.size = 0.9) + theme_minimal()+
@@ -133,7 +125,7 @@ server <- function(input, output, session) {
         validate(
             need(input$etapa == 2, "Elija etapa 2")
         )
-        valueBox(value = bd() %>% pluck("respuesta_cat") %>% count(IdUsuario) %>% tally() %>% pull(1),
+        valueBox(value = bd() %>% pluck("respuesta_cat") %>% pull(1),
                  subtitle = "Finalizaron categorización",
                  color = "aqua", icon = icon("tag")
         )
@@ -143,7 +135,7 @@ server <- function(input, output, session) {
         validate(
             need(input$etapa == 2, "Elija etapa 2")
         )
-        valueBox(value = bd() %>% pluck("orden_cat") %>% count(IdUsuario) %>% tally() %>% pull(1),
+        valueBox(value = bd() %>% pluck("orden_cat") %>% pull(1),
                  subtitle = "Finalizaron importancia",
                  color = "teal", icon = icon("list-ul")
         )
@@ -154,7 +146,7 @@ server <- function(input, output, session) {
         validate(
             need(input$etapa == 2, "Elija etapa 2")
         )
-        valueBox(value = bd() %>% pluck("calif_cat") %>% count(IdUsuario) %>% tally() %>% pull(1),
+        valueBox(value = bd() %>% pluck("calif_cat") %>% pull(1),
                  subtitle = "Finalizaron cumplimiento",
                  color = "fuchsia", icon = icon("list")
         )
