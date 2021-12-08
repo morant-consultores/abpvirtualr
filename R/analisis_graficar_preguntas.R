@@ -555,9 +555,8 @@ generar_tabla_nube <- function(bd){
         DT::datatable(
             options = list(
                 language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
-                lengthMenu = c(1,2,3,4,5),
+                lengthMenu = 1:5,
                 pageLength = 3,
-                # scrollY = 300,
                 initComplete = JS(
                     "function(settings, json) {",
                     "$(this.api().table().header()).css({'font-size': '25px' });",
@@ -581,24 +580,39 @@ generar_tabla_nube <- function(bd){
 graficar_bigramas <- function(bd_bigramas, titulo = "",
                               color = parametros$primario, familia = parametros$familia,
                               parametros){
+
+
+    palabra1 <-bd_bigramas %>%  select(palabra =palabra1, palabra_n =palabra1_n)
+    palabra2 <-bd_bigramas %>%  select(palabra =palabra2, palabra_n =palabra2_n)
+
+    palabras <- bind_rows(palabra1, palabra2) %>%  distinct()
+
     nodos<-bd_bigramas %>%
-        tidyr::gather(key =  "grupo","id", c("palabra1", "palabra2") ) %>% select(-grupo) %>%
+        tidyr::gather(key =  "grupo","id", c("palabra1", "palabra2") ) %>%
+        select(-grupo) %>%
         distinct(id, .keep_all = T) %>%
-        mutate(value =n, label = id, group = "algo",
+        left_join(palabras, by = c("id"= "palabra")) %>%
+        mutate(value =n,
+               label = id,
+               group = "algo",
                shape = "circle",
+               title =paste(id, ": ", palabra_n),
                main = titulo,
-               color= color, shadow = F,
-               opacity = .9,
-               color.border = "#FFFFFF",
-               font.color = "#FFFFFF",font.face = familia, font.size= 25,
-               font.strokeWidth=2, font.strokeColor= color)
+               color= list(colo="#FFFFFF"), shadow = T,
+               # opacity = .9,
+               color.border = color,
+               font.color = ,font.face = familia, font.size= 30,
+               font.strokeWidth=2, font.strokeColor= "#001c44")
 
 
     plot <- visNetwork::visNetwork(nodos , bd_bigramas %>%  rename(from = palabra1, to = palabra2, value =n),
-               height = "500px") %>%
+                                   physics=T, idToLabel=T,
+               height = "500px", width = "100%") %>%
         visNetwork::visIgraphLayout(layout = "layout_nicely") %>%
         visNetwork::visNodes(size = 10) %>%
-        visNetwork::visOptions(highlightNearest = list(enabled = T, hover = T),
-                   nodesIdSelection = T)
+        visNetwork::visOptions(highlightNearest = list(enabled = F, hover = F),
+                   nodesIdSelection = F) %>%
+        visNetwork::visEdges(color = list(color = "#001c44"),
+                             arrows =list(to = list(enabled = TRUE)))
     return(plot)
 }

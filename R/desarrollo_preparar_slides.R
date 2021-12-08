@@ -54,7 +54,7 @@ imprimir_bigramas <- function(df, i, parametros){
         unique()
 
     t1 <- paste(t, i, 1, sep ="")
-    r1 <- glue::glue("r {i}3, eval=requireNamespace('visNetwork', quietly=TRUE)")
+    r1 <- glue::glue("r {i}3")
     r1 <- paste("{", r1, "}", sep="")
 
     net <- glue::glue("```{r1} \n graficar_bigramas(r_{i}, parametros = parametros) \n ```")
