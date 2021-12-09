@@ -611,5 +611,5 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
         visNetwork::visNodes(size = 10) %>%
         visNetwork::visOptions(highlightNearest = list(enabled = F, hover = F),
                                nodesIdSelection = F)
- return(widgetframe::frameWidget(plot))
+ return(plot)
 }
