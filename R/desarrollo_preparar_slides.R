@@ -62,7 +62,7 @@ imprimir_bigramas <- function(df, i, parametros){
     char <- net
 
 
-    return(char)
+   widgetframe::frameWidget(return(char))
 }
 
 #' Title
