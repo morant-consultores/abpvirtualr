@@ -57,12 +57,12 @@ imprimir_bigramas <- function(df, i, parametros){
     r1 <- glue::glue("r {i}3")
     r1 <- paste("{", r1, "}", sep="")
 
-    net <- glue::glue("```{r1} \n graficar_bigramas(r_{i}, parametros = parametros) \n ```")
+    net <- glue::glue("```{r1} \n widgetframe::frameWidget(graficar_bigramas(r_{i}, parametros = parametros)) \n ```")
     net <- glue::glue("\n\n  # {t} \n\n --- \n\n {net} \n\n ---")
     char <- net
 
 
-   widgetframe::frameWidget(return(char))
+  return(char)
 }
 
 #' Title
