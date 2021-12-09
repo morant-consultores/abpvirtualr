@@ -463,7 +463,7 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
                     facet_wrap(~stringr::str_wrap(Nombre, 20))+
                     geom_hline(yintercept = 0)+
                     scale_x_continuous(labels = function(x) scales::percent(x/10000), n.breaks = 4) +
-                    labs(x = "",y = "", caption = "* El círculo de color representa la semaforización más frecuente y la línea vertical representa el promedio de la brecha.")+
+                    labs(x = "",y = "", caption = "* El círculo de color representa la semaforización promedio. \n ** La línea vertical representa el promedio de la brecha.")+
                     theme(panel.grid = element_blank(), text = element_text(family = parametros$familia),
                           rect = element_blank(), axis.text.y = element_blank(),
                           axis.ticks.y = element_blank(),
