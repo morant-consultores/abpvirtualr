@@ -428,10 +428,15 @@ procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
     aux <- df %>%
         tidytext::unnest_tokens(
             output = palabra, input = Respuesta, drop = FALSE)
-    load("data/altisonantes.rda")
-    quitar <- aux %>% semi_join(altisonantes %>% mutate(palabra = tolower(palabra))) %>% distinct(Respuesta)
 
-    palabras <- aux %>% anti_join(quitar) %>%
+    if(quitar_altisonantes){
+        load("data/altisonantes.rda")
+        quitar <- aux %>% semi_join(altisonantes %>% mutate(palabra = tolower(palabra))) %>% distinct(Respuesta)
+        aux <- aux %>% anti_join(quitar)
+    }
+
+
+     palabras <- aux %>%
         anti_join(tibble(palabra = stop_words)) %>%
         group_by(palabra) %>%
         mutate(num = paste0(row_number(),") ")) %>%
@@ -439,28 +444,24 @@ procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
             n = n(),
             completa = tolower(stringr::str_c(
                 num, Respuesta, collapse= "\n"))) %>%
-        ungroup() %>%  select(palabra, palabra_n = n)
+        ungroup() %>%  select(palabra, palabra_n = n) %>%
+        mutate(quedar = palabra_n > quantile(palabra_n,.85))
 
     aux <- df %>%
-        mutate(Respuesta = strsplit(Respuesta, " ")) %>% mutate(Respuesta = purrr::map_chr(Respuesta,~{
-            paste(.x[is.na(match(.x,stop_words))], collapse = " ")
+        mutate(Respuesta2 = strsplit(Respuesta, " ")) %>%
+        mutate(Respuesta2 = purrr::map_chr(Respuesta2,~{
+            paste(.x[is.na(match(tolower(.x),stop_words))], collapse = " ")
         })) %>%
         # mutate(Respuesta = stringr::str_replace_all(string = Respuesta,
         #                                             pattern = stop_words,
         #                                             replacement = "")) %>%
-        tidytext::unnest_tokens(bigrama, Respuesta, token = "ngrams", n=2,drop = F ) %>%
+        tidytext::unnest_tokens(bigrama, Respuesta2, token = "ngrams", n=2,drop = F ) %>%
         tidyr::separate(bigrama, into = c("palabra1", "palabra2"), sep=" ") %>%
         # anti_join(stop_words, by = c("palabra1" = "palabra")) %>%
         # anti_join(stop_words, by = c("palabra2" = "palabra")) %>%
         filter(!is.na(palabra1)|!is.na(palabra2))
 
     if(quitar_altisonantes){
-        load("data/altisonantes.rda")
-        altisonantes <- altisonantes %>% mutate(palabra = tolower(palabra))
-        quitar <- aux %>% semi_join(altisonantes, by = c("palabra1" = "palabra")) %>%
-            bind_rows(
-                aux %>% semi_join(altisonantes, by = c("palabra2" = "palabra"))
-            ) %>% distinct(Respuesta)
         aux <- aux %>%
             anti_join(quitar)
     }
@@ -468,12 +469,15 @@ procesar_bigramas <- function(df, quitar_altisonantes = T, pregunta ){
 
     bigramas <- aux %>%
         count(palabra1, palabra2, sort = T) %>%
-        # filter(n>quantile(n, probs = .7)) %>%
-        slice(1:20) %>%  mutate(Pregunta = pregunta) %>%
+        # mutate(quantile(n,.7))
+        filter(n>1) %>%
+        # slice(1:20) %>%
+        mutate(Pregunta = pregunta) %>%
         left_join(palabras, by = c("palabra1" = "palabra")) %>%
         mutate(palabra1_n = palabra_n) %>% select(-palabra_n) %>%
         left_join(palabras, by = c("palabra2" = "palabra")) %>%
-        mutate(palabra2_n = palabra_n) %>% select(-palabra_n)
+        mutate(palabra2_n = palabra_n) %>% select(-palabra_n) #%>%
+        # filter(quedar.x & quedar.y)
 
 
     res <- bigramas
