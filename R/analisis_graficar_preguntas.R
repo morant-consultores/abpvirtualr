@@ -609,7 +609,7 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
                                    height = "600px", width = "100%") %>%
         visNetwork::visIgraphLayout(layout = "layout_nicely") %>%
         visNetwork::visNodes(size = 10) %>%
-        visNetwork::visOptions(highlightNearest = list(enabled = F, hover = F),
-                               nodesIdSelection = F)
+        visNetwork::visOptions(highlightNearest = list(enabled = F, hover = T),
+                               nodesIdSelection = T)
  return(plot)
 }
