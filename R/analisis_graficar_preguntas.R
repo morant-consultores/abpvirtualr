@@ -598,10 +598,10 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
                title = paste("Repeticiones: ", palabra_n),
                shape = "circle",
                main = titulo,
-               color= "#CAD6D9", shadow = F,
+               color= "#F5F9FA", shadow = F,
                opacity = .9,
                color.border = "#FFFFFF",
-               font.color = "#2A3D6E",font.face = familia, font.size= 35,
+               font.color = "#2A3D6E",font.face = familia, font.size= 45,
                font.strokeWidth=2, font.strokeColor= color)
 
 
@@ -611,5 +611,5 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
         visNetwork::visNodes(size = 10) %>%
         visNetwork::visOptions(highlightNearest = list(enabled = F, hover = F),
                                nodesIdSelection = F)
-    return(plot)
+ return(widgetframe::frameWidget(plot))
 }
