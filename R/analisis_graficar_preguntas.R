@@ -601,7 +601,7 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
                color= "#F5F9FA", shadow = F,
                opacity = .9,
                color.border = "#FFFFFF",
-               font.color = "#2A3D6E",font.face = familia, font.size= 35,
+               font.color = "#2A3D6E",font.face = familia, font.size= 45,
                font.strokeWidth=2, font.strokeColor= color)
 
 
