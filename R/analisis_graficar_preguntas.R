@@ -588,36 +588,28 @@ graficar_bigramas <- function(bd_bigramas, titulo = "",
     palabras <- bind_rows(palabra1, palabra2) %>%  distinct()
 
 
-    labs<-bd_bigramas %>%tidyr::gather(grupo, palabra, palabra1:palabra2) %>%
-        select(palabra) %>%  distinct() %>%
-        pull(palabra)
+    ## Plot original completo
 
-    bd_graficar <- bd_bigramas %>% select(word1 = palabra1, word2 = palabra2, n) %>%
-        igraph::graph_from_data_frame()
+    nodos<-bd_bigramas %>%
+        tidyr::gather(key =  "grupo","id", c("palabra1", "palabra2") ) %>% select(-grupo) %>%
+        distinct(id, .keep_all = T) %>%
+        left_join(palabras, by = c("id" = "palabra")) %>%
+        mutate(value =n, label = id, group = "algo",
+               title = paste("Repeticiones: ", palabra_n),
+               shape = "circle",
+               main = titulo,
+               color= "#CAD6D9", shadow = F,
+               opacity = .9,
+               color.border = "#FFFFFF",
+               font.color = "#2A3D6E",font.face = familia, font.size= 35,
+               font.strokeWidth=2, font.strokeColor= color)
 
 
-    igraph::V(bd_graficar)$label <- labs
-    igraph::V(bd_graficar)$name <- labs
-    # V(bd_graficar)$betweenness <- round(betweenness(bd_graficar), 2)
-    igraph::V(bd_graficar)$Conexiones <- igraph::degree(bd_graficar)
-    igraph::V(bd_graficar)$size <- igraph::V(bd_graficar)$Conexiones
-    igraph::E(bd_graficar)$color <- "#7B93AF"
-
-
-    plot <-hchart(bd_graficar, layout = igraph::layout_with_fr) %>%
-        hc_plotOptions(
-            series = list(
-                dataLabels = list(
-                    enabled= F,
-                    style = list(fontSize = "25px",
-                                 fontFamily = "Poppins")),
-                marker = list( radius = 10),
-                states = list(
-                    inactive= list(opacity = 1) )
-            )) %>%
-        hc_tooltip(enabled = T, style = list(fontSize = "10px")) %>%
-        hc_chart(style = list(fontFamily = "Poppins")) %>%
-        hc_colors("#2A3D6E") %>%
-        hc_legend(itemStyle = list(fontSize = "20px"))
+    plot <- visNetwork::visNetwork(nodos , bd_bigramas %>%  rename(from = palabra1, to = palabra2, value =n),
+                                   height = "600px", width = "100%") %>%
+        visNetwork::visIgraphLayout(layout = "layout_nicely") %>%
+        visNetwork::visNodes(size = 10) %>%
+        visNetwork::visOptions(highlightNearest = list(enabled = F, hover = F),
+                               nodesIdSelection = F)
     return(plot)
 }
