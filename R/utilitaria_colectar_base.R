@@ -25,7 +25,7 @@ leer_base <- function(id_sesion = NULL){
         summarise(max(IdSesion)) %>%
         pull(1) else id_sesion
 
-    id_sesion <- if(id_sesion == "Todo") tbl(con,
+    id_sesion <- if("Todo" %in% id_sesion) tbl(con,
                                              in_schema("General","Sesion")) %>%
         pull(IdSesion) else id_sesion
 
