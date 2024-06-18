@@ -10,13 +10,7 @@
 #'
 #' @examples #notrun (leer_base(con, id_sesion = "Todo"))
 
-leer_base <- function(id_sesion = NULL){
-    conexion <- list(Driver = "ODBC Driver 17 for SQL Server",
-                     Server = "database.negox.com",
-                     Database = "CIDFares2020_ABPVirtualTest",
-                     UID = "CIDFares2020_CIDFares2020",
-                     PWD = "CIDFares@BP2021",
-                     Port = 1433)
+leer_base <- function(conexion, id_sesion = NULL){
     con <- pool::dbPool(odbc::odbc(),
                         Driver = conexion$Driver,
                         Server = conexion$Server,
