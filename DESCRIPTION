@@ -18,7 +18,6 @@ Imports:
     dbplyr,
     dplyr,
     forcats,
-    ggchicklet,
     ggplot2,
     glue,
     grDevices,
@@ -32,7 +31,6 @@ Imports:
     quanteda.textstats,
     RColorBrewer,
     scales,
-    spatstat.core,
     stopwords,
     stringr,
     sysfonts,
@@ -42,5 +40,8 @@ Imports:
     tm,
     wordcloud,
     xaringanthemer
+Remotes: 
+    hrbrmstr/ggchicklet
+    spatstat/spatstat.core
 Depends: 
     R (>= 2.10)
