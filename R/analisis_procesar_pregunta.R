@@ -9,7 +9,6 @@
 #' @return (list) Lista de dataframes uno con una tabla con las palabras, frecuencias y colores asignados y otro con las respuestas.
 #' @export
 #' @import dplyr
-#' @importFrom spatstat.core CDF
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
 
 procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
