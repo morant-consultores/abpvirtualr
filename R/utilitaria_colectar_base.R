@@ -32,7 +32,8 @@ leer_base <- function(conexion, id_sesion = NULL){
         collect()
 
     pregunta <- tbl(con,in_schema("Cuestionario", "Pregunta")) %>%
-        collect()
+        collect() |>
+        filter(RegistroActivo)
 
     respuesta <- tbl(con,in_schema("Cuestionario", "Respuesta")) %>%
         filter(IdSesion %in% !! id_sesion) %>%

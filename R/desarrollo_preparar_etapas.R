@@ -11,7 +11,6 @@
 #' @examples #notrun (slides_nubes(bd, etapa = 1))
 
 slides_nubes <- function(bd, etapa, parametros, thm){
-
     preguntas <- bd$pregunta %>%
         filter(IdEtapa == etapa) %>%
         pull(IdPregunta)
@@ -95,7 +94,8 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
     })
 
     # Slide 3: Cumplimiento e Importancia
-    g_1 <- bd %>% procesar_numerica("Calificacion")
+    g_1 <- bd %>%
+        procesar_numerica("Calificacion")
     out3 <- knitr::knit_expand(
         text = imprimir_numerica_p(g_1, tipo = "Cumplimiento", 1, parametros, thm)
     )

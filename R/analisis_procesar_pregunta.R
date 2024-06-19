@@ -49,7 +49,8 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
                 pull(Nombre)
         )
 
-    respuestas <- df %>% select(Respuesta) %>%
+    respuestas <- df %>%
+        select(Respuesta) %>%
         mutate(Pregunta = bd$pregunta %>%
                    filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
                    pull(Nombre))
@@ -156,8 +157,8 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro"){
                       select(IdRespuesta, Respuesta)) %>%
         left_join(bd$categoria %>%
                       filter(EsDefault) %>%
-                      select(IdCategoria,Nombre)) %>%
-        tidyr::replace_na(list(Nombre = otro))
+                      select(IdCategoria,Nombre)) |>
+        tidyr::replace_na(replace = list("Nombre" = "otro"))
 
     dfmat_news <- junta %>%
         quanteda::corpus(text = "Respuesta") %>%
@@ -338,15 +339,20 @@ corte <- function(brecha, parametros){
 #' @examples #notrun (calcular_brecha(bd))
 
 calcular_brecha <- function(bd, corte, parametros){
-
-
-    juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
+    juntos <- bd$orden_cat %>%
+        select(usuario = IdUsuario,Orden,IdCategoria) %>%
         left_join(
-            bd$calif_cat %>% select(usuario = IdUsuario,Calificacion,IdCategoria)
-        ) %>% na.omit() %>% left_join(bd$categoria) %>% rename(cat = IdCategoria) %>%
+            bd$calif_cat %>%
+                select(usuario = IdUsuario,Calificacion,IdCategoria)
+        ) %>%
+        na.omit() %>%
+        left_join(bd$categoria) %>%
+        rename(cat = IdCategoria) %>%
         mutate(brecha = Orden*(100-Calificacion))
 
-    res <- juntos %>% split(.$Nombre) %>% purrr::imap(~{
+    res <- juntos %>%
+        split(.$Nombre) %>%
+        purrr::imap(~{
         tibble(inf= parametros$cortes,
                sup = lead(parametros$cortes), color = c(parametros$sm_vf,parametros$sm_vc,parametros$sm_a,parametros$sm_rc,parametros$sm_rf,""),
                nombre_color = c("vf","vc","a","rc","rf","")) %>%
@@ -359,7 +365,9 @@ calcular_brecha <- function(bd, corte, parametros){
                 importancia = base::round(base::mean(.x$Orden)),
                 brecha_pct = brecha/10000
             )
-    }) %>% bind_rows() %>% group_by(Nombre)
+    }) %>%
+        bind_rows() %>%
+        group_by(Nombre)
 
     return(list(juntos, res))
 }
