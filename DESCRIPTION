@@ -41,7 +41,7 @@ Imports:
     wordcloud,
     xaringanthemer
 Remotes: 
-    hrbrmstr/ggchicklet
+    hrbrmstr/ggchicklet,
     spatstat/spatstat.core
 Depends: 
     R (>= 2.10)
