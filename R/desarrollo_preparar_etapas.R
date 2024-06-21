@@ -144,7 +144,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
 
     out <- out %>%
         append(out1) %>%
-        append(out2) %>%
+        # append(out2) %>%
         append(out4) %>%
         append(out3) %>%
         append(out5) %>%
