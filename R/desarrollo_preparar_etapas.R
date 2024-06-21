@@ -44,7 +44,7 @@ slides_nubes <- function(bd, etapa, parametros, thm, url){
         eval(parse(text = b3))
 
         x1 <- glue::glue(
-        "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
+            "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
         )
         x2 <- glue::glue(
             "knitr::knit_expand(text = imprimir_gt(r_{i}, q_{i}, {i}, url))"
@@ -75,7 +75,7 @@ slides_nubes <- function(bd, etapa, parametros, thm, url){
 #' @import dplyr
 #' @examples
 
-slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
+slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm, url){
     # Slide brecha
     p_4 <- procesar_brecha(bd, otro = "Otro")
     out1 <- knitr::knit_expand(text = imprimir_brecha(p_4, parametros, thm))
@@ -102,6 +102,30 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
     #     a4 <- knitr::knit_expand(text = "\n] \n---")
     #     paste(a1,a1.1,a1.3, a2, a3, a4, collapse = '\n')
     # })
+
+
+# Tabla resumen -----------------------------------------------------------
+    aux <- bd$respuesta |>
+        filter(IdEtapa == 2) |>
+        left_join(bd$pregunta) |>
+        distinct(IdPregunta, IdRespuesta, Respuesta, Nombre)
+
+    i <- unique(aux$IdPregunta)
+
+
+    lista <- split(aux$Respuesta, aux$Nombre)
+
+    a2 <- names(lista)
+    a3 <- lista[[1]]
+
+    b2 <- glue::glue("q_{i} <- a2")
+    b3 <- glue::glue("r_{i} <- a3")
+    eval(parse(text = b2))
+    eval(parse(text = b3))
+
+    out2 <- glue::glue(
+        "knitr::knit_expand(text = imprimir_gt(r_{i}, q_{i}, {i}, url))"
+    )
 
     # Slide 3: Cumplimiento e Importancia
     g_1 <- bd %>%
@@ -154,7 +178,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
 
     out <- out %>%
         append(out1) %>%
-        # append(out2) %>%
+        append(out2) %>%
         append(out4) %>%
         append(out3) %>%
         append(out5) %>%
