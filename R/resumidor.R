@@ -22,7 +22,7 @@ generar_resumen <- function(pregunta, respuestas, url){
             content_type_json()
         )
 
-        json_content <- print(httr::content(response, "text", encoding = "UTF-8"))
+        json_content <- httr::content(response, "text", encoding = "UTF-8")
 
         json_data <- jsonlite::fromJSON(json_content)
 
