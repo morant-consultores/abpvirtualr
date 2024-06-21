@@ -21,7 +21,6 @@ slides_nubes <- function(bd, etapa, parametros, thm, url){
     out <- list()
 
     for (i in preguntas){
-        browser()
         a <- procesar_p_abierta(bd, pregunta = i, etapa = etapa, parametros = parametros)
 
         aux <- bd$respuesta |>
