@@ -48,6 +48,51 @@ imprimir_nube <- function(df, i, parametros){
     return(char)
 }
 
+#' Crea el chunk de xaringan para poner la tabla de resumen
+#'
+#' @param df (tibble) Marco de datos que proviene de
+#' procesar_p_abierta que contiene la pregunta.
+#' @param i (int) Índice relacionado con la etapa y pregunta.
+#'
+#' @return (char) El chunk de xaringan en cadena de caracteres.
+#' @export
+#'
+#' @import dplyr
+#' @examples #notrun (imprimir_nube(p_1, 1))
+
+imprimir_gt <- function(respuestas, pregunta, i, url){
+    t1 <- paste(pregunta, i, 2, sep ="")
+    r1 <- glue::glue("r {t1}, eval=requireNamespace('gt', quietly=TRUE)")
+    r1 <- paste("{", r1, "}", sep="")
+
+    tabla <- glue::glue("```{r1} \n generar_resumen(pregunta = q_{i}, respuestas = r_{i}, url) \n ```")
+
+    # Sólo nube
+    #char <- glue::glue("\n\n  ## {t} \n\n --- \n\n {nube} \n\n ---")
+
+    # if(nrow(df)>0){
+    # t2 <- paste(t, i, 2, sep="")
+    # r2 <- glue::glue("r {t2}")
+    # r2 <- paste("{", r2, "}", sep="")
+    #
+    # tabla <- glue::glue("```{r2}\n generar_tabla_nube(q_{i}) \n``` ")
+    #
+    # char<- paste(glue::glue("\n \n ##{t}\n \n ---"),
+    # glue::glue(".pull-left[ \n {nube} \n]"),
+    # glue::glue(".pull-right[ \n {tabla} \n]"),
+    # "---", sep = "\n")
+    # }else{
+    # char <- glue::glue("\n\n##{t}\n\n --- \n\n {nube} \n\n ---")
+    # }
+
+    # La nube
+
+    tabla <- glue::glue("\n\n  # {pregunta} \n\n --- \n\n {tabla} \n\n ---")
+    char <- tabla
+    return(char)
+}
+
+
 #' Title
 #'
 #' @param df (Tibble) El segundo elemento que retorna la función procesar_p_brecha

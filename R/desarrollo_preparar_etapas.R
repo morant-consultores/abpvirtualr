@@ -3,16 +3,16 @@
 #'
 #' @param bd (list) Lista de talbas provistas por leer_base.
 #' @param etapa (int) Número de la etapa en la base de datos.
-#'
+#' @param
 #' @return (list) Lista de chuncks concatenados por "\n".
 #' @export
 #'
 #' @import dplyr
 #' @examples #notrun (slides_nubes(bd, etapa = 1))
 
-slides_nubes <- function(bd, etapa, parametros, thm){
+slides_nubes <- function(bd, etapa, parametros, thm, url){
     preguntas <- bd$pregunta %>%
-        filter(IdEtapa == etapa) %>%
+        filter(IdEtapa == etapa, RegistroActivo, Orden != 3) %>%
         pull(IdPregunta)
 
     if(etapa == 5){
@@ -21,22 +21,34 @@ slides_nubes <- function(bd, etapa, parametros, thm){
     out <- list()
 
     for (i in preguntas){
+        browser()
         a <- procesar_p_abierta(bd, pregunta = i, etapa = etapa, parametros = parametros)
 
+        aux <- bd$respuesta |>
+            filter(IdPregunta == i) |>
+            left_join(bd$pregunta) |>
+            distinct(IdRespuesta, Respuesta, Nombre)
+
+        lista <- split(aux$Respuesta, aux$Nombre)
+
+        respuestas <- lista[[1]]
+
         a1 <- a %>% purrr::pluck(1)
-        a2 <- a %>% purrr::pluck(2)
+        a2 <- names(lista)
+        a3 <- lista[[1]]
 
         b1 <- glue::glue("p_{i} <- a1")
         b2 <- glue::glue("q_{i} <- a2")
+        b3 <- glue::glue("r_{i} <- a3")
         eval(parse(text = b1))
         eval(parse(text = b2))
-
+        eval(parse(text = b3))
 
         x1 <- glue::glue(
         "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
         )
         x2 <- glue::glue(
-            "knitr::knit_expand(text = imprimir_tabla_nube(q_{i}, {i}))"
+            "knitr::knit_expand(text = imprimir_gt(r_{i}, q_{i}, {i}, url))"
         )
 
         y1 <- eval(parse(text = x1))
@@ -45,7 +57,6 @@ slides_nubes <- function(bd, etapa, parametros, thm){
         out <- append(out, y1) %>%
             append(y2)
     }
-
     knitr::knit(text = paste(out, collapse = '\n'))
 }
 
