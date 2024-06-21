@@ -123,9 +123,11 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm, url
     eval(parse(text = b2))
     eval(parse(text = b3))
 
-    out2 <- glue::glue(
+     x2 <- glue::glue(
         "knitr::knit_expand(text = imprimir_gt(r_{i}, q_{i}, {i}, url))"
     )
+
+    out2 <- eval(parse(text = x2))
 
     # Slide 3: Cumplimiento e Importancia
     g_1 <- bd %>%
