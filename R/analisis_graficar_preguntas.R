@@ -283,10 +283,10 @@ graficar_juntos_promedio <- function(res, parametros){
             x = cumplimiento,
             y = importancia,
             color = Nombre), size = 5)+
-        scale_color_manual(values = c("#001C50", "#4DCCBD", "#725E54",
-                                      "#FF6B6B", "#DBD56E", "#C6B9CD",
-                                      "#414535", "#EB6534", "#59A5D8",
-                                      "#DE4797"))+
+        # scale_color_manual(values = c("#001C50", "#4DCCBD", "#725E54",
+        #                               "#FF6B6B", "#DBD56E", "#C6B9CD",
+        #                               "#414535", "#EB6534", "#59A5D8",
+        #                               "#DE4797"))+
         theme_minimal(base_size=12, base_family = parametros$familia,
                       base_line_size = .5, base_rect_size = .5 ) %+replace%
         theme(text = element_text(family = parametros$familia),
