@@ -10,7 +10,7 @@
 #'
 #' @examples #notrun (leer_base(con, id_sesion = "Todo"))
 
-leer_base <- function(conexion, id_sesion = NULL){
+leer_base <- function(conexion, id_sesion = NULL, proyecto = NULL){
     con <- pool::dbPool(odbc::odbc(),
                         Driver = conexion$Driver,
                         Server = conexion$Server,
@@ -19,41 +19,49 @@ leer_base <- function(conexion, id_sesion = NULL){
                         PWD = conexion$PWD,
                         Port = conexion$Port)
 
-    id_sesion <- if(is.null(id_sesion)) tbl(con,
-                                            in_schema("General","Sesion")) %>%
-        summarise(max(IdSesion)) %>%
-        pull(1) else id_sesion
+    id_sesion <- if(is.null(id_sesion)){
+        tbl(con,
+            in_schema("General","SesionProgramada")) %>%
+            summarise(max(IdSesion)) %>%
+            pull(1)
+    } else if(!is.null(proyecto)){
+        id_proyecto <- tbl(pool, in_schema("General", "Proyecto")) |>
+            filter(Nombre == "Proyecto") |>
+            pull(Id)
 
-    id_sesion <- if(id_sesion == "Todo") tbl(con,
-                                             in_schema("General","Sesion")) %>%
-        pull(IdSesion) else id_sesion
+         tbl(con,
+            in_schema("General","SesionProgramada")) %>%
+            filter(IdProyecto == id_proyecto) |>
+            pull(IdSesion)
+    }
+    else {
+        id_sesion
+    }
 
     etapa <- tbl(con,in_schema("Catalogo", "Etapa")) %>%
         collect()
 
-    pregunta <- tbl(con,in_schema("Cuestionario", "Pregunta")) %>%
+    pregunta <- tbl(con, in_schema("Cuestionario", "PreguntaSesion")) %>%
+        filter(IdSesion %in% !!id_sesion) |>
         collect() |>
         filter(RegistroActivo)
 
     respuesta <- tbl(con,in_schema("Cuestionario", "Respuesta")) %>%
-        filter(IdSesion %in% !! id_sesion) %>%
+        filter(IdSesion %in% !!id_sesion) %>%
         collect()
 
     categoria <- tbl(con,in_schema("Catalogo", "Categoria")) %>%
         collect()
 
-    respuesta_cat <- tbl(con,
-                         in_schema("Cuestionario", "RespuestaCategoria")) %>%
+    respuesta_cat <- tbl(con, in_schema("Cuestionario", "RespuestaCategoria")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
         collect()
 
-    orden_cat <- tbl(con,
-                     in_schema("Cuestionario", "OrdenCategoria")) %>%
+    orden_cat <- tbl(con, in_schema("Cuestionario", "OrdenCategoria")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
         collect()
 
-    calif_cat <- tbl(con,
-                     in_schema("Cuestionario", "CalificacionCategoria")) %>%
+    calif_cat <- tbl(con, in_schema("Cuestionario", "CalificacionCategoria")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
         collect()
 
