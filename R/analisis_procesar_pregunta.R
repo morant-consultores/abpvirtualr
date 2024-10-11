@@ -12,10 +12,9 @@
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
 
 procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
-
     df <- bd$respuesta %>%
         left_join(bd$pregunta) %>%
-        filter(IdPreguntaProyecto == pregunta, IdEtapa == etapa)
+        filter(IdPregunta == pregunta, IdEtapa == etapa)
 
     stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
 
@@ -51,7 +50,7 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
     respuestas <- df %>%
         select(Respuesta) %>%
         mutate(Pregunta = bd$pregunta %>%
-                   filter(IdPreguntaProyecto == pregunta, IdEtapa == etapa) %>%
+                   filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
                    pull(Nombre))
 
     res <- list(tokens_clean, respuestas)

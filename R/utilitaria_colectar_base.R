@@ -39,7 +39,11 @@ leer_base <- function(conexion, id_sesion = NULL, proyecto){
     pregunta <- tbl(con, in_schema("Cuestionario", "PreguntaProyecto")) %>%
         filter(IdProyecto == id_proyecto) |>
         collect() |>
-        filter(RegistroActivo)
+        filter(RegistroActivo) |>
+        left_join(tbl(pool, in_schema("Cuestionario", "PreguntaSesion_v2")) |>
+                      filter(IdSesion %in% !!id_sesion) |>
+                                collect()
+                  )
 
     respuesta <- tbl(con,in_schema("Cuestionario", "Respuesta")) %>%
         filter(IdSesion %in% !!id_sesion) %>%
