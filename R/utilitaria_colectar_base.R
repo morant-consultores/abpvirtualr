@@ -10,7 +10,7 @@
 #'
 #' @examples #notrun (leer_base(con, id_sesion = "Todo"))
 
-leer_base <- function(conexion, id_sesion = NULL, proyecto = NULL){
+leer_base <- function(conexion, id_sesion = NULL, proyecto){
     con <- pool::dbPool(odbc::odbc(),
                         Driver = conexion$Driver,
                         Server = conexion$Server,
@@ -19,20 +19,15 @@ leer_base <- function(conexion, id_sesion = NULL, proyecto = NULL){
                         PWD = conexion$PWD,
                         Port = conexion$Port)
 
+    id_proyecto <- tbl(pool, in_schema("General", "Proyecto")) |>
+        filter(Nombre == proyecto) |>
+        pull(Id)
+
     id_sesion <- if(is.null(id_sesion)){
         tbl(con,
             in_schema("General","SesionProgramada")) %>%
             summarise(max(IdSesion)) %>%
             pull(1)
-    } else if(!is.null(proyecto)){
-        id_proyecto <- tbl(pool, in_schema("General", "Proyecto")) |>
-            filter(Nombre == "Proyecto") |>
-            pull(Id)
-
-         tbl(con,
-            in_schema("General","SesionProgramada")) %>%
-            filter(IdProyecto == id_proyecto) |>
-            pull(IdSesion)
     }
     else {
         id_sesion
@@ -41,8 +36,8 @@ leer_base <- function(conexion, id_sesion = NULL, proyecto = NULL){
     etapa <- tbl(con,in_schema("Catalogo", "Etapa")) %>%
         collect()
 
-    pregunta <- tbl(con, in_schema("Cuestionario", "PreguntaSesion")) %>%
-        filter(IdSesion %in% !!id_sesion) |>
+    pregunta <- tbl(con, in_schema("Cuestionario", "PreguntaProyecto")) %>%
+        filter(IdProyecto == id_proyecto) |>
         collect() |>
         filter(RegistroActivo)
 
