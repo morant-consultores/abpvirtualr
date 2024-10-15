@@ -75,7 +75,10 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
                 ",
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
-                style=list(fontSize = "20px", color = parametros$gris, 'overflow-y' = "scroll", scrollbar = TRUE)) %>%
+                style=list(fontSize = "20px", color = parametros$gris#,
+                           # 'overflow-y' = "scroll", scrollbar = TRUE
+                           )
+                ) %>%
             hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2))
 
 
