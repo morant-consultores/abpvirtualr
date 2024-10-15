@@ -47,40 +47,23 @@ tema_high <- function(font, color, size){
 graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
 
     if(interactivo){
-
         tokens_clean %>%
-            hchart(hcaes(x= palabra, weight =log(n),
-                         color=colores), type= "wordcloud") %>%
-            hc_chart(style=list(fontFamily = parametros$familia))   %>%
-            # hc_yAxis( scrollbar= list(enabled=F)) %>%
+            hchart(
+                hcaes(x = palabra, weight = log(n), color = colores),
+                type = "wordcloud"
+            ) %>%
+            hc_chart(
+                style = list(fontFamily = parametros$familia),
+                height = 400,  # Set height in pixels
+                width = 600    # Set width in pixels
+            ) %>%
             hc_tooltip(
-                # positioner= JS("function (labelWidth, labelHeight) {return{x: (this.chart.plotLeft + (this.chart.plotWidth- this.chart.plotLeft)*.000001),
-                #           y: (this.chart.plotHeight)-(this.chart.plotHeight-this.chart.plotTop)*.98};}"),
-                # useHTML= T,
-                # outside = F,
-                # formatter = JS("
-                # function (H) {
-                # H.wrap(H.Tooltip.prototype, 'refresh', function (proceed, point, e) {
-                #     if (e && e.type !== 'mousemove') {
-                #     proceed.call(this, point, e);
-                #     }
-                # });
-                # H.addEvent(H.Point.prototype, 'click', function (e) {
-                # e.point.series.chart.tooltip.refresh(e.point, e);
-                # });
-                # }(Highcharts)
-                # "),
-                pointFormat= "
-                Frecuencia: <b>{point.n}<b/>
-                ",
+                pointFormat = "Frecuencia: <b>{point.n}<b/>",
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
-                style=list(fontSize = "20px", color = parametros$gris#,
-                           # 'overflow-y' = "scroll", scrollbar = TRUE
-                           )
-                ) %>%
-            hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2))
-
+                style = list(fontSize = "16px", color = parametros$gris)
+            ) %>%
+            hc_plotOptions(wordcloud = list(allowPointSelect = TRUE, minFontSize = 2))
 
     }else{
 
