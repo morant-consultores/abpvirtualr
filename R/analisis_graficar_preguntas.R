@@ -54,8 +54,8 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
             ) %>%
             hc_chart(
                 style = list(fontFamily = parametros$familia),
-                height = 400,  # Set height in pixels
-                width = 600    # Set width in pixels
+                height = 250,  # Set height in pixels
+                width = 450    # Set width in pixels
             ) %>%
             hc_tooltip(
                 pointFormat = "Frecuencia: <b>{point.n}<b/>",
