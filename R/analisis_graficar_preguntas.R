@@ -45,7 +45,6 @@ tema_high <- function(font, color, size){
 #' @examples #notrun (graficar_nube(p_1))
 
 graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
-
     if(interactivo){
         tokens_clean %>%
             hchart(
@@ -54,8 +53,8 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
             ) %>%
             hc_chart(
                 style = list(fontFamily = parametros$familia),
-                height = 250,  # Set height in pixels
-                width = 450    # Set width in pixels
+                height = 400,  # Set height in pixels
+                width = 600    # Set width in pixels
             ) %>%
             hc_tooltip(
                 pointFormat = "Frecuencia: <b>{point.n}<b/>",
@@ -66,7 +65,6 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
             hc_plotOptions(wordcloud = list(allowPointSelect = TRUE, minFontSize = 2))
 
     }else{
-
         pal <- RColorBrewer::brewer.pal(8,"Dark2")
         tokens_clean %>% with(
             wordcloud::wordcloud(palabra, n,
@@ -92,7 +90,6 @@ graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
 #' @examples #notrun (graficar_brecha(bd, inverso, primario, tema_highcharter()))
 
 graficar_brecha <- function(bd, interactivo = TRUE ,parametros, thm){
-
     if(interactivo){
         bd %>%
             mutate(Categoria = factor(Nombre)) %>%

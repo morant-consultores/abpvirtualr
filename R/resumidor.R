@@ -9,26 +9,32 @@
 #' @import httr
 #'
 generar_resumen <- function(pregunta, respuestas, url){
+    if(is.null(pregunta)){
+        json_data <- list(
+            textos = respuestas
+        )
+    } else {
         json_data <- list(
             pregunta = pregunta,
             respuestas = respuestas
         )
+    }
 
-        json_body <- jsonlite::toJSON(json_data, auto_unbox = TRUE)
+    json_body <- jsonlite::toJSON(json_data, auto_unbox = TRUE)
 
-        response <- POST(
-            url = url,
-            body = json_body,
-            content_type_json()
-        )
+    response <- POST(
+        url = url,
+        body = json_body,
+        content_type_json()
+    )
 
-        json_content <- httr::content(response, "text", encoding = "UTF-8")
+    json_content <- httr::content(response, "text", encoding = "UTF-8")
 
-        json_data <- jsonlite::fromJSON(json_content)
+    json_data <- jsonlite::fromJSON(json_content)
 
-        resumen <- tibble("Resumen" = json_data$data) |>
-            gt::gt() |>
-            gt::fmt_markdown()
+    resumen <- tibble("Resumen" = json_data$data) |>
+        gt::gt() |>
+        gt::fmt_markdown()
 
     return(resumen)
 }
