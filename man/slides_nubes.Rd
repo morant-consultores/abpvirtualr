@@ -5,7 +5,7 @@
 \title{Utiliza la función de imprimir nube para imprimir todos
 las slides de las etapas inicial y final.}
 \usage{
-slides_nubes(bd, etapa)
+slides_nubes(bd, etapa, parametros, thm, url)
 }
 \arguments{
 \item{bd}{(list) Lista de talbas provistas por leer_base.}

@@ -12,7 +12,7 @@ procesar_juntos(bd)
 provistas por la función leer_base.}
 }
 \value{
-(tibble) Un tibble con Importancia relaacionada con
+(list) Un tibble con Importancia relaacionada con
 Cumplimiento por medio de la mediana.
 }
 \description{

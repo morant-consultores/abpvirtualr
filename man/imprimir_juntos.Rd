@@ -5,7 +5,7 @@
 \title{Crea el chunk de xaringan para poner la gráfica de
 cumplimiento vs importancia.}
 \usage{
-imprimir_juntos(df)
+imprimir_juntos(df, parametros)
 }
 \arguments{
 \item{df}{(tibble) Un marco de datos proveniente de la función

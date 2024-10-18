@@ -5,7 +5,7 @@
 \title{Limpia, tokeniza y obtiene las frecuencias de palabras a
 una tabla con variables de texto}
 \usage{
-procesar_p_abierta(bd, pregunta, etapa)
+procesar_p_abierta(bd, pregunta, etapa, parametros)
 }
 \arguments{
 \item{bd}{(list) La lista con las tablas necesarias

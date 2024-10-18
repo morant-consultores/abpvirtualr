@@ -4,7 +4,7 @@
 \alias{graficar_juntos}
 \title{Gráfica conjunta de Importancia y Cumplimiento.}
 \usage{
-graficar_juntos(bd, interactivo = FALSE, corte = cortes, thm)
+graficar_juntos(bd, parametros)
 }
 \arguments{
 \item{bd}{(tibble) Marco de datos provisto por la función

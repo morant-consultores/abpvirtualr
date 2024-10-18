@@ -5,7 +5,7 @@
 \title{Crea el chunk de xaringan para poner la gráfica del
 cálculo de la brecha.}
 \usage{
-imprimir_calc_brecha(bd, grafica)
+imprimir_calc_brecha(bd, grafica, parametros)
 }
 \arguments{
 \item{bd}{(tibble) Un marco de datos que proviene de la función
@@ -13,9 +13,6 @@ calcular_brecha.}
 
 \item{grafica}{(logical) TRUE si se requiere la gráfica o FALSE
 si se requiere la tabla.}
-}
-\value{
-
 }
 \description{
 Crea el chunk de xaringan para poner la gráfica del

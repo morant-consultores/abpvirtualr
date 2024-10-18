@@ -5,7 +5,7 @@
 \title{Esta función es utilizada para crear los chuncks correspondientes
 a la etapa 2.}
 \usage{
-slides_etapa_2(bd, top_p, top_r, otro = "Otro")
+slides_etapa_2(bd, top_p, top_r, otro = "Otro", parametros, thm, url)
 }
 \arguments{
 \item{bd}{(list) Lista de talbas provistas por leer_base.}

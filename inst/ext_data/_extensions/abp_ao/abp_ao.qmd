@@ -1,0 +1,199 @@
+---
+echo: false
+warning: false
+params: 
+  sesion: 19
+  proyecto: Prueba
+  pregunta: 7
+  resumen_general: F
+  Driver: ODBC Driver 17 for SQL Server
+  Database: ABPDB
+  Server: morant.database.windows.net
+  UID: emorones
+  PWD: Mor@nt2024
+format:
+  revealjs:
+    pagetitle: "ABP ÁLVARO OBREGÓN"
+    scrollable: true
+    slide-number: true
+    show-slide-number: all
+    logo: _extensions/abp_ao/morant.png
+    theme:
+      - _extensions/abp_ao/clean.scss
+    transition: slide
+    menu: false 
+    embed-resources: true
+execute: 
+  echo: false
+---
+
+```{r}
+#| label: Carga de paquetería
+library(tidyverse)
+library(highcharter)
+library(abpvirtualr)
+library(gt)
+knitr::opts_knit$set(output.dir = getwd())
+```
+
+
+```{r}
+#| include: false
+#| label: Funciones auxiliares
+#| cache: true
+tema_high <- function(font, color, size){
+    options(highcharter.google_fonts = TRUE)
+    
+    thm <- hc_theme(
+        chart = list(fontFamily = glue::glue("{font}"),
+                     fontSize = glue::glue("{size}"),
+                     title = list(style =
+                                      list(fontFamily = glue::glue("{font}"))),
+                     subtitle = list(style =
+                                         list(fontFamily = glue::glue("{font}")),
+                                     legend = list(itemStyle =
+                                                       list(fontFamily = glue::glue({"{font}"}),
+                                                            color = glue::glue("{color}")),
+                                                   itemHoverStyle = list(color ='gray'))
+                     ))
+    )
+    
+    return(thm)
+}
+
+parametros <- list(
+    primario = "#9b2226",
+    primario_claro = "#bc4749",
+    primario_obscuro = "#370617",
+    inverso = "#f07167",
+    inverso_claro = "#fed9b7",
+    cortes = seq(0,10000,length.out = 6),
+    # cortes = c(0,4,7.5,11,16,25)*20^2,
+    sm_vf = "#6A994E",
+    sm_vc = "#A7C957",
+    sm_a = "#F9C74F",
+    sm_rc = "#D65A1F",
+    sm_rf = "#B31D1F",
+    familia = "Roboto",
+    gris = "#343a40",
+    gris_claro = "#ced4da",
+    etiquetas = "12px"
+)
+
+thm <- tema_high(font = "Roboto", color = "black", size = "10px")
+
+url <- "https://abp-flask-api.azurewebsites.net/api/v1/resumen_pregunta"
+etapa <- 1
+```
+
+
+```{r}
+#| include: false
+#| label: carga de bases
+
+pool_list <- list(
+    drv = odbc::odbc(),
+    Driver= params$Driver,
+    Database = params$Database,
+    Server = params$Server,
+    UID = params$UID,
+    PWD = params$PWD,
+    Port = 1433,
+    timeout = 120
+)
+
+bd <- leer_base(pool_list, id_sesion = params$sesion, proyecto = params$proyecto)
+```
+
+---
+
+```{r}
+#| output: asis
+#| label: Gráficas etapa 1
+if(params$resumen_general == "F"){
+    preguntas <- bd$pregunta %>%
+        filter(IdEtapa == etapa, RegistroActivo, Orden == params$pregunta) %>%
+        pull(IdPregunta)
+    
+    question_id <- preguntas
+    question_data <- procesar_p_abierta(bd, question_id, etapa = !!etapa, parametros = parametros)
+    question_text <- unique(question_data[[1]]$Pregunta)
+    
+    src <- knitr::knit_expand(text = c(
+        "## {{ question_text }}",
+        "",
+        "```{r}",
+        "#| echo: false",
+        "processed <- procesar_p_abierta(bd, {{ question_id }}, etapa = {{ etapa }}, parametros = parametros)",
+        "respuestas <- processed[[2]][[1]]",
+        "pregunta <- processed[[2]][[2]]",
+        "chart <- graficar_nube(processed[[1]], parametros = parametros)",
+        "chart",
+        "",
+        "```",
+        "", 
+        "## {{ question_text }}",
+        "",
+        "```{r}",
+        "#| echo: false",
+        "generar_resumen(pregunta, respuestas, url = \"{{ url }}\") |>
+      gt::cols_align(align = 'left', columns = 1) |>
+      gt::tab_options(column_labels.hidden = TRUE) |>
+      gtExtras::gt_theme_nytimes() |>
+      tab_options(
+        table.font.size = px(22),
+        table.border.top.style = 'hidden',
+        table.border.bottom.style = 'hidden',
+        table.background.color = 'transparent',
+        container.overflow.y = FALSE,
+        container.overflow.x = FALSE
+        ) |>
+        opt_table_font(
+        font = list(
+          google_font(name = 'Roboto'),
+          'Cochin', 'serif'
+          )
+  )",
+  "```",
+  ""
+    ))
+    res <- knitr::knit_child(text = src, quiet = TRUE)
+    cat(res, sep = '\n')
+}
+```
+
+```{r}
+#| label: resumen g
+if(params$resumen_general == "T"){
+    url <- "https://abp-flask-api.azurewebsites.net/api/v1/resumen_general"
+    
+    preguntas <- bd$pregunta %>%
+        filter(IdEtapa == etapa, RegistroActivo) %>%
+        pull(IdPregunta)
+    
+    respuestas <- bd$respuesta |> 
+        filter(IdPregunta %in% preguntas) |> 
+        pull(Respuesta)
+    
+    generar_resumen(NULL, respuestas = respuestas, url) |> 
+        gt::cols_align(align = 'left', columns = 1) |>
+        gt::tab_options(column_labels.hidden = TRUE) |>
+        gtExtras::gt_theme_nytimes() |>
+        tab_options(
+            table.font.size = px(22),
+            table.border.top.style = 'hidden',
+            table.border.bottom.style = 'hidden',
+            table.background.color = 'transparent',
+            container.overflow.y = FALSE,
+            container.overflow.x = FALSE
+        ) |>
+        opt_table_font(
+            font = list(
+                google_font(name = 'Roboto'),
+                'Cochin', 'serif'
+            )
+        )
+    
+}
+```
+

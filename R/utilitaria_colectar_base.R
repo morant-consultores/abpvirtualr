@@ -19,7 +19,7 @@ leer_base <- function(conexion, id_sesion = NULL, proyecto){
                         PWD = conexion$PWD,
                         Port = conexion$Port)
 
-    id_proyecto <- tbl(pool, in_schema("General", "Proyecto")) |>
+    id_proyecto <- tbl(con, in_schema("General", "Proyecto")) |>
         filter(Nombre == proyecto) |>
         pull(Id)
 
@@ -40,7 +40,7 @@ leer_base <- function(conexion, id_sesion = NULL, proyecto){
         filter(IdProyecto == id_proyecto) |>
         collect() |>
         filter(RegistroActivo) |>
-        left_join(tbl(pool, in_schema("Cuestionario", "PreguntaSesion_v2")) |>
+        left_join(tbl(con, in_schema("Cuestionario", "PreguntaSesion_v2")) |>
                       filter(IdSesion %in% !!id_sesion) |>
                                 collect()
                   )

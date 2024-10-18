@@ -20,16 +20,23 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
 
     tokens_clean <- df %>%
         tidytext::unnest_tokens(
-            output = palabra, input = Respuesta, drop = FALSE) %>%
-        anti_join(stop_words) %>%
+            output = palabra,
+            input = Respuesta,
+            token = "ngrams",
+            n = 2,
+            drop = FALSE
+        ) %>%
+        separate(palabra, into = c("word1", "word2"), sep = " ") %>%
+        filter(!word1 %in% stop_words$palabra & !word2 %in% stop_words$palabra) %>%
+        unite(palabra, word1, word2, sep = " ") %>%
         group_by(palabra) %>%
-        mutate(num = paste0(row_number(),") ")) %>%
+        mutate(num = paste0(row_number(), ") ")) %>%
         summarise(
             n = n(),
             completa = tolower(stringr::str_c(
-                num, Respuesta, collapse= "\n"))) %>%
+                num, Respuesta, collapse= "\n"))
+        ) %>%
         ungroup()
-
 
     nums <- tokens_clean %>%
         filter(stringr::str_detect(palabra, "^[0-9]")) %>%

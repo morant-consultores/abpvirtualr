@@ -4,7 +4,7 @@
 \alias{leer_base}
 \title{Colecta todas las tablas necesarias para su posterior análisis}
 \usage{
-leer_base(id_sesion = NULL)
+leer_base(conexion, id_sesion = NULL, proyecto)
 }
 \arguments{
 \item{id_sesion}{(int) La sesión necesaria para el evento. En caso de no

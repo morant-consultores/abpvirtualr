@@ -39,7 +39,8 @@ Imports:
     tidytext,
     tm,
     wordcloud,
-    xaringanthemer
+    xaringanthemer, 
+    quarto
 Remotes: 
     hrbrmstr/ggchicklet,
     spatstat/spatstat.core

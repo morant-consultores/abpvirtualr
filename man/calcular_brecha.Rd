@@ -5,7 +5,7 @@
 \title{Realiza el marco de datos del cálculo de la brecha
 con sus colores.}
 \usage{
-calcular_brecha(bd)
+calcular_brecha(bd, corte, parametros)
 }
 \arguments{
 \item{bd}{(list) La lista con las tablas necesarias

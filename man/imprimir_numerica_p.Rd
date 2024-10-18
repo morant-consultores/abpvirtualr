@@ -5,7 +5,7 @@
 \title{Crea el chunk de xaringan para poner las gráficas de
 histograma y error bars}
 \usage{
-imprimir_numerica_p(df, tipo, i)
+imprimir_numerica_p(df, tipo, i, parametros, thm)
 }
 \arguments{
 \item{df}{(tibble) Un marco de datos que proviene de la

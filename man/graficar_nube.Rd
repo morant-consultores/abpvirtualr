@@ -4,7 +4,7 @@
 \alias{graficar_nube}
 \title{Nube de palabras interactiva}
 \usage{
-graficar_nube(tokens_clean, interactivo = TRUE)
+graficar_nube(tokens_clean, interactivo = TRUE, parametros)
 }
 \arguments{
 \item{tokens_clean}{(tibble) Marco de datos con las palabras,
