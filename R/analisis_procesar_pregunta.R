@@ -23,7 +23,7 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
             output = palabra,
             input = Respuesta,
             token = "ngrams",
-            n = 2,
+            n = 1,
             drop = FALSE
         ) %>%
         separate(palabra, into = c("word1", "word2"), sep = " ") %>%

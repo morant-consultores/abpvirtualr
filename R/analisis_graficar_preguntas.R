@@ -47,22 +47,20 @@ tema_high <- function(font, color, size){
 graficar_nube <- function(tokens_clean, interactivo = TRUE, parametros){
     if(interactivo){
         tokens_clean %>%
-            hchart(
-                hcaes(x = palabra, weight = log(n), color = colores),
-                type = "wordcloud"
-            ) %>%
-            hc_chart(
-                style = list(fontFamily = parametros$familia),
-                height = 400,  # Set height in pixels
-                width = 600    # Set width in pixels
-            ) %>%
+            hchart(hcaes(x= palabra, weight =log(n),
+                         color=colores), type= "wordcloud") %>%
+            hc_chart(style=list(fontFamily = parametros$familia))   %>%
             hc_tooltip(
-                pointFormat = "Frecuencia: <b>{point.n}<b/>",
+                pointFormat= "
+                Frecuencia: <b>{point.n}<b/>
+                ",
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
-                style = list(fontSize = "16px", color = parametros$gris)
+                style=list(fontSize = "16px", color = parametros$gris,
+                           'overflow-y' = "scroll", scrollbar = FALSE
+                )
             ) %>%
-            hc_plotOptions(wordcloud = list(allowPointSelect = TRUE, minFontSize = 2))
+            hc_plotOptions( wordcloud = list(allowPointSelect = T,minFontSize = 2))
 
     }else{
         pal <- RColorBrewer::brewer.pal(8,"Dark2")

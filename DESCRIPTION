@@ -40,7 +40,10 @@ Imports:
     tm,
     wordcloud,
     xaringanthemer, 
-    quarto
+    quarto, 
+    gt, 
+    DT, 
+    htmltools
 Remotes: 
     hrbrmstr/ggchicklet,
     spatstat/spatstat.core
