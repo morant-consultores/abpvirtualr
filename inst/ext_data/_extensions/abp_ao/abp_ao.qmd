@@ -11,6 +11,7 @@ params:
   Server: morant.database.windows.net
   UID: emorones
   PWD: Mor@nt2024
+  excel: F
 format:
   revealjs:
     pagetitle: "ABP ÁLVARO OBREGÓN"
@@ -137,22 +138,7 @@ if(params$resumen_general == "F"){
         "```{r}",
         "#| echo: false",
         "generar_resumen(pregunta, respuestas, url = \"{{ url }}\") |>
-      gt::cols_align(align = 'left', columns = 1) |>
-      gt::tab_options(column_labels.hidden = TRUE) |>
-      gtExtras::gt_theme_nytimes() |>
-      tab_options(
-        table.font.size = px(22),
-        table.border.top.style = 'hidden',
-        table.border.bottom.style = 'hidden',
-        table.background.color = 'transparent',
-        container.overflow.y = FALSE,
-        container.overflow.x = FALSE
-        ) |>
-        opt_table_font(
-        font = list(
-          google_font(name = 'Roboto'),
-          'Cochin', 'serif'
-          )
+            formato_tabla()
   )",
   "```",
   ""
@@ -163,37 +149,27 @@ if(params$resumen_general == "F"){
 ```
 
 ```{r}
-#| label: resumen g
+#| label: resumen general
 if(params$resumen_general == "T"){
-    url <- "https://abp-flask-api.azurewebsites.net/api/v1/resumen_general"
-    
-    preguntas <- bd$pregunta %>%
-        filter(IdEtapa == etapa, RegistroActivo) %>%
-        pull(IdPregunta)
-    
-    respuestas <- bd$respuesta |> 
-        filter(IdPregunta %in% preguntas) |> 
-        pull(Respuesta)
-    
-    generar_resumen(NULL, respuestas = respuestas, url) |> 
-        gt::cols_align(align = 'left', columns = 1) |>
-        gt::tab_options(column_labels.hidden = TRUE) |>
-        gtExtras::gt_theme_nytimes() |>
-        tab_options(
-            table.font.size = px(22),
-            table.border.top.style = 'hidden',
-            table.border.bottom.style = 'hidden',
-            table.background.color = 'transparent',
-            container.overflow.y = FALSE,
-            container.overflow.x = FALSE
-        ) |>
-        opt_table_font(
-            font = list(
-                google_font(name = 'Roboto'),
-                'Cochin', 'serif'
-            )
-        )
-    
+    if(params$excel == "F"){
+        url <- "https://abp-flask-api.azurewebsites.net/api/v1/resumen_general"
+        
+        preguntas <- bd$pregunta %>%
+            filter(IdEtapa == etapa, RegistroActivo) %>%
+            pull(IdPregunta)
+        
+        respuestas <- bd$respuesta |> 
+            filter(IdPregunta %in% preguntas) |> 
+            pull(Respuesta)
+        
+        res <- generar_resumen(NULL, respuestas = respuestas, url)
+        readr::write_excel_csv(res, file = "resumen.csv")
+        formato_tabla(res)
+    } else if (params$excel == T){
+        
+        res <- readr::read_csv("resumen.csv")
+        formato_tabla(res)
+    }
 }
 ```
 
