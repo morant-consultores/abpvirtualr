@@ -139,7 +139,7 @@ if(params$resumen_general == "F"){
         "#| echo: false",
         "generar_resumen(pregunta, respuestas, url = \"{{ url }}\") |>
             formato_tabla()
-  )",
+        ",
   "```",
   ""
     ))
