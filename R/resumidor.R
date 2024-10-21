@@ -51,8 +51,6 @@ generar_resumen <- function(pregunta, respuestas, url){
 #' Dependiendo del valor de `general`, devuelve un objeto de clase **gt** o **datatables** con el formato aplicado.
 #'
 #' @details
-#' ### Cuando `general = "F"`:
-#'
 #' - Convierte el data frame `bd` en una tabla **gt**.
 #' - Aplica formato Markdown a las celdas utilizando `fmt_markdown()`.
 #' - Alinea la primera columna a la izquierda con `cols_align()`.
@@ -61,21 +59,8 @@ generar_resumen <- function(pregunta, respuestas, url){
 #' - Ajusta opciones de tabla como el tamaño de fuente, estilos de borde y color de fondo con `tab_options()`.
 #' - Establece las fuentes de la tabla a 'Roboto', 'Cochin' y 'serif' usando `opt_table_font()`.
 #'
-#' ### Cuando `general = "T"`:
-#'
-#' - Define estilos CSS personalizados para la tabla, incluyendo tamaño de fuente, alineación y ocultación de encabezados.
-#' - Utiliza `datatable()` del paquete **DT** para crear una tabla interactiva y editable.
-#' - Configura la tabla para ser editable por celda (`editable = "cell"`).
-#' - Desactiva paginación, ordenamiento y búsqueda, y oculta los controles de tabla.
-#' - Aplica una función JavaScript mediante `columnDefs` para renderizar contenido Markdown en las celdas usando **marked.js**.
-#' - Incluye la biblioteca **marked.js** y el CSS personalizado en el encabezado HTML usando `htmlwidgets::prependContent()`.
-#'
 #' @importFrom gt gt fmt_markdown cols_align tab_options opt_table_font
 #' @importFrom gtExtras gt_theme_nytimes
-#' @importFrom DT datatable
-#' @importFrom htmlwidgets prependContent
-#' @importFrom htmltools tags HTML
-#' @importFrom V8 JS
 #' @export
 #'
 #' @examples
@@ -86,11 +71,8 @@ generar_resumen <- function(pregunta, respuestas, url){
 #'   Columna2 = c("Valor1", "Valor2")
 #' )
 #'
-#' # Utilizando gt (general = "F")
-#' formato_tabla(df, general = "F")
-#'
-#' # Utilizando DT (general = "T")
-#' formato_tabla(df, general = "T")
+#' # Utilizando gt
+#' formato_tabla(df)
 #' }
 
 formato_tabla <- function(bd){
@@ -113,6 +95,7 @@ formato_tabla <- function(bd){
                 google_font(name = 'Roboto'),
                 'Cochin', 'serif'
             )
-        )
+        ) |>
+        as_raw_html()
 }
 

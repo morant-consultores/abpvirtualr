@@ -4,7 +4,7 @@
 \alias{formato_tabla}
 \title{Formato personalizado de tablas utilizando gt y DT}
 \usage{
-formato_tabla(bd, general = "F")
+formato_tabla(bd)
 }
 \arguments{
 \item{bd}{Un data frame que representa la tabla a formatear.}
@@ -22,7 +22,6 @@ Dependiendo del valor de \code{general}, devuelve un objeto de clase \strong{gt}
 Esta función aplica un formato personalizado a una tabla, utilizando los paquetes \strong{gt} o \strong{DT} dependiendo del valor del parámetro \code{general}. Si \code{general = "F"}, se utiliza \strong{gt} para generar una tabla estática con estilo. Si \code{general = "T"}, se utiliza \strong{DT} para generar una tabla interactiva y editable que soporta Markdown.
 }
 \details{
-\subsection{Cuando \code{general = "F"}:}{
 \itemize{
 \item Convierte el data frame \code{bd} en una tabla \strong{gt}.
 \item Aplica formato Markdown a las celdas utilizando \code{fmt_markdown()}.
@@ -33,18 +32,6 @@ Esta función aplica un formato personalizado a una tabla, utilizando los paquet
 \item Establece las fuentes de la tabla a 'Roboto', 'Cochin' y 'serif' usando \code{opt_table_font()}.
 }
 }
-
-\subsection{Cuando \code{general = "T"}:}{
-\itemize{
-\item Define estilos CSS personalizados para la tabla, incluyendo tamaño de fuente, alineación y ocultación de encabezados.
-\item Utiliza \code{datatable()} del paquete \strong{DT} para crear una tabla interactiva y editable.
-\item Configura la tabla para ser editable por celda (\code{editable = "cell"}).
-\item Desactiva paginación, ordenamiento y búsqueda, y oculta los controles de tabla.
-\item Aplica una función JavaScript mediante \code{columnDefs} para renderizar contenido Markdown en las celdas usando \strong{marked.js}.
-\item Incluye la biblioteca \strong{marked.js} y el CSS personalizado en el encabezado HTML usando \code{htmlwidgets::prependContent()}.
-}
-}
-}
 \examples{
 \dontrun{
 # Data frame de ejemplo
@@ -53,10 +40,7 @@ df <- data.frame(
   Columna2 = c("Valor1", "Valor2")
 )
 
-# Utilizando gt (general = "F")
-formato_tabla(df, general = "F")
-
-# Utilizando DT (general = "T")
-formato_tabla(df, general = "T")
+# Utilizando gt
+formato_tabla(df)
 }
 }
