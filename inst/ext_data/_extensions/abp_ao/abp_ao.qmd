@@ -18,7 +18,6 @@ format:
     scrollable: true
     slide-number: true
     show-slide-number: all
-    logo: _extensions/abp_ao/morant.png
     theme:
       - _extensions/abp_ao/clean.scss
     transition: slide
