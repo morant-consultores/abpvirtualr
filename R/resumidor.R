@@ -93,8 +93,14 @@ formato_tabla <- function(bd){
         gt::opt_table_font(
             font = list(
                 google_font(name = 'Roboto'),
-                'Cochin', 'serif'
+                'Roboto', 'serif'
             )
+        ) |>
+        gt::tab_style(
+            style = list(
+                gt::cell_text(font = "Roboto")
+            ),
+            locations = gt::cells_body()
         ) |>
         as_raw_html()
 }

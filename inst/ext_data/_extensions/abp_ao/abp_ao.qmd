@@ -2,9 +2,9 @@
 echo: false
 warning: false
 params: 
-  sesion: 19
-  proyecto: Prueba
-  pregunta: 7
+  sesion: 34
+  proyecto: Grupo 1
+  pregunta: 1
   resumen_general: F
   Driver: ODBC Driver 17 for SQL Server
   Database: ABPDB
@@ -139,8 +139,8 @@ if(params$resumen_general == "F"){
         "generar_resumen(pregunta, respuestas, url = \"{{ url }}\") |>
             formato_tabla()
         ",
-  "```",
-  ""
+        "```",
+        ""
     ))
     res <- knitr::knit_child(text = src, quiet = TRUE)
     cat(res, sep = '\n')
