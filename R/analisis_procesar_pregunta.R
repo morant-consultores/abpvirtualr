@@ -16,7 +16,8 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
 
-    stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
+    stop_words <- stopwords
+        #tibble::tibble(palabra = c(stopwords::stopwords("es")))
 
     tokens_clean <- df %>%
         tidytext::unnest_tokens(
