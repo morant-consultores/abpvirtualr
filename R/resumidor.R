@@ -83,7 +83,7 @@ formato_tabla <- function(bd){
         gt::tab_options(column_labels.hidden = TRUE) |>
         gtExtras::gt_theme_nytimes() |>
         tab_options(
-            table.font.size = px(25),
+            table.font.size = px(26),
             table.border.top.style = 'hidden',
             table.border.bottom.style = 'hidden',
             table.background.color = 'transparent',
