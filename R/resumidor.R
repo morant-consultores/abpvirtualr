@@ -102,6 +102,12 @@ formato_tabla <- function(bd){
             ),
             locations = gt::cells_body()
         ) |>
+        tab_style(
+            style = list(
+                cell_text(color = "black")
+            ),
+            locations = cells_body()
+        ) |>
         as_raw_html()
 }
 
