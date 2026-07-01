@@ -3,41 +3,56 @@
 #'
 #' @param bd (list) Lista de talbas provistas por leer_base.
 #' @param etapa (int) Número de la etapa en la base de datos.
-#'
+#' @param parametros (list) Parámetros de configuración del reporte.
+#' @param thm Tema de highcharter generado por tema_high.
+#' @param url (char) URL de la API del resumidor.
 #' @return (list) Lista de chuncks concatenados por "\n".
 #' @export
 #'
 #' @import dplyr
 #' @examples #notrun (slides_nubes(bd, etapa = 1))
 
-slides_nubes <- function(bd, etapa, parametros, thm){
-
+slides_nubes <- function(bd, etapa, parametros, thm, url) {
     preguntas <- bd$pregunta %>%
-        filter(IdEtapa == etapa) %>%
+        filter(IdEtapa == etapa, RegistroActivo, Orden != 3) %>%
         pull(IdPregunta)
 
-    if(etapa == 5){
+    if (etapa == 5) {
         preguntas <- preguntas[1]
     }
     out <- list()
 
-    for (i in preguntas){
-        a <- procesar_p_abierta(bd, pregunta = i, etapa = etapa, parametros = parametros)
+    for (i in preguntas) {
+        a <- procesar_p_abierta(
+            bd,
+            pregunta = i,
+            etapa = etapa,
+            parametros = parametros
+        )
+
+        aux <- bd$respuesta |>
+            filter(IdPregunta == i) |>
+            left_join(bd$pregunta, by = "IdPregunta") |>
+            distinct(IdRespuesta, Respuesta, Nombre)
+
+        lista <- split(aux$Respuesta, aux$Nombre)
 
         a1 <- a %>% purrr::pluck(1)
-        a2 <- a %>% purrr::pluck(2)
+        a2 <- names(lista)
+        a3 <- lista[[1]]
 
         b1 <- glue::glue("p_{i} <- a1")
         b2 <- glue::glue("q_{i} <- a2")
+        b3 <- glue::glue("r_{i} <- a3")
         eval(parse(text = b1))
         eval(parse(text = b2))
-
+        eval(parse(text = b3))
 
         x1 <- glue::glue(
-        "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
+            "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
         )
         x2 <- glue::glue(
-            "knitr::knit_expand(text = imprimir_tabla_nube(q_{i}, {i}))"
+            "knitr::knit_expand(text = imprimir_gt(r_{i}, q_{i}, {i}, url))"
         )
 
         y1 <- eval(parse(text = x1))
@@ -46,7 +61,6 @@ slides_nubes <- function(bd, etapa, parametros, thm){
         out <- append(out, y1) %>%
             append(y2)
     }
-
     knitr::knit(text = paste(out, collapse = '\n'))
 }
 
@@ -59,6 +73,9 @@ slides_nubes <- function(bd, etapa, parametros, thm){
 #' @param top_r (int) El top n de respuestas de cada tema.
 #' @param otro  (char) La forma de como se escribe el otro
 #'  tema, regularmente será "Otro".
+#' @param parametros (list) Parámetros de configuración del reporte.
+#' @param thm Tema de highcharter generado por tema_high.
+#' @param url (char) URL de la API del resumidor.
 #'
 #' @return (list) Una lista de chuncks correspondientes a cada pregunta.
 #' @export
@@ -66,69 +83,126 @@ slides_nubes <- function(bd, etapa, parametros, thm){
 #' @import dplyr
 #' @examples
 
-slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
+slides_etapa_2 <- function(
+    bd,
+    top_p,
+    top_r,
+    otro = "Otro",
+    parametros,
+    thm,
+    url
+) {
     # Slide brecha
     p_4 <- procesar_brecha(bd, otro = "Otro")
     out1 <- knitr::knit_expand(text = imprimir_brecha(p_4, parametros, thm))
 
     # Slides p clave
-    brecha <- procesar_r_tema(
-        bd, top_p = top_p, top_r = top_r, otro = otro)
+    # brecha <- procesar_r_tema(
+    #     bd, top_p = top_p, top_r = top_r, otro = otro)
+    #
+    # out2 <- purrr::imap(brecha, ~{
+    #
+    #     a1 <- knitr::knit_expand(
+    #         text = sprintf("\n \n # %s\n", .y))
+    #     a1.1 <- knitr::knit_expand(
+    #         text = "\n --- \n .pull-left[")
+    #
+    #     a1.3 <- knitr::knit_expand(text = sprintf(
+    #     "\n Las <b> palabras  </b>más representativas son: \n\n * %s \n \n]\n",
+    #     graficar_claves(.x$p_clave)))
+    #
+    #     a2 <- knitr::knit_expand(text = ".pull-right[")
+    #     a3 <- knitr::knit_expand(text = sprintf(
+    #         "\n Las <b> respuestas </b>más representativas son: \n\n * %s",
+    #         paste(.x$respuesta,collapse = "\n \n * ")))
+    #     a4 <- knitr::knit_expand(text = "\n] \n---")
+    #     paste(a1,a1.1,a1.3, a2, a3, a4, collapse = '\n')
+    # })
 
-    out2 <- purrr::imap(brecha, ~{
+    # Tabla resumen -----------------------------------------------------------
+    aux <- bd$respuesta |>
+        filter(IdEtapa == 2) |>
+        left_join(bd$pregunta, by = "IdPregunta") |>
+        distinct(IdPregunta, IdRespuesta, Respuesta, Nombre)
 
-        a1 <- knitr::knit_expand(
-            text = sprintf("\n \n # %s\n", .y))
-        a1.1 <- knitr::knit_expand(
-            text = "\n --- \n .pull-left[")
+    out2 <- list()
 
-        a1.3 <- knitr::knit_expand(text = sprintf(
-        "\n Las <b> palabras  </b>más representativas son: \n\n * %s \n \n]\n",
-        graficar_claves(.x$p_clave)))
+    for (i in unique(aux$IdPregunta)) {
+        aux_i <- aux |> filter(IdPregunta == i)
+        lista <- split(aux_i$Respuesta, aux_i$Nombre)
 
-        a2 <- knitr::knit_expand(text = ".pull-right[")
-        a3 <- knitr::knit_expand(text = sprintf(
-            "\n Las <b> respuestas </b>más representativas son: \n\n * %s",
-            paste(.x$respuesta,collapse = "\n \n * ")))
-        a4 <- knitr::knit_expand(text = "\n] \n---")
-        paste(a1,a1.1,a1.3, a2, a3, a4, collapse = '\n')
-    })
+        a2 <- names(lista)
+        a3 <- lista[[1]]
+
+        b2 <- glue::glue("q_{i} <- a2")
+        b3 <- glue::glue("r_{i} <- a3")
+        eval(parse(text = b2))
+        eval(parse(text = b3))
+
+        x2 <- glue::glue(
+            "knitr::knit_expand(text = imprimir_gt(r_{i}, q_{i}, {i}, url))"
+        )
+        out2 <- append(out2, eval(parse(text = x2)))
+    }
 
     # Slide 3: Cumplimiento e Importancia
-    g_1 <- bd %>% procesar_numerica("Calificacion")
+    g_1 <- bd %>%
+        procesar_numerica("Calificacion")
     out3 <- knitr::knit_expand(
-        text = imprimir_numerica_p(g_1, tipo = "Cumplimiento", 1, parametros, thm)
+        text = imprimir_numerica_p(
+            g_1,
+            tipo = "Cumplimiento",
+            1,
+            parametros,
+            thm
+        )
     )
 
     # Slide Importancia
     g_2 <- bd %>% procesar_numerica("Orden")
     out4 <- knitr::knit_expand(
-        text = imprimir_numerica_p(g_2, tipo = "Importancia", 2, parametros, thm)
+        text = imprimir_numerica_p(
+            g_2,
+            tipo = "Importancia",
+            2,
+            parametros,
+            thm
+        )
     )
 
     # Analisis conjunto
-    # p_7 <- procesar_juntos(bd)
-    # out5 <- knitr::knit_expand(text = imprimir_juntos(p_7, parametros))
+    p_7 <- procesar_juntos(bd)
+    out5 <- knitr::knit_expand(text = imprimir_juntos(p_7, parametros))
 
     p_7.1 <- procesar_juntos_promedio(bd)
-    out5.1 <- knitr::knit_expand(text = imprimir_juntos_promedio(p_7.1, parametros))
+    out5.1 <- knitr::knit_expand(
+        text = imprimir_juntos_promedio(p_7.1, parametros)
+    )
 
     # Gráfica de calculo de brecha
     brecha2 <- calcular_brecha(bd, corte = corte, parametros = parametros)
     hc <- brecha2 %>% graficar_nbrecha(parametros)
 
-    out6 <- purrr::imap(hc, ~{
-        r <- glue::glue('r densidad_{gsub("#","",.y)}')
-        r <- paste("{", r, "}", sep="")
-        sp <- "```"
+    out6 <- purrr::imap(
+        hc,
+        ~ {
+            r <- glue::glue('r densidad_{gsub("#","",.y)}')
+            r <- paste("{", r, "}", sep = "")
+            sp <- "```"
 
-        a1 <- knitr::knit_expand(text = glue::glue("\n\n # Temas con brecha .{.y}[⬤]")) # título
-        a2 <- knitr::knit_expand(text = glue::glue("\n\n --- \n\n {sp}{r} \n\n")) # empezar chunk
-        a3 <- knitr::knit_expand(text = sprintf("\n\n print(hc[['%s']])", .y)) # gráfica
-        a4 <- knitr::knit_expand(text = glue::glue("\n\n {sp} \n\n ---")) # terminar chunk
-        paste(a1, a2, a3, a4, collapse = ' ')
-
-    })
+            a1 <- knitr::knit_expand(
+                text = glue::glue("\n\n # Temas con brecha .{.y}[⬤]")
+            ) # título
+            a2 <- knitr::knit_expand(
+                text = glue::glue("\n\n --- \n\n {sp}{r} \n\n")
+            ) # empezar chunk
+            a3 <- knitr::knit_expand(
+                text = sprintf("\n\n print(hc[['%s']])", .y)
+            ) # gráfica
+            a4 <- knitr::knit_expand(text = glue::glue("\n\n {sp} \n\n ---")) # terminar chunk
+            paste(a1, a2, a3, a4, collapse = ' ')
+        }
+    )
 
     # out6.2 <- knitr::knit_expand(
     #     text = imprimir_calc_brecha(brecha2, grafica = TRUE))
@@ -137,7 +211,8 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
     tabla_df <- generar_tabla(brecha2, parametros = parametros)
 
     out7 <- knitr::knit_expand(
-        text = imprimir_calc_brecha(tabla_df, grafica = FALSE))
+        text = imprimir_calc_brecha(tabla_df, grafica = FALSE)
+    )
 
     # Juntarlos
     out <- list()
@@ -147,7 +222,7 @@ slides_etapa_2 <- function(bd, top_p, top_r, otro = "Otro", parametros, thm){
         append(out2) %>%
         append(out4) %>%
         append(out3) %>%
-        # append(out5) %>%
+        append(out5) %>%
         append(out5.1) %>%
         append(out6) %>%
         # append(out6.2) %>%
