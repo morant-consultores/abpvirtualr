@@ -1,5 +1,9 @@
 #' Colecta todas las tablas necesarias para su posterior análisis
 #'
+#' Requiere las variables de entorno de conexión (ABPVIRTUAL_DB_SERVER,
+#' ABPVIRTUAL_DB_DATABASE, ABPVIRTUAL_DB_UID, ABPVIRTUAL_DB_PWD y
+#' opcionalmente ABPVIRTUAL_DB_DRIVER/ABPVIRTUAL_DB_PORT). Ver README.md.
+#'
 #' @param id_sesion (int) La sesión necesaria para el evento. En caso de no
 #' proveerla toma la última, y si se inserta "Todo" entrega todos los eventos
 #'
@@ -11,7 +15,17 @@
 #' @examples #notrun (leer_base(con, id_sesion = "Todo"))
 
 leer_base <- function(id_sesion = NULL){
-    load("data/conexion.rda")
+    conexion <- list(
+        Driver   = Sys.getenv("ABPVIRTUAL_DB_DRIVER", "ODBC Driver 17 for SQL Server"),
+        Server   = Sys.getenv("ABPVIRTUAL_DB_SERVER"),
+        Database = Sys.getenv("ABPVIRTUAL_DB_DATABASE"),
+        UID      = Sys.getenv("ABPVIRTUAL_DB_UID"),
+        PWD      = Sys.getenv("ABPVIRTUAL_DB_PWD"),
+        Port     = as.integer(Sys.getenv("ABPVIRTUAL_DB_PORT", "1433"))
+    )
+    if (conexion$Server == "" || conexion$UID == "") {
+        stop("Faltan variables de entorno de conexión a la base de datos. Ver README.md.")
+    }
     con <- pool::dbPool(odbc::odbc(),
                         Driver = conexion$Driver,
                         Server = conexion$Server,

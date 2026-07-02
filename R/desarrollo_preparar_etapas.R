@@ -96,29 +96,6 @@ slides_etapa_2 <- function(
     p_4 <- procesar_brecha(bd, otro = "Otro")
     out1 <- knitr::knit_expand(text = imprimir_brecha(p_4, parametros, thm))
 
-    # Slides p clave
-    # brecha <- procesar_r_tema(
-    #     bd, top_p = top_p, top_r = top_r, otro = otro)
-    #
-    # out2 <- purrr::imap(brecha, ~{
-    #
-    #     a1 <- knitr::knit_expand(
-    #         text = sprintf("\n \n # %s\n", .y))
-    #     a1.1 <- knitr::knit_expand(
-    #         text = "\n --- \n .pull-left[")
-    #
-    #     a1.3 <- knitr::knit_expand(text = sprintf(
-    #     "\n Las <b> palabras  </b>más representativas son: \n\n * %s \n \n]\n",
-    #     graficar_claves(.x$p_clave)))
-    #
-    #     a2 <- knitr::knit_expand(text = ".pull-right[")
-    #     a3 <- knitr::knit_expand(text = sprintf(
-    #         "\n Las <b> respuestas </b>más representativas son: \n\n * %s",
-    #         paste(.x$respuesta,collapse = "\n \n * ")))
-    #     a4 <- knitr::knit_expand(text = "\n] \n---")
-    #     paste(a1,a1.1,a1.3, a2, a3, a4, collapse = '\n')
-    # })
-
     # Tabla resumen -----------------------------------------------------------
     aux <- bd$respuesta |>
         filter(IdEtapa == 2) |>

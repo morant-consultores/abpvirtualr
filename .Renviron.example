@@ -1,0 +1,8 @@
+# Copia este archivo a .Renviron (en la raíz del proyecto) y completa los
+# valores reales. .Renviron está en .gitignore y nunca debe commitearse.
+ABPVIRTUAL_DB_DRIVER=ODBC Driver 17 for SQL Server
+ABPVIRTUAL_DB_SERVER=
+ABPVIRTUAL_DB_DATABASE=
+ABPVIRTUAL_DB_UID=
+ABPVIRTUAL_DB_PWD=
+ABPVIRTUAL_DB_PORT=1433

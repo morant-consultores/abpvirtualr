@@ -14,73 +14,11 @@ library(dbplyr)
 library(purrr)
 library(ggplot2)
 library(shinycssloaders)
+library(abpvirtualr)
 
-leer_base <- function(id_sesion = NA){
-    conexion <- list(Driver = "ODBC Driver 17 for SQL Server",
-                     Server = "database.negox.com",
-                     Database = "viajeporchiapas_abpvirtual",
-                     UID = "viajeporchiapas_abp_user",
-                     PWD = "CIDFares@BP2021",
-                     Port = 1433)
-    con <- pool::dbPool(odbc::odbc(),
-                        Driver = conexion$Driver,
-                        Server = conexion$Server,
-                        Database = conexion$Database,
-                        UID = conexion$UID,
-                        PWD = conexion$PWD,
-                        Port = conexion$Port)
+# leer_base() se usa tal cual la expone el paquete (R/utilitaria_colectar_base.R),
+# que lee las credenciales de conexión desde variables de entorno (ver README.md).
 
-    id_sesion <- if(is.na(id_sesion)) tbl(con,
-                                          in_schema("General","Sesion")) %>%
-        summarise(max(IdSesion)) %>%
-        pull(1) else id_sesion
-
-    id_sesion <- if(id_sesion == "Todo") tbl(con,
-                                             in_schema("General","Sesion")) %>%
-        pull(IdSesion) else id_sesion
-
-    etapa <- tbl(con,in_schema("Catalogo", "Etapa")) %>%
-        collect()
-
-    pregunta <- tbl(con,in_schema("Cuestionario", "Pregunta")) %>%
-        collect()
-
-    respuesta <- tbl(con,in_schema("Cuestionario", "Respuesta")) %>%
-        filter(IdSesion %in% !! id_sesion) %>%
-        collect()
-
-    categoria <- tbl(con,in_schema("Catalogo", "Categoria")) %>%
-        collect()
-
-    respuesta_cat <- tbl(con,
-                         in_schema("Cuestionario", "RespuestaCategoria")) %>%
-        filter(IdSesion %in% !! id_sesion) %>%
-        collect()
-
-    orden_cat <- tbl(con,
-                     in_schema("Cuestionario", "OrdenCategoria")) %>%
-        filter(IdSesion %in% !! id_sesion) %>%
-        collect()
-
-    calif_cat <- tbl(con,
-                     in_schema("Cuestionario", "CalificacionCategoria")) %>%
-        filter(IdSesion %in% !! id_sesion) %>%
-        collect()
-
-    pool::poolClose(con)
-
-    res <- list(
-        etapa = etapa,
-        pregunta = pregunta,
-        respuesta = respuesta,
-        categoria = categoria,
-        respuesta_cat = respuesta_cat,
-        orden_cat = orden_cat,
-        calif_cat = calif_cat
-    )
-
-    return(res)
-}
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
     dashboardHeader(title = "Respuestas ABP"),

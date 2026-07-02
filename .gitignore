@@ -1,5 +1,7 @@
 .Rproj.user
 test.R
+.Renviron
+data/conexion.rda
 *.css
 .Rhistory
 .DS_Store
