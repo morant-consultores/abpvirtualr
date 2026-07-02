@@ -21,23 +21,11 @@ output:
 class: inverse, middle, center
 
 ```{r, include = FALSE}
-parametros <- list(
+# Todos los campos vienen con default documentado (ver ?parametros_default).
+# Para un caso nuevo, sobreescribe solo los valores de marca aquí abajo.
+parametros <- abpvirtualr::parametros_default(
   primario = "#2A3D6E",
-  primario_claro = "#304E83",
-  primario_obscuro = "#232B58",
-  inverso = "#4C97C8",
-  inverso_claro = "#88B9CF",
-  cortes = seq(0,10000,length.out = 6),
-  # cortes = c(0,4,7.5,11,16,25)*20^2,
-  sm_vf = "#6A994E",
-  sm_vc = "#A7C957",
-  sm_a = "#F9C74F",
-  sm_rc = "#D65A1F",
-  sm_rf = "#B31D1F",
-  familia = "Poppins",
-  gris = "#343a40",
-  gris_claro = "#ced4da",
-  etiquetas = "14px"
+  familia = "Poppins"
 )
 ```
 
