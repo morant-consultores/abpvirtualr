@@ -5,13 +5,18 @@
 #'  provistas por la función leer_base.
 #' @param pregunta (int) Número de pregunta de la etapa.
 #' @param etapa (int) Número de la etapa.
+#' @param cuantiles (numeric) Vector de 2 cuantiles (0-1, creciente) que
+#'  separan los 3 colores de la nube según la frecuencia de cada palabra:
+#'  `<= cuantiles[1]` usa `parametros$inverso`, entre ambos usa
+#'  `parametros$primario_claro`, `> cuantiles[2]` usa
+#'  `parametros$primario_obscuro`. Default `c(.75, .90)`.
 #'
 #' @return (list) Lista de dataframes uno con una tabla con las palabras, frecuencias y colores asignados y otro con las respuestas.
 #' @export
 #' @import dplyr
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
 
-procesar_p_abierta <- function(bd, pregunta, etapa, parametros, quitar_altisonantes = T){
+procesar_p_abierta <- function(bd, pregunta, etapa, parametros, quitar_altisonantes = T, cuantiles = c(.75, .90)){
 
     df <- bd$respuesta %>%
         left_join(bd$pregunta) %>%
@@ -52,9 +57,9 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros, quitar_altisonan
     tokens_clean <- tokens_clean %>%
         anti_join(nums, by = "palabra") %>%
         mutate(colores = case_when(
-            n<=quantile(n,probs=.75)~ parametros$inverso,
-            n>quantile(n,probs=.75) & n<=quantile(n,probs=.90)~parametros$primario_claro,
-            n>quantile(n,probs=.90)~ parametros$primario_obscuro),
+            n<=quantile(n,probs=cuantiles[1])~ parametros$inverso,
+            n>quantile(n,probs=cuantiles[1]) & n<=quantile(n,probs=cuantiles[2])~parametros$primario_claro,
+            n>quantile(n,probs=cuantiles[2])~ parametros$primario_obscuro),
             Pregunta = bd$pregunta %>%
                 filter(IdPregunta == pregunta, IdEtapa == etapa) %>%
                 pull(Nombre)
@@ -128,7 +133,13 @@ procesar_brecha <- function(bd,  otro = "Otro", quitar_altisonantes = T){
                 paste(collapse = ", ")
 
             tibble::tibble(tema = .x,p_clave = palabras)
-        }) %>% do.call(rbind, .)
+        }) %>% dplyr::bind_rows()
+
+    if (nrow(p_clave) == 0) {
+        # Sin categorías/respuestas (ej. etapa sin datos aún): tipar la
+        # tabla vacía en vez de dejar que rename()/left_join() truenen.
+        p_clave <- tibble::tibble(tema = character(), p_clave = character())
+    }
 
     pregunta <- bd$pregunta %>%
         filter(IdEtapa == 2) %>%
@@ -283,11 +294,9 @@ procesar_numerica <- function(bd, tipo){
 }
 
 procesar_juntos_promedio <- function(bd){
-    res <- bd$orden_cat %>%
-        select(IdCategoria,IdUsuario, Orden) %>%
-        left_join(bd$calif_cat %>%
-                      select(IdCategoria, IdUsuario,Calificacion)) %>%
-        left_join(bd$categoria) %>%
+    juntos <- procesar_juntos(bd)
+
+    res <- juntos %>%
         group_by(Nombre) %>%
         summarise(importancia = base::round(base::mean(Orden)),
                   cumplimiento = base::round(base::mean(Calificacion)))
@@ -313,7 +322,17 @@ procesar_juntos <- function(bd){
         left_join(
             bd$calif_cat %>%
                 select(usuario = IdUsuario,Calificacion,IdCategoria)
-        ) %>%
+        )
+
+    incompletos <- sum(!stats::complete.cases(juntos))
+    if (incompletos > 0) {
+        message(glue::glue(
+            "procesar_juntos(): se descartaron {incompletos} pares usuario+",
+            "categoria con Orden o Calificacion en NA (par incompleto)."
+        ))
+    }
+
+    juntos <- juntos %>%
         na.omit() %>%
         left_join(bd$categoria) %>%
         rename(cat = IdCategoria) %>%
@@ -331,9 +350,9 @@ procesar_juntos <- function(bd){
 #' @return (char) Regresa el o los códigos más repetidos.
 #' @export
 #'
-#' @examples #notrun (mode(color))
+#' @examples #notrun (moda(color))
 
-mode <- function(codes){
+moda <- function(codes){
 
     cual <- which.max(table(codes))
     if(sum(cual == table(codes))>1){
@@ -341,6 +360,17 @@ mode <- function(codes){
     } else{
         names(cual)
     }
+}
+
+#' @rdname moda
+#' @description `mode()` es un alias retro-compatible de [moda()];
+#' hacía *shadowing* de `base::mode()` y se renombró para evitar bugs
+#' silenciosos si algún código dependía del `mode()` real de R tras cargar
+#' el paquete. Se eliminará en una versión futura.
+#' @export
+mode <- function(codes){
+    .Deprecated("moda")
+    moda(codes)
 }
 
 #' Asigna colores dependiendo del cálulo de la brecha.
@@ -377,12 +407,7 @@ corte <- function(brecha, parametros){
 
 calcular_brecha <- function(bd, corte, parametros){
 
-
-    juntos <- bd$orden_cat %>% select(usuario = IdUsuario,Orden,IdCategoria) %>%
-        left_join(
-            bd$calif_cat %>% select(usuario = IdUsuario,Calificacion,IdCategoria)
-        ) %>% na.omit() %>% left_join(bd$categoria) %>% rename(cat = IdCategoria) %>%
-        mutate(brecha = Orden*(100-Calificacion))
+    juntos <- procesar_juntos(bd)
 
     res <- juntos %>% split(.$Nombre) %>% purrr::imap(~{
         tibble(inf= parametros$cortes,
@@ -397,7 +422,21 @@ calcular_brecha <- function(bd, corte, parametros){
                 importancia = base::round(base::mean(.x$Orden)),
                 brecha_pct = brecha/10000
             )
-    }) %>% bind_rows() %>% group_by(Nombre)
+    }) %>% bind_rows()
+
+    if (nrow(res) == 0) {
+        # Sin usuarios/categorías con par Orden+Calificacion completo (ej.
+        # sesión recién abierta): tipar la tabla vacía en vez de que
+        # bind_rows(list()) regrese 0 columnas y group_by(Nombre) truene.
+        res <- tibble(
+            inf = double(), sup = double(), color = character(),
+            nombre_color = character(), Nombre = character(),
+            brecha = double(), semaforo = character(),
+            cumplimiento = double(), importancia = double(),
+            brecha_pct = double()
+        )
+    }
+    res <- res %>% group_by(Nombre)
 
     return(list(juntos, res))
 }
@@ -409,12 +448,15 @@ calcular_brecha <- function(bd, corte, parametros){
 #'  provistas por la función leer_base.
 #' @param pregunta (int) Número de pregunta de la etapa.
 #' @param etapa (int) Número de la etapa.
+#' @param p (numeric) Percentil (0-1) de frecuencia sobre el que se quedan los
+#'  bigramas (`n > quantile(n, probs = p)`), antes de recortar al top 30.
+#'  Default `.7`.
 #'
-#' @return
+#' @return (tibble) bigramas (`palabra1`, `palabra2`) con su frecuencia `n`.
 #' @export
 #'
-#' @examples
-procesar_bigramas <- function(bd, pregunta, etapa, parametros, quitar_altisonantes = T){
+#' @examples #notrun (procesar_bigramas(bd, pregunta = 1, etapa = 1, parametros))
+procesar_bigramas <- function(bd, pregunta, etapa, parametros, quitar_altisonantes = T, p = .7){
 
     stop_words <- tibble::tibble(palabra = c(stopwords::stopwords("es")))
 
@@ -441,7 +483,7 @@ procesar_bigramas <- function(bd, pregunta, etapa, parametros, quitar_altisonant
 
     bigramas <- aux %>%
         count(palabra1, palabra2, sort = T) %>%
-        filter(n>quantile(n, probs = .7)) %>%
+        filter(n>quantile(n, probs = p)) %>%
         slice(1:30)
 
 

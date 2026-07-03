@@ -16,6 +16,24 @@ test_that("procesar_juntos() descarta pares incompletos con na.omit", {
     expect_false(3L %in% juntos$usuario)
 })
 
+test_that("procesar_juntos() avisa cuantos pares incompletos descarta", {
+    bd <- bd_sintetica(con_na = TRUE)
+    expect_message(procesar_juntos(bd), "se descartaron 1 pares")
+})
+
+test_that("procesar_juntos() no avisa descartes si no hay pares incompletos", {
+    bd <- bd_sintetica()
+    msgs <- character()
+    withCallingHandlers(
+        procesar_juntos(bd),
+        message = function(m) {
+            msgs <<- c(msgs, conditionMessage(m))
+            invokeRestart("muffleMessage")
+        }
+    )
+    expect_false(any(grepl("descartaron", msgs)))
+})
+
 test_that("procesar_juntos_promedio() redondea promedios por categoria", {
     bd <- bd_sintetica()
     res <- suppressMessages(procesar_juntos_promedio(bd))
@@ -64,4 +82,34 @@ test_that("calcular_brecha() ignora pares incompletos sin mover promedios", {
 
     expect_equal(con_na[[2]]$brecha, sin_na[[2]]$brecha)
     expect_equal(con_na[[2]]$semaforo, sin_na[[2]]$semaforo)
+})
+
+test_that("calcular_brecha() regresa una tabla vacia tipada sin pares Orden+Calificacion", {
+    p <- parametros_default()
+    bd <- bd_sintetica()
+    bd$orden_cat <- bd$orden_cat[0, ]
+    bd$calif_cat <- bd$calif_cat[0, ]
+
+    res <- calcular_brecha(bd, corte, p)
+
+    expect_length(res, 2)
+    expect_equal(nrow(res[[1]]), 0)
+    bandas <- res[[2]]
+    expect_equal(nrow(bandas), 0)
+    expect_setequal(
+        names(bandas),
+        c("inf", "sup", "color", "nombre_color", "Nombre", "brecha",
+          "semaforo", "cumplimiento", "importancia", "brecha_pct")
+    )
+})
+
+test_that("procesar_brecha() regresa una tabla vacia tipada sin respuestas", {
+    bd <- bd_sintetica()
+    bd$respuesta_cat <- bd$respuesta_cat[0, ]
+    bd$respuesta <- bd$respuesta[0, ]
+
+    res <- suppressMessages(procesar_brecha(bd))
+
+    expect_equal(nrow(res), 0)
+    expect_setequal(names(res), c("Nombre", "pct_r", "pct", "p_clave", "pregunta"))
 })

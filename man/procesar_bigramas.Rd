@@ -4,7 +4,14 @@
 \alias{procesar_bigramas}
 \title{A partir de la bd de respuesta, genera una base de datos con bigramas}
 \usage{
-procesar_bigramas(bd, pregunta, etapa, parametros, quitar_altisonantes = T)
+procesar_bigramas(
+  bd,
+  pregunta,
+  etapa,
+  parametros,
+  quitar_altisonantes = T,
+  p = 0.7
+)
 }
 \arguments{
 \item{bd}{(list) La lista con las tablas necesarias
@@ -13,7 +20,17 @@ provistas por la función leer_base.}
 \item{pregunta}{(int) Número de pregunta de la etapa.}
 
 \item{etapa}{(int) Número de la etapa.}
+
+\item{p}{(numeric) Percentil (0-1) de frecuencia sobre el que se quedan los
+bigramas (\code{n > quantile(n, probs = p)}), antes de recortar al top 30.
+Default \code{.7}.}
+}
+\value{
+(tibble) bigramas (\code{palabra1}, \code{palabra2}) con su frecuencia \code{n}.
 }
 \description{
 A partir de la bd de respuesta, genera una base de datos con bigramas
+}
+\examples{
+#notrun (procesar_bigramas(bd, pregunta = 1, etapa = 1, parametros))
 }

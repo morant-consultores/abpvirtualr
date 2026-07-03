@@ -5,7 +5,14 @@
 \title{Limpia, tokeniza y obtiene las frecuencias de palabras a
 una tabla con variables de texto}
 \usage{
-procesar_p_abierta(bd, pregunta, etapa, parametros, quitar_altisonantes = T)
+procesar_p_abierta(
+  bd,
+  pregunta,
+  etapa,
+  parametros,
+  quitar_altisonantes = T,
+  cuantiles = c(0.75, 0.9)
+)
 }
 \arguments{
 \item{bd}{(list) La lista con las tablas necesarias
@@ -14,6 +21,12 @@ provistas por la función leer_base.}
 \item{pregunta}{(int) Número de pregunta de la etapa.}
 
 \item{etapa}{(int) Número de la etapa.}
+
+\item{cuantiles}{(numeric) Vector de 2 cuantiles (0-1, creciente) que
+separan los 3 colores de la nube según la frecuencia de cada palabra:
+\verb{<= cuantiles[1]} usa \code{parametros$inverso}, entre ambos usa
+\code{parametros$primario_claro}, \verb{> cuantiles[2]} usa
+\code{parametros$primario_obscuro}. Default \code{c(.75, .90)}.}
 }
 \value{
 (list) Lista de dataframes uno con una tabla con las palabras, frecuencias y colores asignados y otro con las respuestas.

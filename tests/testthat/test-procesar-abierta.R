@@ -35,6 +35,18 @@ test_that("procesar_p_abierta() colorea por cuantiles de frecuencia", {
     )
 })
 
+test_that("procesar_p_abierta() permite parametrizar los cuantiles de color", {
+    p <- parametros_default()
+    bd <- bd_sintetica()
+
+    # cuantiles = c(1, 1): quantile(n, 1) es la frecuencia máxima observada,
+    # ninguna palabra la supera -> todas caen en el color inverso.
+    tokens <- suppressMessages(
+        procesar_p_abierta(bd, 1, 1, p, cuantiles = c(1, 1))
+    )[[1]]
+    expect_true(all(tokens$colores == p$inverso))
+})
+
 test_that("procesar_p_abierta() filtra respuestas con altisonantes", {
     p <- parametros_default()
     bd <- bd_sintetica()

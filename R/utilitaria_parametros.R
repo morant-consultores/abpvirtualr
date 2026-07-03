@@ -19,7 +19,14 @@
 #' @param sm_rc (char) Semáforo brecha: rojo claro.
 #' @param sm_rf (char) Semáforo brecha: rojo fuerte.
 #' @param cortes (numeric) 6 puntos de corte del semáforo (creciente, de 0 a
-#'   ~10000). Ver README para la decisión metodológica.
+#'   ~10000). Metodología: la "brecha" de [procesar_juntos()] se calcula como
+#'   `Orden * (100 - Calificacion)`, con `Orden` en 1-100 (importancia) y
+#'   `Calificacion` en 0-100 (cumplimiento), por lo que el rango teórico es
+#'   0-10000. El default `seq(0, 10000, length.out = 6)` divide ese rango en 5
+#'   bandas iguales (verde fuerte/claro, amarillo, rojo claro/fuerte, vía
+#'   [corte()]); para otra distribución de respuestas conviene recalcular los
+#'   cortes sobre los cuantiles observados en el caso en vez de usar bandas
+#'   iguales.
 #' @param familia (char) Familia tipográfica (Google Fonts).
 #' @param gris (char) Gris para texto/ejes.
 #' @param gris_claro (char) Gris claro para líneas de ejes.
