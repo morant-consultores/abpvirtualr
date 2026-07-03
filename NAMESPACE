@@ -2,6 +2,7 @@
 
 export(calcular_brecha)
 export(corte)
+export(fecha_es)
 export(generar_tabla)
 export(generar_tabla_nube)
 export(graficar_bigramas)
