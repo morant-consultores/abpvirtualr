@@ -103,20 +103,24 @@ se cachea (cada re-render vuelve a pagar el costo del LLM).
 
 **Mejoras.**
 
-- 3.1 Una sola función en el paquete: `resumir_respuestas(pregunta, respuestas,
+- 3.1 ✅ Una sola función en el paquete: `resumir_respuestas(pregunta, respuestas,
   url = getOption("abpvirtual.api_url"))` con `httr2`, timeout, reintentos con
-  backoff y error explícito si `status != 200` o el JSON no trae `$data`.
-- 3.2 Cachear resúmenes por hash de (pregunta + respuestas) en disco
-  (`memoise` o un rds por sesión) — re-render barato y reproducible.
+  backoff y error explícito si `status != 200` o el JSON no trae `$data` (fix
+  en esta rama, `R/analisis_resumir_ia.R`).
+- 3.2 ✅ Cachea resúmenes por hash de (pregunta + respuestas) en disco (`.rds`
+  por hash vía `digest`, `cache_dir = NULL` para desactivar) — re-render
+  barato y reproducible (fix en esta rama, misma función).
 - 3.3 Registrar qué modelo/prompt generó cada resumen (auditoría del
-  entregable).
+  entregable) — pendiente, requiere que la API exponga esa metadata.
 - 3.4 El categorizador Python (`pruebas_categorizador.py` vía `reticulate`)
   debería vivir en el servicio Flask o en el paquete, no como script suelto
-  con la key incrustada (ver 0.3).
+  con la key incrustada (ver 0.3) — pendiente.
 
-**Tests del gate:** unit test de la función nueva con *webfakes*/mock cuando se
-implemente 3.1 (hoy no hay función en el paquete que probar; queda como
-criterio de aceptación de 3.1).
+**Tests del gate:** `test-resumir.R` — mock de `httr2::req_perform()` vía
+`testthat::local_mocked_bindings()`: contrato sin-datos (`NA_character_`),
+`$data` en status 200, error explícito en status != 200 y en `$data` faltante,
+y cache en disco (misma pregunta+respuestas no vuelve a llamar a la API;
+preguntas/respuestas distintas no comparten cache).
 
 ## 4. Visualización (`graficar_*`, `generar_tabla*`)
 
@@ -129,43 +133,90 @@ comportamiento inconsistente ante datos vacíos.
 
 - 4.1 Tema central único (uno highcharter, uno ggplot) construido desde
   `parametros`, aplicado al final de cada pipe — rebranding de un caso nuevo
-  en una línea.
-- 4.2 Corregir `<b/>` → `</b>` en todos los `pointFormat`.
+  en una línea. **No hecho en esta rama**: requiere decidir la API del tema
+  compartido y verificarlo con un render de humo real (igual que la parte
+  profunda de 5.1); queda para la siguiente iteración.
+- 4.2 ✅ Corregido `<b/>` → `</b>` en `graficar_nube()`
+  (`R/analisis_graficar_preguntas.R`) y el `pointFormat` sin negritas de
+  `graficar_numerica(tipo="histograma")`.
 - 4.3 Separar ramas (`graficar_numerica_interactiva()` /
   `_estatica()`, o `switch` interno con auxiliares) antes de agregar un tipo
-  de gráfica nuevo.
-- 4.4 Accesibilidad del semáforo: etiqueta textual del nivel junto al color en
-  `graficar_nbrecha`/`generar_tabla` (audiencia gobierno, daltonismo
-  rojo-verde).
-- 4.5 Documentar (o reemplazar) la simulación de `graficar_juntos()`: jitter
-  de datos reales por default, simulación opt-in con nota en el slide.
-- 4.6 Contrato "sin datos" (ver 2.5).
+  de gráfica nuevo. **No hecho en esta rama** (mismo motivo que 4.1: cambio
+  de estructura de funciones usadas en producción, requiere render de humo).
+- 4.4 ✅ Accesibilidad del semáforo: `generar_tabla()` agrega una columna de
+  texto `Semaforo` (`etiqueta_semaforo()`, ej. "Verde fuerte") junto a la
+  celda coloreada, no depende solo del color (daltonismo rojo-verde).
+- 4.5 ✅ `graficar_juntos()` documenta la simulación en el código y en el
+  slide: nuevo argumento `simular = TRUE` (default, sin cambio de
+  comportamiento) agrega un caption explícito ("Puntos simulados...");
+  `simular = FALSE` grafica `Orden`/`Calificacion` reales con jitter
+  (`jitter_sd`) y caption distinto. No se cambió el default para no alterar
+  el look de reportes ya validados sin poder verificarlo con un render real.
+- 4.6 ✅ Contrato "sin datos" (ver 2.5): `generar_tabla()` regresaba un error
+  de kableExtra ("subindice fuera de los limites") con una brecha vacía;
+  ahora regresa una tabla "Sin datos suficientes". `graficar_nube()` y
+  `graficar_nbrecha(densidad=TRUE)` ya regresaban `NULL`/lista vacía
+  correctamente (verificado, sin cambios).
+  **Bug nuevo encontrado, no arreglado**: `graficar_nbrecha(densidad=FALSE)`
+  — la rama de barras "chicklet" por probabilidad — está rota **incluso con
+  datos normales**: referencia una columna `prob` que `calcular_brecha()`
+  nunca calculó. Arreglarlo requiere decidir qué agregación de negocio debe
+  producir esa proporción (¿% de temas en cada banda? ¿% de participantes?),
+  no algo para adivinar en una función que ve el cliente final; queda anotado
+  para la siguiente iteración (ver también Prioridad sugerida al final del
+  documento).
 
-**Tests del gate:** los `procesar_*` que alimentan estas gráficas están
-cubiertos; snapshot tests de gráficas quedan para cuando exista el tema
-central (4.1), si no cada refactor visual rompería snapshots triviales.
+**Tests del gate:** `test-accesibilidad.R` — `etiqueta_semaforo()`,
+`generar_tabla()` con datos y sin datos, `graficar_juntos()` documentando
+simulación vs. datos reales en el caption (con `theme_xaringan()` mockeado,
+ya que requiere un CSS de render real). Los `procesar_*` que alimentan estas
+gráficas siguen cubiertos por sus propios tests; snapshot tests de gráficas
+completas quedan para cuando exista el tema central (4.1).
 
 ## 5. Ensamblado de slides (`imprimir_*`, `slides_*`)
 
-**Estado actual.** `slides_nubes()`/`slides_etapa_2()` generan código con
-`glue` y lo evalúan con `eval(parse(...))` asignando variables por nombre
-(`p_{i}`, `q_{i}`, `brecha2`, `tabla_df`) al entorno global del knit. Funciona,
-pero es frágil (colisiones, imposible de testear unitario, debugging a ciegas).
+**Estado actual.** `slides_nubes()`/`slides_etapa_2()` generaban código con
+`glue` y lo evaluaban con `eval(parse(...))` asignando variables por nombre
+(`p_{i}`, `q_{i}`, `r_{i}`). Al investigar 5.1 se encontró que **esto ya
+estaba roto**: `imprimir_gt()` (la función que arma el chunk del resumen de
+IA, invocada por ambas `slides_*`) se había borrado del paquete hace 2 años
+sin actualizar a sus llamadores — cualquier render que llegara a una etapa
+con resumen de IA fallaba con `could not find function "imprimir_gt"`
+(reproducido y corregido en esta rama).
 
 **Mejoras.**
 
-- 5.1 Pasar datos explícitos: `imprimir_*(datos_slide)` recibe la lista con lo
-  que grafica, y `slides_*` regresa una lista de chunks + una lista de datos,
-  sin tocar el entorno global.
-- 5.2 Mientras tanto: prefijo namespaced (`.abp_p_1`) para reducir riesgo de
-  colisión con variables del usuario en el `.Rmd`.
-- 5.3 `imprimir_calc_brecha()` y `imprimir_juntos*()` tienen chunks con labels
-  fijos (`etapa_3-4`...) — al repetir una etapa en el mismo deck colisionan;
-  generar labels únicos por invocación.
+- 5.1 ✅ Se reintrodujo `imprimir_gt()` (fix en esta rama, usa
+  [resumir_respuestas()] de 3.1 en vez del `generar_resumen()`/POST duplicado
+  original) llamándola de una vez al armar el chunk — el resumen queda
+  embebido como texto literal, no como una llamada diferida a `generar_resumen`
+  que dependía de variables `q_{i}`/`r_{i}` creadas por nombre. Esto permitió
+  quitar por completo el `eval(parse(...))` de `slides_nubes()` y
+  `slides_etapa_2()` para la parte de resúmenes. Lo que queda de
+  `eval(parse(...))` (la asignación de `p_{i}` para que `graficar_nube()`
+  la encuentre al knitear el chunk diferido) se cambió a `assign()`, más
+  explícito y sin parsear texto.
+  **Lo que NO se hizo** (queda abierto): el rediseño más profundo de
+  `imprimir_*(datos_slide)`/`slides_*` devolviendo listas de chunks + datos
+  en vez de chunks de texto que knitea `slides_*` internamente — requeriría
+  cambiar cómo se ensambla el reporte completo (los `graficar_*` que
+  producen htmlwidgets siguen dependiendo de que su variable exista en el
+  entorno donde se knitea el chunk) y verificarlo con un render de humo real
+  contra una sesión (checklist de la sección 9), no solo con datos sintéticos.
+- 5.2 ✅ No fue necesario un prefijo namespaced: al eliminar el `eval(parse())`
+  de la parte de resúmenes no quedan variables `q_{i}`/`r_{i}` expuestas; sólo
+  sigue existiendo `p_{i}` (ver 5.1), ya suficientemente específico.
+- 5.3 ✅ `imprimir_brecha()`, `imprimir_juntos()`, `imprimir_juntos_promedio()`
+  e `imprimir_calc_brecha()` tenían labels de chunk fijos (`etapa_3-4`...);
+  ahora cada invocación agrega un sufijo único vía `chunk_label_unico()`
+  (`R/utilitaria_datos.R`) para que repetir una etapa en el mismo deck no
+  choque.
 
-**Tests del gate:** `imprimir_nube()`/`imprimir_tabla_nube()` son funciones
-puras string → string y se prueban hoy (estructura del chunk generado);
-`slides_*` completos requieren el refactor 5.1 para ser testeables.
+**Tests del gate:** `test-slides.R` — regresión de `imprimir_gt()` (existe,
+arma el chunk con el resumen mockeado) y de `slides_nubes()` completo (no
+truena, ya no depende de la función borrada). `imprimir_nube()`/
+`imprimir_tabla_nube()` siguen cubiertas por `test-imprimir.R` como funciones
+puras string → string.
 
 ## 6. Render y entrega del reporte (skeleton xaringan, `g1.qmd`, entregables)
 
@@ -181,22 +232,43 @@ vendorizado) que ya están causando diffs binarios gigantes.
 - 6.1 Un solo entrypoint de render por caso:
   `rmarkdown::render(..., params = list(sesion = X))` parametrizado por sesión,
   en lugar de editar el `.Rmd`/script a mano por grupo (los `g1_1.html`,
-  `g1_2.html`... sugieren renders manuales repetidos).
+  `g1_2.html`... sugieren renders manuales repetidos). **Fuera de esta rama**:
+  vive en `abp_sonora` (el caso), no en `abpvirtualr` (el paquete).
 - 6.2 Salidas a un directorio `output/` del caso (gitignoreado), nunca a
-  `~/Desktop`.
-- 6.3 `.gitignore` para `*_cache/`, `*_files/`, HTML renderizados; los
-  entregables van a un almacenamiento de entrega (Drive/SharePoint/release),
-  no al repo fuente.
-- 6.4 `cache = TRUE` global en el skeleton es peligroso con datos vivos (un
-  re-render con datos nuevos puede servir resultados viejos); cachear solo
-  chunks caros y documentar cuándo invalidar.
-- 6.5 El título/fecha del skeleton depende de `Sys.setlocale("es_ES.UTF-8")`
-  que falla silencioso en Windows/Linux con otro locale — envolver en
-  `tryCatch`.
+  `~/Desktop`. **Fuera de esta rama** (mismo motivo que 6.1); se agregó
+  `output/` al `.gitignore` del paquete por si algún script de desarrollo
+  local lo usa, pero la migración de `abp_sonora/entregable*.R` no aplica
+  aquí.
+- 6.3 ✅ `.gitignore` para `*_cache/`, `*_files/`, HTML renderizados — se
+  generalizaron los patrones específicos de `prueba_deb_cache`/
+  `prueba_deb_files` a glob (`*_cache/`, `*_files/`) para que cubran
+  cualquier `.Rmd`, y se agregó `figure/`/`Rplots.pdf` (subproductos de
+  correr `devtools::test()` con `test-slides.R`, que knitea de verdad) y
+  `output/`.
+- 6.4 ✅ `cache = TRUE` global del skeleton era peligroso con datos vivos;
+  ahora el default es `cache = FALSE` y solo el chunk que trae los datos de
+  BD (`bd <- leer_base(...)`) declara `cache = TRUE` explícito, con un
+  comentario de cómo invalidarlo.
+- 6.5 ✅ El título/fecha del skeleton dependía de
+  `Sys.setlocale("es_ES.UTF-8")`, que en una máquina sin ese locale falla con
+  un warning pero **no detiene el render** — el resultado es una fecha en
+  inglés sin aviso visible. Se reemplazó por `fecha_es()`
+  (`R/utilitaria_datos.R`), que no depende del locale del sistema (mapea el
+  mes a mano).
 
-**Tests del gate:** `validar_parametros()` ya protege el punto de entrada del
-skeleton (falla al primer error con mensaje claro); render end-to-end requiere
-BD y queda como prueba manual del checklist (sección 9).
+**Bug nuevo encontrado y arreglado en esta rama** (al verificar el skeleton
+extremo a extremo para 6.4/6.5): `slides_nubes()`/`slides_etapa_2()` no
+tenían default para su argumento `url`, y el skeleton las llama sin pasarlo
+— cualquier render tronaba con `argument "url" is missing, with no default`
+en cuanto llegaba a un resumen de IA. Ahora `url` tiene el mismo default de
+[resumir_respuestas()] (`getOption("abpvirtual.api_url")`).
+
+**Tests del gate:** `test-fecha.R` — `fecha_es()` da el mismo resultado sin
+importar el locale activo del sistema (se prueba forzando `LC_TIME = "C"`).
+`validar_parametros()` sigue protegiendo el punto de entrada del skeleton;
+render end-to-end contra una BD real queda como prueba manual del checklist
+(sección 9) — lo que se pudo verificar sin BD (parseo del `.Rmd`, chunks de R
+válidos, `slides_*` con datos sintéticos) se hizo en esta rama.
 
 ## 7. Empaquetado y mantenibilidad
 
@@ -210,17 +282,35 @@ instalar el paquete — y ni siquiera se usa (solo un `@importFrom` huérfano).
 - 7.1 ✅ Limpiar `Imports`: quitar `spatstat.core` (archivado, sin uso), `tm`,
   `wordcloud`, `RColorBrewer` (sin uso); declarar `DT` (sí se usa); `testthat`
   a `Suggests` (fix en esta rama).
-- 7.2 Completar `DESCRIPTION` (título, autor, licencia) y arrancar `NEWS.md` +
-  versión `0.1.0` al cerrar esta rama.
-- 7.3 `renv::snapshot()` tras 7.1 para que `renv.lock` refleje el estado real.
-- 7.4 CI (GitHub Actions `R-CMD-check` + `testthat`) para que el gate corra
-  solo en cada PR.
+- 7.2 ✅ `DESCRIPTION` completo (título, autor, licencia MIT, versión `0.1.0`)
+  y `NEWS.md` inicial (fix en esta rama).
+- 7.3 ✅ `renv.lock` sincronizado tras 7.1: se quitaron del lockfile las
+  cuatro dependencias huérfanas (`spatstat.core`, `tm`, `wordcloud`,
+  `RColorBrewer`) que ya no están en `Imports`. **No** se corrió un
+  `renv::snapshot()` completo — el proyecto tenía `renv/` sin `.Rprofile`
+  que lo activara (la librería del proyecto estaba vacía) y un snapshot
+  completo habría re-fijado los ~700 paquetes transitivos y la versión de R
+  a lo que hubiera en esta máquina en este momento, no a un estado
+  verificado — cambio fuera del alcance de "sincronizar tras 7.1".
+- 7.4 ✅ CI (`.github/workflows/R-CMD-check.yaml`, `r-lib/actions`, R
+  release en Ubuntu) para que el gate corra en cada push/PR contra `main`.
+  `error-on: "error"` (no `"warning"`) porque es un paquete interno en
+  español que no va a CRAN: R CMD check marca WARNING el código con
+  caracteres no ASCII (comentarios/strings en español) y algunos parámetros
+  sin documentar en funciones viejas — ruido conocido, no regresiones (ver
+  README "Áreas de mejora"). Al armar el workflow se encontró que
+  `ggchicklet` (dependencia de `Imports`) sólo existe en GitHub
+  (`hrbrmstr/ggchicklet`) y `DESCRIPTION` no tenía `Remotes:` — una
+  instalación limpia (CI o máquina nueva) no podía resolverla; se agregó
+  `Remotes: hrbrmstr/ggchicklet`. **Pendiente de verificar**: no hay forma
+  de confirmar que el workflow corre en verde sin hacer push a GitHub; es
+  el primer punto a revisar al abrir el PR de esta rama.
 - 7.5 Consolidar: `abp_sonora/R/funciones.R` (12.7K) duplica funciones del
   paquete con divergencias — todo lo genérico vive en `abpvirtualr`, el caso
-  solo configura.
+  solo configura. **Fuera de esta rama** (vive en `abp_sonora`, no aquí).
 
-**Tests del gate:** la suite completa es el test; `R CMD check` limpio es
-criterio de 7.4.
+**Tests del gate:** la suite completa es el test; `R CMD check` limpio (sin
+`ERROR`, ver nota de `error-on` arriba) es criterio de 7.4.
 
 ## 8. Proceso por caso nuevo (lo que hoy es manual en abp_sonora)
 

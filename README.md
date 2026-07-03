@@ -22,7 +22,7 @@ Todas las tablas se filtran por `id_sesion` (una sesión, una lista de sesiones,
 
 ## El objeto `parametros`
 
-Ninguna función trae valores por defecto: todo el estilo visual se inyecta por fuera vía una lista `parametros` que el usuario arma a mano en cada proyecto (ver `data-raw/prueba.R`). Campos usados en el código:
+Todo el estilo visual se inyecta por fuera vía una lista `parametros`. [`parametros_default()`](R/utilitaria_parametros.R) trae los 15 campos con defaults documentados — para un caso nuevo basta sobreescribir los valores de marca (`parametros_default(primario = "#7A1E3B")`) en vez de rearmarla a mano. Campos:
 
 ```r
 parametros <- list(
@@ -62,6 +62,15 @@ leer_base()
 | `procesar_bigramas(bd, pregunta, etapa, parametros, quitar_altisonantes)` | Bigramas frecuentes de una pregunta abierta (top 30 sobre percentil 70) | `graficar_bigramas` |
 | `corte(brecha, parametros)` | Clasifica un valor de brecha en el semáforo de 5 colores | uso interno |
 
+### Resúmenes con IA (`R/analisis_resumir_ia.R`)
+
+`resumir_respuestas(pregunta, respuestas, url, cache_dir, timeout, reintentos)`
+unifica el bloque `POST -> content -> fromJSON` que antes se copiaba en cada
+script del caso: usa `httr2` con timeout y reintentos con backoff, falla
+explícito si el status no es 200 o falta `$data`, y cachea el resultado en
+disco por hash de `(pregunta, respuestas)` (`cache_dir = NULL` desactiva el
+cache) para que un re-render no vuelva a pagar el costo del LLM.
+
 ### Visualización (`R/analisis_graficar_preguntas.R`)
 
 | Función | Tipo de gráfica | Motor |
@@ -79,7 +88,7 @@ leer_base()
 
 ### Ensamblado de slides (`R/desarrollo_preparar_slides.R`, `R/desarrollo_preparar_etapas.R`)
 
-- `imprimir_*()` — cada una arma **un** chunk de xaringan como string (`glue` + `knitr::knit_expand`), atado a nombres de variables que se esperan en el *entorno global* (`p_{i}`, `q_{i}`, `r_{i}`, `hc`, `tabla_df`, `brecha2`...).
+- `imprimir_*()` — cada una arma **un** chunk de xaringan como string (`glue` + `knitr::knit_expand`). La mayoría siguen atadas a nombres de variables que deben existir en el entorno donde se knitea el chunk (`p_{i}`, `hc`, `tabla_df`, `brecha2`...), necesario porque ahí es donde viven los objetos highcharter/ggplot que knitr todavía tiene que evaluar; `imprimir_gt()` es la excepción — llama a [resumir_respuestas()] al armar el chunk y embebe el resumen como texto literal, sin depender de ninguna variable por nombre.
 - `slides_nubes(bd, etapa, parametros, thm, url)` — recorre las preguntas abiertas de una etapa y concatena nube + tabla por pregunta.
 - `slides_etapa_2(bd, top_p, top_r, otro, parametros, thm, url)` — arma toda la etapa de brecha: treemap, tablas por pregunta, importancia/cumplimiento, análisis conjunto, densidad de brecha y tabla resumen.
 
@@ -112,26 +121,33 @@ Pensando en replicar este ejercicio en un proyecto nuevo, esto es lo que limitar
 
 ### Análisis de datos
 
-- **Umbrales de "brecha" y de nube de palabras no son parametrizables ni documentados como decisión metodológica**: los cuantiles 0.75/0.90 para colorear la nube (`procesar_p_abierta`), el percentil 0.7 para bigramas y los 6 cortes fijos de `parametros$cortes` (0–10000) son elecciones de negocio metidas en el código. Para un caso nuevo con otra distribución de respuestas conviene exponerlos como argumentos con default, y documentar por qué esos cortes.
+- ✅ **Umbrales de "brecha" y de nube de palabras ya son parametrizables y están documentados**: `procesar_p_abierta(cuantiles = c(.75, .90))` y `procesar_bigramas(p = .7)` exponen los cuantiles/percentil como argumentos con el mismo default de antes; `?parametros_default` documenta por qué `cortes` va de 0 a 10000 (rango teórico de `Orden * (100 - Calificacion)`).
 - ✅ **`procesar_r_tema()` ya no queda como código muerto a medias**: el bloque comentado que la invocaba dentro de `slides_etapa_2()` se eliminó (quedó obsoleto desde el fix del bucle por pregunta en el commit `b2c0410`, que ya lo había sustituido por un bucle más simple). `procesar_r_tema()` se mantiene exportada y documentada por si se quiere retomar la vista de palabras clave por tema en el proyecto nuevo, pero ya no confunde como "código a medio conectar".
 - **`graficar_juntos()` simula datos con `rnorm()` en vez de graficar las respuestas reales** (líneas 328-334 de `R/analisis_graficar_preguntas.R`): genera 100 puntos normales por tema a partir de la media/sd observada, y esos puntos simulados —no las respuestas— son los que entran al `geom_hex`. Es una forma válida de suavizar una nube dispersa, pero tal como está no es obvio para quien lee el código que la gráfica muestra una simulación y no los datos crudos; conviene un comentario explícito o, mejor, graficar los datos reales con jitter y reservar la simulación (si se necesita) para una vista aparte.
 - **Sin pruebas ni datos de referencia**: no hay `tests/` ni `usethis::use_testthat()`. Funciones con lógica no trivial (`corte()`, `calcular_brecha()`, el cálculo de keyness) no tienen manera de detectar una regresión al cambiar los cortes o al procesar un caso con estructura distinta (p. ej. una etapa con 0 respuestas, categorías repetidas, o `NA` en `Calificacion`/`Orden`).
-- **`mode()` redefine una función base de R** (`R/analisis_procesar_pregunta.R:338`, calcula moda, no el `mode` de tipos de R) — riesgo de bugs silenciosos si algún código interno depende del `mode()` real de R después de cargar el paquete. Conviene renombrar a `moda()`.
+- ✅ **`mode()` ya no redefine la función base de R**: la lógica vive en `moda()`; `mode()` queda como alias retro-compatible con `.Deprecated("moda")`.
 - **Dependencia de rutas relativas con `load("data/...")` dentro de funciones exportadas** (`leer_base`, `procesar_p_abierta`, `procesar_brecha`, `procesar_r_tema`, `procesar_bigramas`): sólo funciona si el working directory es la raíz del paquete. Cambiar a `system.file("data", "conexion.rda", package = "abpvirtualr")` o, mejor, usar los objetos ya expuestos por `LazyData` (`data(altisonantes)`, `data(conexion)`) sin `load()` manual.
 
 ### Visualización de datos
 
-- **Estilo repetido en cada función en vez de centralizado**: tamaños de fuente, `fontFamily`, colores de tooltip, etc. se repiten a mano en cada `graficar_*` (`tema_high()` sólo cubre una parte). Un tema base compartido (para highcharter y otro para ggplot, aplicados siempre al final del pipe) reduciría inconsistencias entre gráficas del mismo deck y facilitaría un rebranding rápido para el proyecto nuevo (cambiar 1 tema en vez de 10 funciones).
-- **Falta de accesibilidad de color**: la paleta de semáforo (`sm_vf`...`sm_rf`, verde→rojo) no tiene redundancia de forma/patrón, problemático para daltonismo rojo-verde, común en el tipo de audiencia de gobierno/ejecutivos. Añadir íconos, texto o etiquetas de nivel junto al color en `graficar_nbrecha`/`generar_tabla`.
-- **Etiquetas y `pointFormat` con `<b/>` mal cerrado** (debería ser `</b>`) en varios tooltips de highcharter (`graficar_nube`, `graficar_numerica`) — no rompe el render pero es HTML inválido que puede comportarse distinto entre navegadores.
-- **`graficar_numerica()` y `graficar_nbrecha()` mezclan la rama interactiva/estática y la de densidad/barra dentro de la misma función con `if/else` largos**: son casi dos funciones distintas por rama. Separarlas (o usar un patrón `switch` con funciones auxiliares) simplificaría agregar un tercer tipo de gráfica para el proyecto nuevo sin tocar código existente que ya funciona.
-- **No hay control de "sin datos" consistente**: algunas funciones regresan `NULL` en caso vacío (`graficar_nube`), otras no verifican (`graficar_juntos_promedio` truena si `res` está vacío). Para un caso nuevo con menos participantes o preguntas opcionales, esto puede tumbar la generación de slides a la mitad. Vale la pena un contrato uniforme (todas regresan `NULL` + un slide "sin datos suficientes" en `imprimir_*`).
+- **Estilo repetido en cada función en vez de centralizado**: tamaños de fuente, `fontFamily`, colores de tooltip, etc. se repiten a mano en cada `graficar_*` (`tema_high()` sólo cubre una parte). Un tema base compartido (para highcharter y otro para ggplot, aplicados siempre al final del pipe) reduciría inconsistencias entre gráficas del mismo deck y facilitaría un rebranding rápido para el proyecto nuevo (cambiar 1 tema en vez de 10 funciones). **Pendiente**: requiere decidir la API del tema compartido y verificarlo con un render real, no se hizo en esta rama.
+- ✅ **Accesibilidad de color**: `generar_tabla()` agrega una columna `Semaforo` con la etiqueta de texto del nivel (`etiqueta_semaforo()`, ej. "Verde fuerte") junto a la celda coloreada — no depende solo del color para audiencias con daltonismo rojo-verde.
+- ✅ **`<b/>` mal cerrado corregido** en `graficar_nube()` y el `pointFormat` sin negritas de `graficar_numerica(tipo="histograma")`.
+- **`graficar_numerica()` y `graficar_nbrecha()` mezclan la rama interactiva/estática y la de densidad/barra dentro de la misma función con `if/else` largos**: son casi dos funciones distintas por rama. Separarlas (o usar un patrón `switch` con funciones auxiliares) simplificaría agregar un tercer tipo de gráfica para el proyecto nuevo sin tocar código existente que ya funciona. **Pendiente** (mismo motivo que el tema centralizado).
+- 🔴 **`graficar_nbrecha(densidad = FALSE)` está roto incluso con datos normales** (encontrado en esta rama): la rama de barras "chicklet" por probabilidad referencia una columna `prob` que `calcular_brecha()` nunca calculó (`objeto 'prob' no encontrado`). Arreglarlo requiere decidir qué agregación de negocio debe producir esa proporción — no algo para adivinar en una función que ve el cliente final.
+- ✅ **Contrato "sin datos"**: `generar_tabla()` regresaba un error de kableExtra con una brecha vacía (sesión sin pares completos de Orden/Calificacion); ahora regresa una tabla "Sin datos suficientes". `graficar_nube()` y `graficar_nbrecha(densidad=TRUE)` ya manejaban vacío correctamente (verificado).
+- ✅ **`graficar_juntos()` ya no simula sin avisar**: nuevo argumento `simular = TRUE` (default, sin cambio de comportamiento) agrega un caption explícito al slide; `simular = FALSE` grafica las respuestas reales con jitter. No se cambió el default para no alterar reportes ya validados sin poder verificarlo con un render real.
 
 ### Empaquetado / mantenibilidad general
 
-- `DESCRIPTION` sigue con los placeholders de `usethis::create_package()` (título, autor, licencia genéricos) — vale la pena completarlo antes del proyecto nuevo, ya que términos de imports (`Imports:`) no cubren todo lo usado (p. ej. `DT`, `visNetwork` se usan pero no están declarados).
-- El ensamblado de slides via `eval(parse(text = glue::glue(...)))` (`slides_nubes`, `slides_etapa_2`) asigna variables al entorno global por nombre dinámico (`p_{i}`, `q_{i}`...) — funciona, pero es frágil (colisiones de nombres, difícil de debuggear, imposible de testear unitariamente). Para el proyecto nuevo, considerar pasar una lista con los datos de cada slide directamente a `imprimir_*()` en vez de inyectar variables por nombre en el entorno del knit.
-- No hay `NEWS.md`/versión activa (`Version: 0.0.0.9000` desde el inicio) — sin manera de saber, al empezar el proyecto nuevo, qué cambió respecto al ejercicio anterior.
+- ✅ **`DESCRIPTION` completo** (título, autor, versión `0.1.0`, licencia MIT) y `Imports` sincronizado (`DT`, `httr2`, `digest` declarados).
+- ✅ **`slides_nubes()`/`slides_etapa_2()` ya no usan `eval(parse(...))`** para la parte de resúmenes de IA: al investigar esto se encontró que llamaban a una función (`imprimir_gt()`) borrada del paquete hace 2 años — cualquier render con resumen de IA fallaba. Se reintrodujo usando `resumir_respuestas()` (llamada de una vez, resumen embebido como texto literal) y se quitó el `eval(parse())` correspondiente; ver Roadmap sección 5 para el detalle de qué queda abierto (el rediseño más profundo de `imprimir_*`/`slides_*` para las gráficas, que requiere un render de humo real para verificarse).
+- ✅ **`NEWS.md` y versión activa** (`0.1.0`) — ver `NEWS.md`.
+- ✅ **`slides_nubes()`/`slides_etapa_2()` no tenían default para `url`** y el skeleton las llamaba sin pasarlo — cualquier render tronaba con `argument "url" is missing` en cuanto llegaba a un resumen de IA (encontrado al verificar el skeleton para el fix de abajo). Ahora `url` tiene el mismo default que `resumir_respuestas()`.
+- ✅ **El skeleton ya no depende de `Sys.setlocale("es_ES.UTF-8")`** para la fecha (fallaba en silencio —fecha en inglés— en máquinas sin ese locale): usa `fecha_es()`, que no depende del locale del sistema.
+- ✅ **`cache = TRUE` global del skeleton reemplazado por `cache = FALSE` + `cache = TRUE` explícito solo en el chunk de `leer_base()`** (el único caro), con comentario de cómo invalidarlo.
+- ✅ **`.gitignore` generalizado** (`*_cache/`, `*_files/`, `figure/`, `output/`) en vez de nombres específicos de un solo `.Rmd` de prueba.
+- ✅ **CI** (`.github/workflows/R-CMD-check.yaml`): `R CMD check` + la suite de testthat corren en cada push/PR contra `main`. Al armarlo se encontró que `ggchicklet` (en `Imports`) sólo existe en GitHub y `DESCRIPTION` no tenía `Remotes:` — una instalación limpia no podía resolverla; ya se agregó. Pendiente de confirmar que corre en verde al hacer push (no se puede verificar sin un push real a GitHub).
 
 ### Prioridad sugerida para el proyecto nuevo
 
