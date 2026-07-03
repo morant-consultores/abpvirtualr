@@ -18,6 +18,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports:
     dbplyr,
+    digest,
     dplyr,
     DT,
     forcats,
@@ -26,6 +27,7 @@ Imports:
     glue,
     grDevices,
     highcharter,
+    httr2,
     kableExtra,
     knitr,
     odbc,
@@ -43,7 +45,8 @@ Imports:
     visNetwork,
     xaringanthemer
 Suggests:
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    withr
 Config/testthat/edition: 3
 Depends:
     R (>= 2.10)
