@@ -5,14 +5,28 @@
 #' @param etapa (int) Número de la etapa en la base de datos.
 #' @param parametros (list) Parámetros de configuración del reporte.
 #' @param thm Tema de highcharter generado por tema_high.
-#' @param url (char) URL de la API del resumidor.
+#' @param url (char) URL de la API del resumidor (ver [resumir_respuestas()]).
+#'  Default `getOption("abpvirtual.api_url")`, igual que
+#'  `resumir_respuestas()` — antes no tenía default y el skeleton del
+#'  paquete la llamaba sin pasarlo, causando
+#'  `argument "url" is missing, with no default` en cuanto se llegaba a un
+#'  resumen de IA.
 #' @return (list) Lista de chuncks concatenados por "\n".
 #' @export
 #'
 #' @import dplyr
 #' @examples #notrun (slides_nubes(bd, etapa = 1))
 
-slides_nubes <- function(bd, etapa, parametros, thm, url) {
+slides_nubes <- function(
+    bd,
+    etapa,
+    parametros,
+    thm,
+    url = getOption(
+        "abpvirtual.api_url",
+        "https://abp-flask-api.azurewebsites.net/api/v1/resumen_pregunta"
+    )
+) {
     preguntas <- bd$pregunta %>%
         filter(IdEtapa == etapa, RegistroActivo, Orden != 3) %>%
         pull(IdPregunta)
@@ -23,12 +37,12 @@ slides_nubes <- function(bd, etapa, parametros, thm, url) {
     out <- list()
 
     for (i in preguntas) {
-        a <- procesar_p_abierta(
+        tokens <- procesar_p_abierta(
             bd,
             pregunta = i,
             etapa = etapa,
             parametros = parametros
-        )
+        ) %>% purrr::pluck(1)
 
         aux <- bd$respuesta |>
             filter(IdPregunta == i) |>
@@ -36,27 +50,16 @@ slides_nubes <- function(bd, etapa, parametros, thm, url) {
             distinct(IdRespuesta, Respuesta, Nombre)
 
         lista <- split(aux$Respuesta, aux$Nombre)
+        tema <- names(lista)
+        respuestas_tema <- lista[[1]]
 
-        a1 <- a %>% purrr::pluck(1)
-        a2 <- names(lista)
-        a3 <- lista[[1]]
+        # graficar_nube() dentro del chunk de imprimir_nube() se evalua al
+        # knitear `out` completo (más abajo); assign() deja p_{i} disponible
+        # en ese momento sin parsear texto con eval(parse()).
+        assign(paste0("p_", i), tokens)
 
-        b1 <- glue::glue("p_{i} <- a1")
-        b2 <- glue::glue("q_{i} <- a2")
-        b3 <- glue::glue("r_{i} <- a3")
-        eval(parse(text = b1))
-        eval(parse(text = b2))
-        eval(parse(text = b3))
-
-        x1 <- glue::glue(
-            "knitr::knit_expand(text = imprimir_nube(p_{i}, {i}, parametros))"
-        )
-        x2 <- glue::glue(
-            "knitr::knit_expand(text = imprimir_gt(r_{i}, q_{i}, {i}, url))"
-        )
-
-        y1 <- eval(parse(text = x1))
-        y2 <- eval(parse(text = x2))
+        y1 <- knitr::knit_expand(text = imprimir_nube(tokens, i, parametros))
+        y2 <- knitr::knit_expand(text = imprimir_gt(respuestas_tema, tema, i, url))
 
         out <- append(out, y1) %>%
             append(y2)
@@ -75,7 +78,10 @@ slides_nubes <- function(bd, etapa, parametros, thm, url) {
 #'  tema, regularmente será "Otro".
 #' @param parametros (list) Parámetros de configuración del reporte.
 #' @param thm Tema de highcharter generado por tema_high.
-#' @param url (char) URL de la API del resumidor.
+#' @param url (char) URL de la API del resumidor (ver [resumir_respuestas()]).
+#'  Default `getOption("abpvirtual.api_url")`, igual que
+#'  `resumir_respuestas()` — antes no tenía default (ver detalle en
+#'  [slides_nubes()]).
 #'
 #' @return (list) Una lista de chuncks correspondientes a cada pregunta.
 #' @export
@@ -90,7 +96,10 @@ slides_etapa_2 <- function(
     otro = "Otro",
     parametros,
     thm,
-    url
+    url = getOption(
+        "abpvirtual.api_url",
+        "https://abp-flask-api.azurewebsites.net/api/v1/resumen_pregunta"
+    )
 ) {
     # Slide brecha
     p_4 <- procesar_brecha(bd, otro = "Otro")
@@ -108,18 +117,13 @@ slides_etapa_2 <- function(
         aux_i <- aux |> filter(IdPregunta == i)
         lista <- split(aux_i$Respuesta, aux_i$Nombre)
 
-        a2 <- names(lista)
-        a3 <- lista[[1]]
+        tema <- names(lista)
+        respuestas_tema <- lista[[1]]
 
-        b2 <- glue::glue("q_{i} <- a2")
-        b3 <- glue::glue("r_{i} <- a3")
-        eval(parse(text = b2))
-        eval(parse(text = b3))
-
-        x2 <- glue::glue(
-            "knitr::knit_expand(text = imprimir_gt(r_{i}, q_{i}, {i}, url))"
+        out2 <- append(
+            out2,
+            knitr::knit_expand(text = imprimir_gt(respuestas_tema, tema, i, url))
         )
-        out2 <- append(out2, eval(parse(text = x2)))
     }
 
     # Slide 3: Cumplimiento e Importancia

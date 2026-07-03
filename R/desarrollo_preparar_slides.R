@@ -48,6 +48,39 @@ imprimir_nube <- function(df, i, parametros){
     return(char)
 }
 
+#' Crea el chunk de xaringan con el resumen de IA de una pregunta/tema.
+#'
+#' @description
+#' Sustituye a la función `imprimir_gt()` original (llamaba a
+#' `generar_resumen()`/`api_resumidor.R`, borrada del paquete sin actualizar
+#' a `slides_nubes()`/`slides_etapa_2()`, que quedaron rotas: cualquier
+#' render que llegara a una etapa con resumen de IA fallaba con
+#' `could not find function "imprimir_gt"`). Llama a [resumir_respuestas()]
+#' de una vez al armar el chunk (no al knitear), así el texto del resumen
+#' queda embebido como literal y no depende de variables `q_{i}`/`r_{i}`
+#' creadas por nombre en el entorno del knit.
+#'
+#' @param respuestas (char) Vector de respuestas a resumir.
+#' @param pregunta (char) Pregunta o tema al que pertenecen las respuestas.
+#'  Si trae más de un valor (ej. varios temas), se concatenan para el
+#'  encabezado y la llamada a la API.
+#' @param i (int) Índice relacionado con la etapa y pregunta.
+#' @param url (char) URL de la API de resumen (ver [resumir_respuestas()]).
+#'
+#' @return (char) El chunk/slide de xaringan en cadena de caracteres.
+#' @export
+#'
+#' @examples #notrun (imprimir_gt(c("mas medicinas"), "Salud", 1, url))
+imprimir_gt <- function(respuestas, pregunta, i, url){
+    pregunta <- paste(pregunta, collapse = ", ")
+
+    resumen <- resumir_respuestas(pregunta = pregunta, respuestas = respuestas, url = url)
+
+    char <- glue::glue("\n\n  # {pregunta} \n\n --- \n\n {resumen} \n\n ---")
+
+    return(char)
+}
+
 #' Title
 #'
 #' @param df (Tibble) El segundo elemento que retorna la función procesar_p_brecha
@@ -96,7 +129,7 @@ imprimir_brecha <- function(df, parametros, thm){
     t1 <- df %>% pull(pregunta) %>%
         unique()
 
-    r <- glue::glue("r etapa_2-2")
+    r <- glue::glue("r etapa_2-2_{chunk_label_unico()}")
     r <- paste("{", r, "}", sep="")
     sp <- "```"
 
@@ -142,7 +175,7 @@ imprimir_juntos_promedio <- function(df, parametros){
 
     t1 <- "Análisis Conjunto Promedio"
 
-    r <- glue::glue("r etapa_3-4-1")
+    r <- glue::glue("r etapa_3-4-1_{chunk_label_unico()}")
     r <- paste("{", r, "}", sep="")
     sp <- "```"
 
@@ -173,7 +206,7 @@ imprimir_juntos <- function(df, parametros){
 
     t1 <- "Análisis Conjunto"
 
-    r <- glue::glue("r etapa_3-4")
+    r <- glue::glue("r etapa_3-4_{chunk_label_unico()}")
     r <- paste("{", r, "}", sep="")
     sp <- "```"
 
@@ -205,8 +238,9 @@ imprimir_juntos <- function(df, parametros){
 
 imprimir_calc_brecha <- function(bd, grafica, parametros){
 
-    r <- glue::glue("r densidad_{grafica}")
-    r2 <- glue::glue("r barras")
+    sufijo <- chunk_label_unico()
+    r <- glue::glue("r densidad_{grafica}_{sufijo}")
+    r2 <- glue::glue("r barras_{sufijo}")
     r <- paste("{", r, "}", sep="")
     r2 <- paste("{", r2, "}", sep="")
     sp <- "```"

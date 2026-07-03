@@ -5,7 +5,14 @@
 \title{Utiliza la función de imprimir nube para imprimir todos
 las slides de las etapas inicial y final.}
 \usage{
-slides_nubes(bd, etapa, parametros, thm, url)
+slides_nubes(
+  bd,
+  etapa,
+  parametros,
+  thm,
+  url = getOption("abpvirtual.api_url",
+    "https://abp-flask-api.azurewebsites.net/api/v1/resumen_pregunta")
+)
 }
 \arguments{
 \item{bd}{(list) Lista de talbas provistas por leer_base.}
@@ -16,7 +23,12 @@ slides_nubes(bd, etapa, parametros, thm, url)
 
 \item{thm}{Tema de highcharter generado por tema_high.}
 
-\item{url}{(char) URL de la API del resumidor.}
+\item{url}{(char) URL de la API del resumidor (ver \code{\link[=resumir_respuestas]{resumir_respuestas()}}).
+Default \code{getOption("abpvirtual.api_url")}, igual que
+\code{resumir_respuestas()} — antes no tenía default y el skeleton del
+paquete la llamaba sin pasarlo, causando
+\verb{argument "url" is missing, with no default} en cuanto se llegaba a un
+resumen de IA.}
 }
 \value{
 (list) Lista de chuncks concatenados por "\n".

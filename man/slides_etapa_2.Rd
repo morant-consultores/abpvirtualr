@@ -5,7 +5,16 @@
 \title{Esta función es utilizada para crear los chuncks correspondientes
 a la etapa 2.}
 \usage{
-slides_etapa_2(bd, top_p, top_r, otro = "Otro", parametros, thm, url)
+slides_etapa_2(
+  bd,
+  top_p,
+  top_r,
+  otro = "Otro",
+  parametros,
+  thm,
+  url = getOption("abpvirtual.api_url",
+    "https://abp-flask-api.azurewebsites.net/api/v1/resumen_pregunta")
+)
 }
 \arguments{
 \item{bd}{(list) Lista de talbas provistas por leer_base.}
@@ -21,7 +30,10 @@ tema, regularmente será "Otro".}
 
 \item{thm}{Tema de highcharter generado por tema_high.}
 
-\item{url}{(char) URL de la API del resumidor.}
+\item{url}{(char) URL de la API del resumidor (ver \code{\link[=resumir_respuestas]{resumir_respuestas()}}).
+Default \code{getOption("abpvirtual.api_url")}, igual que
+\code{resumir_respuestas()} — antes no tenía default (ver detalle en
+\code{\link[=slides_nubes]{slides_nubes()}}).}
 }
 \value{
 (list) Una lista de chuncks correspondientes a cada pregunta.
