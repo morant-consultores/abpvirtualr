@@ -4,25 +4,31 @@
 \alias{graficar_juntos}
 \title{Gráfica conjunta de Importancia y Cumplimiento.}
 \usage{
-graficar_juntos(bd, parametros)
+graficar_juntos(bd, parametros, simular = TRUE, jitter_sd = 2)
 }
 \arguments{
 \item{bd}{(tibble) Marco de datos provisto por la función
 procesar_juntos.}
 
-\item{interactivo}{(logical) TRUE o FALSE dependiendo si
-la gráfica es interactiva o no.}
+\item{simular}{(logical) \code{TRUE} (default, compatibilidad con el
+comportamiento anterior) simula puntos vía \code{rnorm()}; \code{FALSE} grafica
+\code{Orden}/\code{Calificacion} reales con jitter. El caption del slide indica
+cuál se está usando.}
 
-\item{corte}{(vector) Cortes propuestos.}
-
-\item{thm}{Tema en highcharter}
+\item{jitter_sd}{(numeric) Desviación estándar del jitter aplicado a los
+datos reales cuando \code{simular = FALSE}.}
 }
 \value{
 Gráfica de cumplimiento vs importancia.
 }
 \description{
-Gráfica conjunta de Importancia y Cumplimiento.
+Por default \strong{simula} 100 puntos por tema con \code{rnorm()} alrededor de la
+media/sd observada de \code{Orden}/\code{Calificacion} (no son respuestas
+individuales) para tener suficiente densidad para el \code{geom_hex}. Con
+\code{simular = FALSE} grafica las respuestas reales (con jitter para que no se
+encimen exactamente); en sesiones con pocos participantes el hexbin se verá
+disperso, ya que no hay de donde inventar densidad.
 }
 \examples{
-#notrun ( graficar_juntos(procesar_juntos(bd), tema_highcharter()) )
+#notrun ( graficar_juntos(procesar_juntos(bd), parametros) )
 }

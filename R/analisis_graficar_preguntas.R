@@ -71,7 +71,7 @@ graficar_nube <- function(tokens_clean, parametros){
                 # }(Highcharts)
                 # "),
                 pointFormat= "
-                Frecuencia: <b>{point.n}<b/>
+                Frecuencia: <b>{point.n}</b>
                 ",
                 headerFormat = '',
                 backgroundColor = '#FFFFFF',
@@ -180,7 +180,7 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
                 hc_legend(enabled = T) %>%
                 hc_tooltip(enabled=T,
                            pointFormat =
-                               'Número de participantes:<b/> <br>{point.n}',
+                               'Número de participantes:<br><b>{point.n}</b>',
                            headerFormat= '',
                            backgroundColor= '#FFFFFF',
                            style=list(fontSize ="25px", color = "#005B70")) %>%
@@ -256,20 +256,20 @@ graficar_numerica <- function(bd, tipo, interactivo = TRUE, parametros, thm){
 graficar_juntos_promedio <- function(res, parametros){
 
     sysfonts::font_add_google(parametros$familia)
-    br <- function(x,c = parametros$corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
+    br <- function(x,c = parametros$cortes[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
     dominio <- seq(0,100,.1)
 
     e <- ggplot() +
         geom_ribbon(
-            aes(x = dominio, ymin = 0, ymax = br(dominio,parametros$corte[2])),
+            aes(x = dominio, ymin = 0, ymax = br(dominio,parametros$cortes[2])),
             fill = parametros$sm_vf,alpha = .5) +
-        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$corte[2]),
-                        ymax = br(dominio,parametros$corte[3])), fill = parametros$sm_vc,alpha = .5) +
-        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$corte[3]),
-                        ymax = br(dominio,parametros$corte[4])), fill = parametros$sm_a,alpha = .5) +
-        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$corte[4]),
-                        ymax = br(dominio,parametros$corte[5])), fill = parametros$sm_rc,alpha = .5) +
-        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$corte[5]),
+        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$cortes[2]),
+                        ymax = br(dominio,parametros$cortes[3])), fill = parametros$sm_vc,alpha = .5) +
+        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$cortes[3]),
+                        ymax = br(dominio,parametros$cortes[4])), fill = parametros$sm_a,alpha = .5) +
+        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$cortes[4]),
+                        ymax = br(dominio,parametros$cortes[5])), fill = parametros$sm_rc,alpha = .5) +
+        geom_ribbon(aes(x = dominio, ymin = br(dominio,parametros$cortes[5]),
                         ymax = 100), fill = parametros$sm_rf,alpha = .5) +
         geom_hline(yintercept = 50) +
         geom_vline(xintercept = 50) +
@@ -305,50 +305,71 @@ graficar_juntos_promedio <- function(res, parametros){
 }
 #' Gráfica conjunta de Importancia y Cumplimiento.
 #'
+#' @description
+#' Por default **simula** 100 puntos por tema con `rnorm()` alrededor de la
+#' media/sd observada de `Orden`/`Calificacion` (no son respuestas
+#' individuales) para tener suficiente densidad para el `geom_hex`. Con
+#' `simular = FALSE` grafica las respuestas reales (con jitter para que no se
+#' encimen exactamente); en sesiones con pocos participantes el hexbin se verá
+#' disperso, ya que no hay de donde inventar densidad.
+#'
 #' @param bd (tibble) Marco de datos provisto por la función
 #' procesar_juntos.
-#' @param interactivo (logical) TRUE o FALSE dependiendo si
-#' la gráfica es interactiva o no.
-#' @param corte (vector) Cortes propuestos.
-#' @param thm Tema en highcharter
+#' @param simular (logical) `TRUE` (default, compatibilidad con el
+#'  comportamiento anterior) simula puntos vía `rnorm()`; `FALSE` grafica
+#'  `Orden`/`Calificacion` reales con jitter. El caption del slide indica
+#'  cuál se está usando.
+#' @param jitter_sd (numeric) Desviación estándar del jitter aplicado a los
+#'  datos reales cuando `simular = FALSE`.
 #'
 #' @return Gráfica de cumplimiento vs importancia.
 #' @export
 #' @import ggplot2
 #'
-#' @examples #notrun ( graficar_juntos(procesar_juntos(bd), tema_highcharter()) )
+#' @examples #notrun ( graficar_juntos(procesar_juntos(bd), parametros) )
 
-graficar_juntos <- function(bd, parametros){
+graficar_juntos <- function(bd, parametros, simular = TRUE, jitter_sd = 2){
 
     sysfonts::font_add_google(parametros$familia)
 
 
     br <- function(x,c = corte[2]) purrr::map_dbl(x, ~ min(c/(100-.x),100))
     dominio <- seq(0,100,.1)
-    sim <- bd %>% group_by(Nombre) %>%
-        summarise(media_i = mean(Orden), sd_i = sqrt(var(Orden/5)),
-                  media_c = mean(Calificacion), sd_c = sqrt(var(Calificacion/5))) %>%
-        purrr::pmap(function(Nombre, media_i,sd_i,media_c,sd_c){
-            tibble::tibble(tema = Nombre, i = rnorm(100,media_i, sd_i),
-                           c = rnorm(100,media_c, sd_c),b = i*(100-c))
-        }) %>% bind_rows()
 
-    # sim <- bd %>% transmute(i = Orden, c = Calificacion, tema = Nombre)
-    e <- sim %>%
+    if (simular) {
+        datos <- bd %>% group_by(Nombre) %>%
+            summarise(media_i = mean(Orden), sd_i = sqrt(var(Orden/5)),
+                      media_c = mean(Calificacion), sd_c = sqrt(var(Calificacion/5))) %>%
+            purrr::pmap(function(Nombre, media_i,sd_i,media_c,sd_c){
+                tibble::tibble(tema = Nombre, i = rnorm(100,media_i, sd_i),
+                               c = rnorm(100,media_c, sd_c),b = i*(100-c))
+            }) %>% bind_rows()
+        caption_sim <- "* Puntos simulados (rnorm alrededor de la media/sd observada), no respuestas individuales."
+    } else {
+        datos <- bd %>%
+            transmute(
+                tema = Nombre,
+                i = Orden + stats::rnorm(dplyr::n(), 0, jitter_sd),
+                c = Calificacion + stats::rnorm(dplyr::n(), 0, jitter_sd)
+            )
+        caption_sim <- "* Respuestas reales con jitter para reducir traslape de puntos."
+    }
+
+    e <- datos %>%
         ggplot() +
-        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[2])),
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$cortes[2])),
                     aes(x = a, ymin = 0, ymax = b),
                     fill = parametros$sm_vf,alpha = .4) +
-        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[2]), c = br(a,parametros$corte[3])),
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$cortes[2]), c = br(a,parametros$cortes[3])),
                     aes(x = a, ymin = b,
                         ymax = c), fill = parametros$sm_vc,alpha = .4) +
-        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[3]), c = br(a,parametros$corte[4])),
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$cortes[3]), c = br(a,parametros$cortes[4])),
                     aes(x = a, ymin = b,
                         ymax = c), fill = parametros$sm_a,alpha = .4) +
-        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[4]), c = br(a,parametros$corte[5])),
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$cortes[4]), c = br(a,parametros$cortes[5])),
                     aes(x = a, ymin = b,
                         ymax = c), fill = parametros$sm_rc,alpha = .4) +
-        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$corte[5])),
+        geom_ribbon(data = tibble(a = dominio, b = br(a,parametros$cortes[5])),
                     aes(x = a, ymin = b,
                         ymax = 100), fill = parametros$sm_rf,alpha = .4) + coord_fixed() +
         xlim(c(0,100)) + ylim(c(0,100)) +
@@ -358,7 +379,7 @@ graficar_juntos <- function(bd, parametros){
         # geom_point(aes(x = c, y = i), color = inverso, size = .5) +
         geom_hex(aes(x = c, y = i) ) +
         scale_fill_gradient(low=parametros$inverso_claro ,high=parametros$primario)+
-        labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas") +
+        labs( x = "Cumplimiento", y ="Importancia", fill = "Respuestas", caption = caption_sim) +
         facet_wrap(~stringr::str_wrap(tema, 20), nrow= 2) +
         xaringanthemer::theme_xaringan() +
         scale_y_continuous(breaks = c(0,50,100), labels = function(x){
@@ -502,6 +523,30 @@ graficar_nbrecha <- function(brecha, parametros,densidad = T){
     return(Graph)
 }
 
+#' Traduce el código corto de nivel del semáforo a una etiqueta legible
+#'
+#' @description
+#' El semáforo de brecha se distingue hoy solo por color (verde->rojo), lo
+#' cual es problemático para audiencias con daltonismo rojo-verde. Esta
+#' función mapea el `nombre_color` corto (`"vf"`, `"vc"`, `"a"`, `"rc"`,
+#' `"rf"`) que ya trae [calcular_brecha()] a una etiqueta de texto para
+#' mostrarla junto al color (ver [generar_tabla()]).
+#'
+#' @param nombre_color (char) Código corto del nivel (`"vf"`, `"vc"`, `"a"`,
+#'  `"rc"`, `"rf"`).
+#'
+#' @return (char) Etiqueta legible del nivel, o el código original si no
+#'  coincide con ninguno conocido.
+#' @export
+#' @examples etiqueta_semaforo(c("vf", "a", "rf"))
+etiqueta_semaforo <- function(nombre_color) {
+    etiquetas <- c(
+        vf = "Verde fuerte", vc = "Verde claro", a = "Amarillo",
+        rc = "Rojo claro", rf = "Rojo fuerte"
+    )
+    unname(dplyr::coalesce(etiquetas[nombre_color], nombre_color))
+}
+
 #' Genera la tabla en formato kable con sus colores
 #'
 #' @param brecha (tibble) Un marco de datos que proviene
@@ -518,13 +563,30 @@ generar_tabla <- function(brecha, parametros){
     tabla <- brecha %>% purrr::pluck(2) %>%
         filter(color == semaforo) %>% ungroup %>%
         arrange(brecha)
+
+    if (nrow(tabla) == 0) {
+        # Contrato "sin datos" (Roadmap 2.5/4.6): sin esto, kableExtra
+        # truena con "subindice fuera de los limites" al construir
+        # column_spec() con un vector de colores vacio.
+        return(
+            tibble::tibble(`Sin datos suficientes` = character()) %>%
+                kableExtra::kbl() %>%
+                kableExtra::kable_paper("striped", full_width = FALSE)
+        )
+    }
+
     colores <- tabla %>% pull(color)
 
     tabla_df <- tabla %>%
         mutate(Brecha = scales::percent(brecha_pct, 1),
                cumplimiento = paste0(cumplimiento, "%"),
-               importancia= paste0(importancia, "%")  ) %>%
+               importancia= paste0(importancia, "%"),
+               # Etiqueta de texto junto al color: accesible para
+               # daltonismo rojo-verde (no depende solo del color de fondo).
+               Semaforo = etiqueta_semaforo(nombre_color)
+        ) %>%
         select( Tema=Nombre ,
+                Semaforo,
                 Brecha,
                 Importancia = importancia,
                 Cumplimiento = cumplimiento
