@@ -5,12 +5,18 @@
 \title{Utiliza la función de imprimir nube para imprimir todos
 las slides de las etapas inicial y final.}
 \usage{
-slides_nubes(bd, etapa)
+slides_nubes(bd, etapa, parametros, thm, url)
 }
 \arguments{
 \item{bd}{(list) Lista de talbas provistas por leer_base.}
 
 \item{etapa}{(int) Número de la etapa en la base de datos.}
+
+\item{parametros}{(list) Parámetros de configuración del reporte.}
+
+\item{thm}{Tema de highcharter generado por tema_high.}
+
+\item{url}{(char) URL de la API del resumidor.}
 }
 \value{
 (list) Lista de chuncks concatenados por "\n".

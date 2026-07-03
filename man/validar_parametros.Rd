@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilitaria_parametros.R
 \name{validar_parametros}
 \alias{validar_parametros}
-\title{Valida la estructura de una lista `parametros`}
+\title{Valida la estructura de una lista \code{parametros}}
 \usage{
 validar_parametros(parametros)
 }
@@ -10,16 +10,16 @@ validar_parametros(parametros)
 \item{parametros}{(list) Lista de parámetros de estilo a validar.}
 }
 \value{
-(invisible list) La misma lista `parametros`, invisible, si es
-válida. En caso contrario aborta con `stop()`.
+(invisible list) La misma lista \code{parametros}, invisible, si es
+válida. En caso contrario aborta con \code{stop()}.
 }
 \description{
-Verifica que una lista `parametros` tenga todos los campos requeridos, que
-los colores sean hex válidos, que `cortes` tenga 6 valores crecientes y que
-`etiquetas` esté en formato "<n>px". Falla con un mensaje explícito en el
+Verifica que una lista \code{parametros} tenga todos los campos requeridos, que
+los colores sean hex válidos, que \code{cortes} tenga 6 valores crecientes y que
+\code{etiquetas} esté en formato "\if{html}{\out{<n>}}px". Falla con un mensaje explícito en el
 primer problema encontrado, en lugar de dejar que el error aparezca a la
-mitad del knit. Es invocada por \code{\link{parametros_default}} pero también
-sirve para validar una lista armada a mano.
+mitad del knit. Es invocada por \code{\link[=parametros_default]{parametros_default()}} pero también sirve
+para validar una lista armada a mano.
 }
 \examples{
 #notrun (validar_parametros(parametros_default()))

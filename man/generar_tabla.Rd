@@ -4,7 +4,7 @@
 \alias{generar_tabla}
 \title{Genera la tabla en formato kable con sus colores}
 \usage{
-generar_tabla(brecha)
+generar_tabla(brecha, parametros)
 }
 \arguments{
 \item{brecha}{(tibble) Un marco de datos que proviene

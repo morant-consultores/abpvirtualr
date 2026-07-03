@@ -9,7 +9,6 @@
 #' @return (list) Lista de dataframes uno con una tabla con las palabras, frecuencias y colores asignados y otro con las respuestas.
 #' @export
 #' @import dplyr
-#' @importFrom spatstat.core CDF
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
 
 procesar_p_abierta <- function(bd, pregunta, etapa, parametros, quitar_altisonantes = T){
@@ -26,7 +25,7 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros, quitar_altisonan
         tidytext::unnest_tokens(
             output = palabra, input = Respuesta, drop = FALSE)
     aux <- if(quitar_altisonantes){
-        load("data/altisonantes.rda")
+        altisonantes <- obtener_altisonantes()
         quitar <- aux %>% semi_join(altisonantes %>% mutate(palabra = tolower(palabra))) %>% distinct(Respuesta)
         aux %>% anti_join(quitar)
     } else{
@@ -103,7 +102,7 @@ procesar_brecha <- function(bd,  otro = "Otro", quitar_altisonantes = T){
         tidyr::replace_na(list(Nombre = otro))
 
     sw <- if(quitar_altisonantes){
-        load("data/altisonantes.rda")
+        altisonantes <- obtener_altisonantes()
         stopwords::stopwords("es") %>% append(altisonantes %>% mutate(palabra = tolower(palabra)) %>% pull(palabra))
     } else{
         stopwords::stopwords("es")
@@ -185,8 +184,7 @@ procesar_r_tema <- function(bd, top_p, top_r, otro = "Otro", quitar_altisonantes
         tidyr::replace_na(list(Nombre = otro))
 
     sw <- if(quitar_altisonantes){
-        load("data/altisonantes.rda")
-        altisonantes <- altisonantes %>% mutate(palabra = tolower(palabra))
+        altisonantes <- obtener_altisonantes() %>% mutate(palabra = tolower(palabra))
         stopwords::stopwords("es") %>% append(altisonantes %>% pull(palabra))
     } else{
         stopwords::stopwords("es")
@@ -360,7 +358,7 @@ mode <- function(codes){
 
 corte <- function(brecha, parametros){
 
-    as.character(cut(brecha, parametros$corte, labels = c(parametros$sm_vf,parametros$sm_vc,parametros$sm_a, parametros$sm_rc,parametros$sm_rf),
+    as.character(cut(brecha, parametros$cortes, labels = c(parametros$sm_vf,parametros$sm_vc,parametros$sm_a, parametros$sm_rc,parametros$sm_rf),
                      include.lowest = T))
 }
 
@@ -431,8 +429,7 @@ procesar_bigramas <- function(bd, pregunta, etapa, parametros, quitar_altisonant
         anti_join(stop_words, by = c("palabra2" = "palabra"))
 
     if(quitar_altisonantes){
-        load("data/altisonantes.rda")
-        altisonantes <- altisonantes %>% mutate(palabra = tolower(palabra))
+        altisonantes <- obtener_altisonantes() %>% mutate(palabra = tolower(palabra))
         quitar <- aux %>% semi_join(altisonantes, by = c("palabra1" = "palabra")) %>%
             bind_rows(
                 aux %>% semi_join(altisonantes, by = c("palabra2" = "palabra"))

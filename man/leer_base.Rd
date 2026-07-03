@@ -14,7 +14,9 @@ proveerla toma la última, y si se inserta "Todo" entrega todos los eventos}
 (list) Una lista de tibbles con las tablas necesarias para las preguntas
 }
 \description{
-Colecta todas las tablas necesarias para su posterior análisis
+Requiere las variables de entorno de conexión (ABPVIRTUAL_DB_SERVER,
+ABPVIRTUAL_DB_DATABASE, ABPVIRTUAL_DB_UID, ABPVIRTUAL_DB_PWD y
+opcionalmente ABPVIRTUAL_DB_DRIVER/ABPVIRTUAL_DB_PORT). Ver README.md.
 }
 \examples{
 #notrun (leer_base(con, id_sesion = "Todo"))

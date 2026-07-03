@@ -14,9 +14,10 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Imports: 
+Imports:
     dbplyr,
     dplyr,
+    DT,
     forcats,
     ggchicklet,
     ggplot2,
@@ -30,18 +31,17 @@ Imports:
     purrr,
     quanteda,
     quanteda.textstats,
-    RColorBrewer,
     scales,
-    spatstat.core,
     stopwords,
     stringr,
     sysfonts,
     tibble,
     tidyr,
     tidytext,
-    tm,
     visNetwork,
-    wordcloud,
     xaringanthemer
-Depends: 
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Depends:
     R (>= 2.10)

@@ -4,7 +4,7 @@
 \alias{corte}
 \title{Asigna colores dependiendo del cálulo de la brecha.}
 \usage{
-corte(brecha, corte = cortes, colores = c(sm_vf, sm_vc, sm_a, sm_rc, sm_rf))
+corte(brecha, parametros)
 }
 \arguments{
 \item{brecha}{(dbl) Columna con el cálculo de la brecha.}

@@ -4,7 +4,7 @@
 \alias{imprimir_brecha}
 \title{Crea el chunk de xaringan para poner el treemap de brecha.}
 \usage{
-imprimir_brecha(df)
+imprimir_brecha(df, parametros, thm)
 }
 \arguments{
 \item{df}{(tibble) Marco de datos que proviene de

@@ -5,7 +5,7 @@
 \title{Procesamiento de la pregunta brecha, palabras clave por tema de manera
 global}
 \usage{
-procesar_brecha(bd, otro = "Otro")
+procesar_brecha(bd, otro = "Otro", quitar_altisonantes = T)
 }
 \arguments{
 \item{bd}{(list) La lista con las tablas necesarias

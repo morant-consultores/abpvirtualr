@@ -4,7 +4,7 @@
 \alias{graficar_brecha}
 \title{Treemap sobre el resumen del cálculo de la brecha}
 \usage{
-graficar_brecha(bd, interactivo = TRUE, inverso, primario, thm)
+graficar_brecha(bd, interactivo = TRUE, parametros, thm)
 }
 \arguments{
 \item{bd}{(tibble)  Marco de datos provista de procesar_brecha}
@@ -12,11 +12,11 @@ graficar_brecha(bd, interactivo = TRUE, inverso, primario, thm)
 \item{interactivo}{(logical) TRUE o FALSE dependiendo si se quiere
 interactividad o no.}
 
+\item{thm}{Tema de la gráfica}
+
 \item{inverso}{(char) Código del color inverso}
 
 \item{primario}{(char) Código del color primario}
-
-\item{thm}{Tema de la gráfica}
 }
 \value{
 Gráfica treemap

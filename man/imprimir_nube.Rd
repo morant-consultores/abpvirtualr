@@ -4,7 +4,7 @@
 \alias{imprimir_nube}
 \title{Crea el chunk de xaringan para poner la nube de palabras.}
 \usage{
-imprimir_nube(df, i)
+imprimir_nube(df, i, parametros)
 }
 \arguments{
 \item{df}{(tibble) Marco de datos que proviene de

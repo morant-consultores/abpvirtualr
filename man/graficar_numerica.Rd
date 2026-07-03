@@ -4,7 +4,7 @@
 \alias{graficar_numerica}
 \title{Gráfica de barras (histograma) y otra de resumen (error bar)}
 \usage{
-graficar_numerica(bd, tipo, interactivo = TRUE, thm)
+graficar_numerica(bd, tipo, interactivo = TRUE, parametros, thm)
 }
 \arguments{
 \item{bd}{(list) Listas de marcos de datos provistas de

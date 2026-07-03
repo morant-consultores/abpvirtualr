@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilitaria_parametros.R
 \name{parametros_default}
 \alias{parametros_default}
-\title{Construye la lista `parametros` de estilo con valores por defecto}
+\title{Construye la lista \code{parametros} de estilo con valores por defecto}
 \usage{
 parametros_default(
   primario = "#2A3D6E",
@@ -55,16 +55,16 @@ parametros_default(
 \item{etiquetas}{(char) Tamaño de fuente de ejes en px, ej. "14px".}
 }
 \value{
-(list) Lista `parametros` validada, lista para pasar a las funciones
+(list) Lista \code{parametros} validada, lista para pasar a las funciones
 de graficado/impresión.
 }
 \description{
-Devuelve la lista `parametros` que consumen las funciones `graficar_*`,
-`imprimir_*` y `slides_*`, con todos sus campos poblados a partir de un
+Devuelve la lista \code{parametros} que consumen las funciones \verb{graficar_*},
+\verb{imprimir_*} y \verb{slides_*}, con todos sus campos poblados a partir de un
 conjunto de defaults documentado. Para un caso nuevo basta sobreescribir los
-pocos valores de marca (p. ej. `primario`, `familia`) en lugar de rearmar los
-15 campos a mano en cada `.Rmd`. El resultado se valida con
-\code{\link{validar_parametros}} antes de regresarse.
+pocos valores de marca (p. ej. \code{primario}, \code{familia}) en lugar de rearmar los
+15 campos a mano en cada \code{.Rmd}. El resultado se valida con
+\code{\link[=validar_parametros]{validar_parametros()}} antes de regresarse.
 }
 \examples{
 # Defaults completos:
