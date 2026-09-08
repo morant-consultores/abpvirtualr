@@ -1,0 +1,44 @@
+# Gate automático del Roadmap (sección 9): corre R CMD check + la suite de
+# testthat en cada push/PR contra main, para que un cambio no llegue a main
+# sin que la suite este en verde.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+name: R-CMD-check
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          build_args: 'c("--no-manual", "--no-build-vignettes")'
+          args: 'c("--no-manual")'
+          # error-on = "error": este es un paquete interno en español, no va
+          # a CRAN. R CMD check ya marca WARNING el codigo con caracteres no
+          # ASCII (comentarios/strings en espanol) y algunos parametros sin
+          # documentar en funciones viejas (ver README "Areas de mejora") —
+          # son ruido conocido, no regresiones. El gate real es la suite de
+          # testthat (corre como parte de R CMD check) y que no haya ERROR.
+          error-on: '"error"'
