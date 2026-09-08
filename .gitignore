@@ -4,3 +4,7 @@ test.R
 .Rhistory
 .DS_Store
 prueba
+*_cache/
+*_files/
+figure/
+Rplots.pdf

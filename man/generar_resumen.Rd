@@ -4,18 +4,37 @@
 \alias{generar_resumen}
 \title{Función que genera un resumen de las preguntas seleccionadas}
 \usage{
-generar_resumen(pregunta, respuestas, url)
+generar_resumen(
+  pregunta,
+  respuestas,
+  url,
+  cache_dir = getOption("abpvirtual.cache_dir", tools::R_user_dir("abpvirtualr",
+    "cache")),
+  timeout = 30,
+  reintentos = 2
+)
 }
 \arguments{
-\item{url}{(string) Url de la api del resumidor}
+\item{pregunta}{(char o NULL) Pregunta/tema a resumir; NULL para un resumen
+general de \code{respuestas} sin pregunta asociada.}
 
-\item{bd}{(list) Lista de tablas provistas por leer_base.}
+\item{respuestas}{(char) Vector de respuestas a resumir.}
 
-\item{etapa}{(int) Número de la etapa en la base de datos.}
+\item{url}{(string) Url de la api del resumidor.}
+
+\item{cache_dir}{(char o NULL) Directorio para cachear resúmenes como
+\code{.rds} nombrados por hash. \code{NULL} desactiva el cache. Default
+\code{tools::R_user_dir("abpvirtualr", "cache")}.}
+
+\item{timeout}{(numeric) Segundos antes de abortar la petición.}
+
+\item{reintentos}{(int) Reintentos ante error transitorio (5xx o de red).}
 }
 \value{
-(gt) Tabla tipo gt con formato de markdown
+(tibble) Una columna "Resumen" con el texto generado por la API.
 }
 \description{
-Función que genera un resumen de las preguntas seleccionadas
+Usa httr2 con timeout y reintentos con backoff ante error transitorio, y
+cachea el resultado en disco por hash de (pregunta, respuestas, url) para
+que un re-render no vuelva a pagar el costo del LLM.
 }

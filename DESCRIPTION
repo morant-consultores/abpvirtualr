@@ -1,27 +1,34 @@
 Package: abpvirtualr
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person(given = "First",
-           family = "Last",
+Title: Herramientas para Procesar y Reportar Sesiones de ABP Virtual
+Version: 0.1.0
+Authors@R:
+    person(given = "Rafael",
+           family = "Lopez",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+           email = "rafa0823.rl@gmail.com")
+Description: Funciones para leer, procesar, visualizar y ensamblar reportes
+    (Quarto/xaringan) de sesiones de Aprendizaje Basado en Problemas (ABP)
+    virtual: lectura de respuestas desde la base de datos, cálculo de
+    brechas y semáforos, generación de nubes de palabras y bigramas,
+    resúmenes vía IA, y armado de reportes por etapa.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
-Imports: 
+RoxygenNote: 7.3.2
+Imports:
     dbplyr,
+    digest,
     dplyr,
+    DT,
     forcats,
     ggplot2,
     glue,
     grDevices,
+    gt,
+    gtExtras,
     highcharter,
+    httr2,
     kableExtra,
     knitr,
     odbc,
@@ -29,6 +36,7 @@ Imports:
     purrr,
     quanteda,
     quanteda.textstats,
+    quarto,
     RColorBrewer,
     scales,
     stopwords,
@@ -37,15 +45,14 @@ Imports:
     tibble,
     tidyr,
     tidytext,
-    tm,
     wordcloud,
-    xaringanthemer, 
-    quarto, 
-    gt, 
-    DT, 
-    htmltools
-Remotes: 
-    hrbrmstr/ggchicklet,
-    spatstat/spatstat.core
-Depends: 
+    xaringanthemer,
+    zip
+Suggests:
+    testthat (>= 3.0.0),
+    withr
+Config/testthat/edition: 3
+Remotes:
+    hrbrmstr/ggchicklet
+Depends:
     R (>= 2.10)

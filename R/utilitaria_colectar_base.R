@@ -18,6 +18,7 @@ leer_base <- function(conexion, id_sesion = NULL, proyecto){
                         UID = conexion$UID,
                         PWD = conexion$PWD,
                         Port = conexion$Port)
+    on.exit(pool::poolClose(con), add = TRUE)
 
     id_proyecto <- tbl(con, in_schema("General", "Proyecto")) |>
         filter(Nombre == proyecto) |>
@@ -63,8 +64,6 @@ leer_base <- function(conexion, id_sesion = NULL, proyecto){
     calif_cat <- tbl(con, in_schema("Cuestionario", "CalificacionCategoria")) %>%
         filter(IdSesion %in% !! id_sesion) %>%
         collect()
-
-    pool::poolClose(con)
 
     res <- list(
         etapa = etapa,

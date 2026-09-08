@@ -1,40 +1,67 @@
 #' Función que genera un resumen de las preguntas seleccionadas
 #'
-#' @param bd (list) Lista de tablas provistas por leer_base.
-#' @param etapa (int) Número de la etapa en la base de datos.
-#' @param url (string) Url de la api del resumidor
-#' @return (gt) Tabla tipo gt con formato de markdown
+#' Usa httr2 con timeout y reintentos con backoff ante error transitorio, y
+#' cachea el resultado en disco por hash de (pregunta, respuestas, url) para
+#' que un re-render no vuelva a pagar el costo del LLM.
+#'
+#' @param pregunta (char o NULL) Pregunta/tema a resumir; NULL para un resumen
+#'   general de `respuestas` sin pregunta asociada.
+#' @param respuestas (char) Vector de respuestas a resumir.
+#' @param url (string) Url de la api del resumidor.
+#' @param cache_dir (char o NULL) Directorio para cachear resúmenes como
+#'   `.rds` nombrados por hash. `NULL` desactiva el cache. Default
+#'   `tools::R_user_dir("abpvirtualr", "cache")`.
+#' @param timeout (numeric) Segundos antes de abortar la petición.
+#' @param reintentos (int) Reintentos ante error transitorio (5xx o de red).
+#' @return (tibble) Una columna "Resumen" con el texto generado por la API.
 #' @export
-#'
-#' @import httr
-#'
-generar_resumen <- function(pregunta, respuestas, url){
-    if(is.null(pregunta)){
-        json_data <- list(
-            textos = respuestas
-        )
-    } else {
-        json_data <- list(
-            pregunta = pregunta,
-            respuestas = respuestas
-        )
+generar_resumen <- function(pregunta, respuestas, url,
+                             cache_dir = getOption(
+                                 "abpvirtual.cache_dir",
+                                 tools::R_user_dir("abpvirtualr", "cache")
+                             ),
+                             timeout = 30, reintentos = 2){
+    if (length(respuestas) == 0) {
+        return(tibble::tibble("Resumen" = NA_character_))
     }
 
-    json_body <- jsonlite::toJSON(json_data, auto_unbox = TRUE)
+    usar_cache <- !is.null(cache_dir)
+    cache_file <- NULL
+    if (usar_cache) {
+        if (!dir.exists(cache_dir)) dir.create(cache_dir, recursive = TRUE)
+        hash <- digest::digest(list(pregunta = pregunta, respuestas = respuestas, url = url))
+        cache_file <- file.path(cache_dir, paste0(hash, ".rds"))
+        if (file.exists(cache_file)) return(readRDS(cache_file))
+    }
 
-    response <- POST(
-        url = url,
-        body = json_body,
-        content_type_json()
-    )
+    json_data <- if (is.null(pregunta)) {
+        list(textos = respuestas)
+    } else {
+        list(pregunta = pregunta, respuestas = respuestas)
+    }
 
-    json_content <- httr::content(response, "text", encoding = "UTF-8")
+    resp <- httr2::request(url) |>
+        httr2::req_body_json(json_data) |>
+        httr2::req_timeout(timeout) |>
+        httr2::req_retry(max_tries = reintentos + 1) |>
+        httr2::req_error(is_error = function(resp) FALSE) |>
+        httr2::req_perform()
 
-    json_data <- jsonlite::fromJSON(json_content)
+    status <- httr2::resp_status(resp)
+    if (status != 200) {
+        stop(glue::glue("generar_resumen(): la API respondio status {status}."), call. = FALSE)
+    }
 
-    resumen <- tibble("Resumen" = json_data$data)
+    body <- httr2::resp_body_json(resp)
+    if (is.null(body$data)) {
+        stop("generar_resumen(): la respuesta de la API no trae el campo 'data' esperado.", call. = FALSE)
+    }
 
-    return(resumen)
+    resumen <- tibble::tibble("Resumen" = body$data)
+
+    if (usar_cache) saveRDS(resumen, cache_file)
+
+    resumen
 }
 
 
