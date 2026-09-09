@@ -1,3 +1,29 @@
+#' Fuerza un locale UTF-8 para el proceso actual si no hay uno ya activo
+#'
+#' `quarto::quarto_render()` lanza un subproceso de R que hereda las
+#' variables de entorno del proceso actual. Sin un locale UTF-8 (comun en
+#' Docker/servidores sin configurar, o en shells sin `LANG`/`LC_ALL`), ese
+#' subproceso cae en el locale `"C"` y el texto con acentos/eñes se corrompe
+#' a escapes tipo `"<U+00E9>"` en el HTML final -- los bytes que llegan de la
+#' base de datos ya son UTF-8 correcto, es la impresión/formateo bajo locale
+#' `"C"` lo que los rompe.
+#'
+#' @return (function) Una función sin argumentos que restaura `LC_ALL`/`LANG`
+#'   a su valor previo. Si ya había un locale UTF-8 activo, no cambia nada y
+#'   la función de restauración no hace nada.
+#' @keywords internal
+asegurar_locale_utf8 <- function() {
+    actual <- Sys.getenv(c("LC_ALL", "LANG"))
+    if (any(grepl("UTF-8", actual, ignore.case = TRUE))) {
+        return(function() invisible(NULL))
+    }
+    Sys.setenv(LC_ALL = "en_US.UTF-8", LANG = "en_US.UTF-8")
+    function() {
+        if (nzchar(actual["LC_ALL"])) Sys.setenv(LC_ALL = actual["LC_ALL"]) else Sys.unsetenv("LC_ALL")
+        if (nzchar(actual["LANG"])) Sys.setenv(LANG = actual["LANG"]) else Sys.unsetenv("LANG")
+    }
+}
+
 #' @title Crear un archivo HTML de abp_ao
 #'
 #' @description
@@ -143,6 +169,16 @@ renderizar_reporte <- function(input_file, output_file, sesion, proyecto, pregun
         "PWD" = PWD
     ) |>
         purrr::compact()
+
+    # quarto_render() lanza un subproceso de R que hereda las variables de
+    # entorno actuales. Sin un locale UTF-8 (comun en Docker/servidores sin
+    # configurar, o en shells sin LANG/LC_ALL), ese subproceso cae en el
+    # locale "C" y el texto con acentos/enies se corrompe a escapes tipo
+    # "<U+00E9>" en el HTML final -- los bytes que llegan de la base de datos
+    # ya son UTF-8 correcto, es la impresion/formateo bajo locale "C" lo que
+    # los rompe.
+    restaurar_locale <- asegurar_locale_utf8()
+    on.exit(restaurar_locale(), add = TRUE)
 
     # Renderizar el reporte usando Quarto
     tryCatch({
