@@ -65,6 +65,40 @@ generar_resumen <- function(pregunta, respuestas, url,
 }
 
 
+#' Separa el bloque de resumen en categoría + texto
+#'
+#' `generar_resumen()` devuelve un solo string con secciones
+#' `"**Categoria**\ntexto"` unidas por `"\n\n&nbsp;\n\n"`. Esta función las
+#' separa en una tibble para poder renderizar una lámina por categoría (p.ej.
+#' en un reporte revealjs) en vez de una sola tabla larga y con scroll.
+#'
+#' @param resumen (char) El string `Resumen` devuelto por `generar_resumen()`.
+#' @return (tibble) Columnas `categoria` y `texto`, una fila por categoría.
+#'   Si una sección no trae el formato `"**Categoria**"`, `categoria` queda
+#'   `NA` y `texto` conserva la sección completa. Tibble vacía si `resumen`
+#'   es `NA`/`NULL`/vacío.
+#' @export
+separar_categorias <- function(resumen) {
+    if (is.null(resumen) || length(resumen) == 0 || is.na(resumen) || !nzchar(trimws(resumen))) {
+        return(tibble::tibble(categoria = character(), texto = character()))
+    }
+
+    secciones <- strsplit(resumen, "\n\n&nbsp;\n\n", fixed = TRUE)[[1]]
+    secciones <- trimws(secciones)
+    secciones <- secciones[nzchar(secciones)]
+
+    m <- regmatches(secciones, regexec("(?s)^\\*\\*(.+?)\\*\\*\\s*\\n?(.*)$", secciones, perl = TRUE))
+
+    categoria <- vapply(m, function(x) if (length(x) >= 2) trimws(x[2]) else NA_character_, character(1))
+    texto <- vapply(m, function(x) if (length(x) >= 3) trimws(x[3]) else NA_character_, character(1))
+
+    sin_match <- is.na(categoria)
+    texto[sin_match] <- secciones[sin_match]
+
+    tibble::tibble(categoria = categoria, texto = texto)
+}
+
+
 #' Formato personalizado de tablas utilizando gt y DT
 #'
 #' Esta función aplica un formato personalizado a una tabla, utilizando los paquetes **gt** o **DT** dependiendo del valor del parámetro `general`. Si `general = "F"`, se utiliza **gt** para generar una tabla estática con estilo. Si `general = "T"`, se utiliza **DT** para generar una tabla interactiva y editable que soporta Markdown.
