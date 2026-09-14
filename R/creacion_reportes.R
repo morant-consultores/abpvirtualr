@@ -31,13 +31,19 @@ asegurar_locale_utf8 <- function() {
 #'
 #' @param file_name Nombre del archivo `.qmd` que se va a crear. Debe ser una cadena de caracteres.
 #' @param ext_name Nombre de la extensión. Por defecto es `"abp_ao"`.
+#' @param qmd_name Nombre (sin extensión) de la plantilla `.qmd` dentro de la
+#'   extensión a usar como base. Por defecto es igual a `ext_name` (la
+#'   plantilla original). Otras plantillas que vivan en la misma carpeta de
+#'   extensión, como `"abp_ao_categorias"`, se seleccionan pasando este
+#'   parámetro.
 #'
 #' @return
 #' No devuelve un valor, pero crea los archivos necesarios en el sistema de archivos.
 #'
 #' @export
 crear_abp_ao_html <- function(file_name = NULL,
-                               ext_name = "abp_ao") {
+                               ext_name = "abp_ao",
+                               qmd_name = ext_name) {
     # Validación de parámetros
     if (is.null(file_name) || !is.character(file_name) || file_name == "") {
         stop("Debe proporcionar un 'file_name' válido y no vacío de tipo carácter.")
@@ -89,7 +95,7 @@ crear_abp_ao_html <- function(file_name = NULL,
     }
 
     # Crear nuevo reporte qmd basado en el esqueleto
-    qmd_origen <- file.path(ext_dir, paste0(ext_name, ".qmd"))
+    qmd_origen <- file.path(ext_dir, paste0(qmd_name, ".qmd"))
     qmd_destino <- paste0(file_name, ".qmd")
 
     if (!file.exists(qmd_origen)) {
@@ -118,12 +124,16 @@ crear_abp_ao_html <- function(file_name = NULL,
 #' @param Server Servidor de la base de datos (opcional).
 #' @param UID Usuario de la base de datos (opcional).
 #' @param PWD Contraseña de la base de datos (opcional).
+#' @param url URL de la API de resumen a usar (opcional). Solo tiene efecto en
+#'   plantillas `.qmd` que declaren un parámetro `url` (p.ej.
+#'   `abp_ao_categorias`) -- permite apuntar a un endpoint distinto al que la
+#'   plantilla trae por defecto, como el pipeline multiagente.
 #'
 #' @return
 #' No devuelve un valor, pero genera un archivo HTML con el reporte renderizado.
 #' @import quarto
 #' @export
-renderizar_reporte <- function(input_file, output_file, sesion, proyecto, pregunta, resumen_general = "F", Database = NULL, Server = NULL, UID = NULL, PWD = NULL){
+renderizar_reporte <- function(input_file, output_file, sesion, proyecto, pregunta, resumen_general = "F", Database = NULL, Server = NULL, UID = NULL, PWD = NULL, url = NULL){
     # Validación de parámetros obligatorios
     if (missing(input_file) || !is.character(input_file) || input_file == "") {
         stop("Debe proporcionar un 'input_file' válido y no vacío de tipo carácter.")
@@ -166,7 +176,8 @@ renderizar_reporte <- function(input_file, output_file, sesion, proyecto, pregun
         "Database" = Database,
         "Server" = Server,
         "UID" = UID,
-        "PWD" = PWD
+        "PWD" = PWD,
+        "url" = url
     ) |>
         purrr::compact()
 

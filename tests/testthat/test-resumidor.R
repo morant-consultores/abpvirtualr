@@ -91,3 +91,22 @@ test_that("generar_resumen() no comparte cache entre preguntas distintas", {
 
     expect_equal(length(list.files(cache_dir, pattern = "\\.rds$")), 2)
 })
+
+test_that("separar_categorias() separa un resumen con varias categorias", {
+    resumen <- "**Alumbrado**\nFalta luz en las calles.\n\n&nbsp;\n\n**Seguridad**\nSe piden mas patrullas."
+    res <- separar_categorias(resumen)
+
+    expect_equal(res$categoria, c("Alumbrado", "Seguridad"))
+    expect_equal(res$texto, c("Falta luz en las calles.", "Se piden mas patrullas."))
+})
+
+test_that("separar_categorias() regresa tibble vacia si el resumen es NA", {
+    res <- separar_categorias(NA_character_)
+    expect_equal(nrow(res), 0)
+})
+
+test_that("separar_categorias() conserva texto sin categoria si no hay negritas", {
+    res <- separar_categorias("solo texto plano sin formato")
+    expect_true(is.na(res$categoria))
+    expect_equal(res$texto, "solo texto plano sin formato")
+})

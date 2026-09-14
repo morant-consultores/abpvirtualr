@@ -4,12 +4,18 @@
 \alias{crear_abp_ao_html}
 \title{Crear un archivo HTML de abp_ao}
 \usage{
-crear_abp_ao_html(file_name = NULL, ext_name = "abp_ao")
+crear_abp_ao_html(file_name = NULL, ext_name = "abp_ao", qmd_name = ext_name)
 }
 \arguments{
 \item{file_name}{Nombre del archivo \code{.qmd} que se va a crear. Debe ser una cadena de caracteres.}
 
 \item{ext_name}{Nombre de la extensión. Por defecto es \code{"abp_ao"}.}
+
+\item{qmd_name}{Nombre (sin extensión) de la plantilla \code{.qmd} dentro de la
+extensión a usar como base. Por defecto es igual a \code{ext_name} (la
+plantilla original). Otras plantillas que vivan en la misma carpeta de
+extensión, como \code{"abp_ao_categorias"}, se seleccionan pasando este
+parámetro.}
 }
 \value{
 No devuelve un valor, pero crea los archivos necesarios en el sistema de archivos.

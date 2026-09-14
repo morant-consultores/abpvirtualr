@@ -14,7 +14,8 @@ renderizar_reporte(
   Database = NULL,
   Server = NULL,
   UID = NULL,
-  PWD = NULL
+  PWD = NULL,
+  url = NULL
 )
 }
 \arguments{
@@ -37,6 +38,11 @@ renderizar_reporte(
 \item{UID}{Usuario de la base de datos (opcional).}
 
 \item{PWD}{Contraseña de la base de datos (opcional).}
+
+\item{url}{URL de la API de resumen a usar (opcional). Solo tiene efecto en
+plantillas \code{.qmd} que declaren un parámetro \code{url} (p.ej.
+\code{abp_ao_categorias}) -- permite apuntar a un endpoint distinto al que la
+plantilla trae por defecto, como el pipeline multiagente.}
 }
 \value{
 No devuelve un valor, pero genera un archivo HTML con el reporte renderizado.

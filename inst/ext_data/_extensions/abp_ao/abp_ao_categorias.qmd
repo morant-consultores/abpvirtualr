@@ -1,0 +1,88 @@
+---
+echo: false
+warning: false
+params:
+  sesion: 34
+  proyecto: Grupo 1
+  pregunta: 1
+  resumen_general: F
+  Driver: ODBC Driver 17 for SQL Server
+  Database: ABPDB
+  Server: morant.database.windows.net
+  UID: emorones
+  PWD: Mor@nt2024
+  excel: F
+  url: https://abp-flask-api.azurewebsites.net/api/v1/resumen_pregunta
+format:
+  revealjs:
+    pagetitle: "ABP ÁLVARO OBREGÓN"
+    slide-number: true
+    show-slide-number: all
+    theme:
+      - _extensions/abp_ao/clean.scss
+    transition: slide
+    menu: false
+    embed-resources: true
+execute:
+  echo: false
+---
+
+```{r}
+#| label: Carga de paquetería
+library(tidyverse)
+library(abpvirtualr)
+knitr::opts_knit$set(output.dir = getwd())
+
+url <- params$url
+etapa <- 1
+```
+
+```{r}
+#| include: false
+#| label: carga de bases
+pool_list <- list(
+    drv = odbc::odbc(),
+    Driver = params$Driver,
+    Database = params$Database,
+    Server = params$Server,
+    UID = params$UID,
+    PWD = params$PWD,
+    Port = 1433,
+    timeout = 120
+)
+
+bd <- leer_base(pool_list, id_sesion = params$sesion, proyecto = params$proyecto)
+```
+
+```{r}
+#| output: asis
+#| label: Una lamina por categoria (sin scroll)
+preguntas <- bd$pregunta %>%
+    filter(IdEtapa == etapa, RegistroActivo, Orden == params$pregunta) %>%
+    pull(IdPregunta)
+
+pregunta_texto <- bd$pregunta %>% filter(IdPregunta %in% preguntas) %>% pull(Nombre) %>% unique()
+respuestas <- bd$respuesta %>% filter(IdPregunta %in% preguntas) %>% pull(Respuesta)
+respuestas <- respuestas[!is.na(respuestas) & nchar(trimws(respuestas)) > 0]
+
+resumen <- generar_resumen(pregunta_texto, respuestas, url = url, timeout = 240, reintentos = 0)
+categorias <- separar_categorias(resumen$Resumen)
+
+titulo_src <- knitr::knit_expand(text = c(
+    "# {{ pregunta_texto }}",
+    ""
+))
+cat(knitr::knit_child(text = titulo_src, quiet = TRUE), sep = '\n')
+
+for (i in seq_len(nrow(categorias))) {
+    nombre_categoria <- if (is.na(categorias$categoria[i])) "" else categorias$categoria[i]
+    src <- knitr::knit_expand(text = c(
+        "## {{ nombre_categoria }}",
+        "",
+        "{{ categorias$texto[i] }}",
+        ""
+    ))
+    res <- knitr::knit_child(text = src, quiet = TRUE)
+    cat(res, sep = '\n')
+}
+```
