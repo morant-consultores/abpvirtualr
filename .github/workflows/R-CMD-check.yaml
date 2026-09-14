@@ -15,6 +15,14 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # El repo trae renv (.Rprofile hace source("renv/activate.R")), y su
+      # renv.lock pide R 4.0.3 mientras el runner trae uno mas nuevo. Ese
+      # choque de versiones hace que renv interfiera con la instalacion
+      # normal de setup-r-dependencies (via pak) y termina rompiendo hasta
+      # la compilacion de 'curl' (dependencia base de pak). Este workflow no
+      # usa renv::restore() -- solo instala lo declarado en DESCRIPTION --
+      # asi que se desactiva el autoloader de renv para este job.
+      RENV_CONFIG_AUTOLOADER_ENABLED: false
 
     steps:
       - uses: actions/checkout@v4
