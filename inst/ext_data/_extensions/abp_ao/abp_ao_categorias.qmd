@@ -74,6 +74,62 @@ titulo_src <- knitr::knit_expand(text = c(
 ))
 cat(knitr::knit_child(text = titulo_src, quiet = TRUE), sep = '\n')
 
+# Panorama general: arbol (mermaid, flowchart LR) con el total de respuestas
+# a la izquierda y las categorias encontradas apiladas a la derecha, una
+# lineas de conexion, sin cajas de color -- da contexto antes de entrar
+# lamina por lamina. fontSize explicito porque mermaid mide el texto con su
+# propio tamano por defecto (~16px), mucho mas chico que el cuerpo de la
+# presentacion (34px via morena.scss/mainFontSize), y sin esto el diagrama
+# sale minusculo respecto al resto de la lamina.
+n_respuestas <- length(respuestas)
+nombres_categorias <- ifelse(is.na(categorias$categoria), "Sin categoria", categorias$categoria)
+ids_categorias <- paste0("C", seq_along(nombres_categorias))
+etiquetas_categorias <- gsub('"', "'", nombres_categorias)
+
+panorama_src <- c(
+    "## Panorama general",
+    "",
+    "```{mermaid}",
+    "%%{init: {'themeVariables': {'fontSize': '22px'}, 'flowchart': {'nodeSpacing': 12, 'rankSpacing': 90}}}%%",
+    "flowchart LR",
+    sprintf('    R["%d respuestas"]', n_respuestas),
+    sprintf('    R --- %s["%s"]', ids_categorias, etiquetas_categorias),
+    "    classDef plain fill:none,stroke:none,color:#000000",
+    if (length(ids_categorias) > 0) sprintf("    class R,%s plain", paste(ids_categorias, collapse = ",")) else "    class R plain",
+    "    linkStyle default stroke:#000000,stroke-width:1px",
+    "```",
+    ""
+)
+cat(knitr::knit_child(text = panorama_src, quiet = TRUE), sep = '\n')
+
+# Nube de palabras: mismo procesar_p_abierta()/graficar_nube() (highcharter)
+# usados en los reportes xaringan anteriores -- parametrizada por bd/preguntas/
+# etapa, ya cargados arriba, asi que se recalcula sola en cada render. Solo se
+# le pasan los colores/fuente que graficar_nube necesita (parametros$familia,
+# $gris, $inverso, $primario_claro, $primario_obscuro), no el objeto
+# "parametros" completo de brecha/semaforo que usan otros reportes.
+parametros_nube <- list(
+    inverso = "#d9b8c4",
+    primario_claro = "#a8455f",
+    primario_obscuro = "#7a1f3d",
+    familia = "sans-serif",
+    gris = "#333333"
+)
+tokens_clean <- suppressMessages(
+    procesar_p_abierta(bd, pregunta = preguntas, etapa = etapa, parametros = parametros_nube)
+)[[1]]
+grafica_nube <- graficar_nube(tokens_clean, interactivo = TRUE, parametros = parametros_nube)
+
+nube_src <- c(
+    "## Nube de palabras",
+    "",
+    "```{r}",
+    "grafica_nube",
+    "```",
+    ""
+)
+cat(knitr::knit_child(text = nube_src, quiet = TRUE), sep = '\n')
+
 for (i in seq_len(nrow(categorias))) {
     nombre_categoria <- if (is.na(categorias$categoria[i])) "" else categorias$categoria[i]
     src <- knitr::knit_expand(text = c(
