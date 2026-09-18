@@ -6,7 +6,7 @@ params:
   proyecto: Grupo 1
   pregunta: 1
   resumen_general: F
-  Driver: ODBC Driver 17 for SQL Server
+  Driver: ""
   Database: ABPDB
   Server: morant.database.windows.net
   UID: emorones
@@ -29,7 +29,7 @@ execute:
 
 ```{r}
 #| label: Carga de paquetería
-library(tidyverse)
+library(dplyr)
 library(abpvirtualr)
 knitr::opts_knit$set(output.dir = getwd())
 
@@ -40,9 +40,20 @@ etapa <- 1
 ```{r}
 #| include: false
 #| label: carga de bases
+# en Connect Cloud (Linux) solo esta instalado FreeTDS; en Mac/Windows se usa
+# el driver de Microsoft -- params$Driver permite forzarlo si algun entorno
+# lo necesita distinto.
+driver <- if (nzchar(params$Driver)) {
+    params$Driver
+} else if (Sys.info()[["sysname"]] %in% c("Windows", "Darwin")) {
+    "ODBC Driver 17 for SQL Server"
+} else {
+    "FreeTDS"
+}
+
 pool_list <- list(
     drv = odbc::odbc(),
-    Driver = params$Driver,
+    Driver = driver,
     Database = params$Database,
     Server = params$Server,
     UID = params$UID,
