@@ -85,14 +85,15 @@ titulo_src <- knitr::knit_expand(text = c(
 ))
 cat(knitr::knit_child(text = titulo_src, quiet = TRUE), sep = '\n')
 
-# Panorama general: arbol (mermaid, flowchart LR) con el total de respuestas
-# a la izquierda y las categorias encontradas apiladas a la derecha, una
+# Panorama general: arbol (mermaid, flowchart LR) con un nodo generico
+# ("Categorías", sin el conteo de respuestas -- no queremos revelar cuantas
+# se analizaron) a la izquierda y las categorias encontradas apiladas a la
+# derecha, una
 # lineas de conexion, sin cajas de color -- da contexto antes de entrar
 # lamina por lamina. fontSize explicito porque mermaid mide el texto con su
 # propio tamano por defecto (~16px), mucho mas chico que el cuerpo de la
 # presentacion (34px via morena.scss/mainFontSize), y sin esto el diagrama
 # sale minusculo respecto al resto de la lamina.
-n_respuestas <- length(respuestas)
 nombres_categorias <- ifelse(is.na(categorias$categoria), "Sin categoria", categorias$categoria)
 ids_categorias <- paste0("C", seq_along(nombres_categorias))
 etiquetas_categorias <- gsub('"', "'", nombres_categorias)
@@ -103,7 +104,7 @@ panorama_src <- c(
     "```{mermaid}",
     "%%{init: {'themeVariables': {'fontSize': '22px'}, 'flowchart': {'nodeSpacing': 12, 'rankSpacing': 90}}}%%",
     "flowchart LR",
-    sprintf('    R["%d respuestas"]', n_respuestas),
+    '    R["Categorías"]',
     sprintf('    R --- %s["%s"]', ids_categorias, etiquetas_categorias),
     "    classDef plain fill:none,stroke:none,color:#000000",
     if (length(ids_categorias) > 0) sprintf("    class R,%s plain", paste(ids_categorias, collapse = ",")) else "    class R plain",
