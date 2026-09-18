@@ -1,0 +1,79 @@
+---
+title: "Resumen general"
+echo: false
+warning: false
+message: false
+params:
+  sesion: 34
+  proyecto: Grupo 1
+  pregunta: general
+  resumen_general: T
+  Driver: ODBC Driver 17 for SQL Server
+  Database: ABPDB
+  Server: morant.database.windows.net
+  UID: emorones
+  PWD: Mor@nt2024
+  url: https://abp-flask-api.azurewebsites.net/api/v1/resumen_general
+format:
+  html:
+    embed-resources: true
+    page-layout: article
+execute:
+  echo: false
+---
+
+```{r}
+#| label: Carga de paquetería
+library(dplyr)
+library(abpvirtualr)
+knitr::opts_knit$set(output.dir = getwd())
+etapa <- 1
+```
+
+```{r}
+#| include: false
+#| label: carga de bases
+pool_list <- list(
+    drv = odbc::odbc(),
+    Driver = params$Driver,
+    Database = params$Database,
+    Server = params$Server,
+    UID = params$UID,
+    PWD = params$PWD,
+    Port = 1433,
+    timeout = 120
+)
+
+bd <- leer_base(pool_list, id_sesion = params$sesion, proyecto = params$proyecto)
+```
+
+```{r}
+#| output: asis
+#| label: resumen general de todas las preguntas
+preguntas <- bd$pregunta %>%
+    filter(IdEtapa == etapa, RegistroActivo) %>%
+    pull(IdPregunta)
+
+respuestas <- bd$respuesta %>%
+    filter(IdPregunta %in% preguntas) %>%
+    pull(Respuesta)
+respuestas <- respuestas[!is.na(respuestas) & nchar(trimws(respuestas)) > 0]
+
+# mismo endpoint que ya usa la produccion (app/app.R + abp_ao.qmd) -- un
+# resumen llano de todas las respuestas, sin pasar por el pipeline de
+# categorizacion multiagente (ese resume una pregunta a la vez, no aplica
+# aqui).
+resumen_texto <- generar_resumen(
+    NULL, respuestas,
+    url = params$url, timeout = 240, reintentos = 0
+)$Resumen
+
+cat(knitr::knit_child(text = c(
+    sprintf("**%s** &nbsp;·&nbsp; %d respuestas analizadas", params$proyecto, length(respuestas)),
+    "",
+    "## Principales hallazgos",
+    "",
+    resumen_texto,
+    ""
+), quiet = TRUE), sep = "\n")
+```
