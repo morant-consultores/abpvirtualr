@@ -102,7 +102,15 @@ panorama_src <- c(
     "## Panorama general",
     "",
     "```{mermaid}",
-    "%%{init: {'themeVariables': {'fontSize': '22px'}, 'flowchart': {'nodeSpacing': 12, 'rankSpacing': 90}}}%%",
+    # htmlLabels:false -- con las etiquetas por defecto (foreignObject/HTML),
+    # mermaid mide su ancho con getBoundingClientRect(), que en reveal.js
+    # refleja el transform de escalado-a-viewport (0.24x en ventanas chicas).
+    # Ese tamano ya-escalado queda grabado para siempre en el viewBox del SVG,
+    # asi que el texto real (sin escalar) se sale de su caja y revealjs lo
+    # recorta -- pasa justo en ventanas angostas/laptop, no en una ventana
+    # ancha donde reveal casi no escala. Con htmlLabels:false mermaid mide con
+    # <text> + canvas measureText, que no depende del transform del ancestro.
+    "%%{init: {'themeVariables': {'fontSize': '22px'}, 'flowchart': {'nodeSpacing': 12, 'rankSpacing': 90, 'htmlLabels': false}}}%%",
     "flowchart LR",
     '    R["Categorías"]',
     sprintf('    R --- %s["%s"]', ids_categorias, etiquetas_categorias),
