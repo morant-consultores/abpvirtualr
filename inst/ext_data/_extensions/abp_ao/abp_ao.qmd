@@ -15,13 +15,23 @@ params:
 format:
   revealjs:
     pagetitle: "ABP ÁLVARO OBREGÓN"
+    # explicito (es el default de Quarto) porque el tamano de la nube de
+    # palabras mas abajo esta calculado a partir de este lienzo -- si esto
+    # cambia, hay que recalcular ese hc_size().
+    width: 1050
+    height: 700
+    # 0.02 en vez del default de Quarto (0.1) -- ver la nota en
+    # abp_ao_categorias.qmd (mismo motivo: la banda guinda del titulo
+    # llega al borde de la lamina, no al borde de la pantalla, con el
+    # margen grande por defecto).
+    margin: 0.02
     scrollable: true
     slide-number: true
     show-slide-number: all
     theme:
       - _extensions/abp_ao/clean.scss
     transition: slide
-    menu: false 
+    menu: false
     embed-resources: true
 execute: 
   echo: false
@@ -131,19 +141,24 @@ if(params$resumen_general == "F"){
     question_text <- unique(question_data[[1]]$Pregunta)
     
     src <- knitr::knit_expand(text = c(
-        "## {{ question_text }}",
+        "## {{ question_text }} {.scrollable}",
         "",
         "```{r}",
         "#| echo: false",
         "processed <- procesar_p_abierta(bd, {{ question_id }}, etapa = {{ etapa }}, parametros = parametros)",
         "respuestas <- processed[[2]][[1]]",
         "pregunta <- processed[[2]][[2]]",
-        "chart <- graficar_nube(processed[[1]], parametros = parametros)",
+        # top 40 + tamano/minFontSize explicitos -- ver el mismo ajuste,
+        # comentado con el detalle, en abp_ao_categorias.qmd.
+        "tokens_nube <- processed[[1]] |> dplyr::slice_max(n, n = 40, with_ties = FALSE)",
+        "chart <- graficar_nube(tokens_nube, parametros = parametros) |>",
+        "    highcharter::hc_size(width = 1000, height = 560) |>",
+        "    highcharter::hc_plotOptions(wordcloud = list(minFontSize = 14))",
         "chart",
         "",
         "```",
-        "", 
-        "## {{ question_text }}",
+        "",
+        "## {{ question_text }} {.scrollable}",
         "",
         "```{r}",
         "#| echo: false",

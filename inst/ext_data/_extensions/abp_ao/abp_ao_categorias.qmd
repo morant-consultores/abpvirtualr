@@ -16,6 +16,18 @@ params:
 format:
   revealjs:
     pagetitle: "ABP ÁLVARO OBREGÓN"
+    # explicito (es el default de Quarto) porque el tamano de la nube de
+    # palabras mas abajo esta calculado a partir de este lienzo -- si esto
+    # cambia, hay que recalcular ese hc_size().
+    width: 1050
+    height: 700
+    # 0.02 en vez del default de Quarto (0.1): con margen 10% la lamina
+    # queda con un marco gris ancho alrededor -- la banda guinda del titulo
+    # (h2, ver morena.scss) queda al ras del propio cuadro de la lamina,
+    # pero ese cuadro no llega hasta el borde real de la pantalla. Un
+    # margen chico deja igual algo de aire (no queda pegado al borde
+    # fisico) pero la lamina aprovecha casi toda la pantalla.
+    margin: 0.02
     slide-number: true
     show-slide-number: all
     theme:
@@ -23,6 +35,10 @@ format:
     transition: slide
     menu: false
     embed-resources: true
+    # red de seguridad: si una pregunta o una categoria termina con mas
+    # texto del que cabe (h1 grande, resumen largo de la IA), se puede
+    # hacer scroll en vez de recortarse invisible.
+    scrollable: true
 execute:
   echo: false
 ---
@@ -79,45 +95,168 @@ respuestas <- respuestas[!is.na(respuestas) & nchar(trimws(respuestas)) > 0]
 resumen <- generar_resumen(pregunta_texto, respuestas, url = url, timeout = 240, reintentos = 0)
 categorias <- separar_categorias(resumen$Resumen)
 
+# El estilo de font-size va en un span dentro del h1 (bracketed span de
+# pandoc), no en una clase CSS: theme: apuntando a un .scss dentro de
+# _extensions/ no compila su bloque scss:rules en este pipeline (ver nota
+# en clean.scss) -- solo scss:defaults (variables) y los atributos nativos
+# de pandoc/reveal sobreviven. calc(var(--r-main-font-size) * 1.6) en vez de
+# un px fijo para que siga la variable de tema si $mainFontSize cambia; 1.6
+# porque el default de reveal para h1 (~2.5em, pensado para un titulo corto
+# de una palabra) desborda la lamina con una pregunta larga envuelta en
+# varias lineas. .scrollable es la red de seguridad para el caso extremo
+# que aun asi no quepa (scrollable:true a nivel de documento no aplica de
+# forma confiable en todos los pipelines que cargan esta extension).
 titulo_src <- knitr::knit_expand(text = c(
-    "# {{ pregunta_texto }}",
+    '# [{{ pregunta_texto }}]{style="font-size:calc(var(--r-main-font-size) * 1.6);"} {.scrollable}',
     ""
 ))
 cat(knitr::knit_child(text = titulo_src, quiet = TRUE), sep = '\n')
 
-# Panorama general: arbol (mermaid, flowchart LR) con un nodo generico
-# ("Categorías", sin el conteo de respuestas -- no queremos revelar cuantas
-# se analizaron) a la izquierda y las categorias encontradas apiladas a la
-# derecha, una
-# lineas de conexion, sin cajas de color -- da contexto antes de entrar
-# lamina por lamina. fontSize explicito porque mermaid mide el texto con su
-# propio tamano por defecto (~16px), mucho mas chico que el cuerpo de la
-# presentacion (34px via morena.scss/mainFontSize), y sin esto el diagrama
-# sale minusculo respecto al resto de la lamina.
+# Panorama general: antes un arbol mermaid (flowchart LR) con las
+# categorias colgando de un nodo raiz. El layout de mermaid (dagre)
+# calculaba el viewBox del SVG a partir de una medicion de texto propia que
+# no conocia el ancho real de la lamina -- con muchas categorias o nombres
+# largos el diagrama salia angosto y las etiquetas se recortaban contra el
+# borde del SVG (overflow:hidden por default en <svg>), sin que ningun
+# ajuste de CSS pudiera des-recortarlo porque el viewBox ya habia quedado
+# grabado chico. Se cambio por una lista de dos columnas (bullets), que es
+# lo que el cliente esperaba ver.
+#
+# Esto NO puede depender de scroll (.scrollable era la red de seguridad
+# original, pero en una presentacion en vivo frente a una sala no se puede
+# hacer scroll a media reunion) -- tiene que caber siempre. La lista tiene
+# una altura FIJA en "em" reservada bajo el titulo, y un script en el
+# navegador reparte las categorias en columnas y reduce la letra hasta que
+# todo quepa dentro de esa altura, sin importar cuantas categorias haya o
+# que tan largo sea cada nombre.
+#
+# OJO: la primera version de esto uso CSS "columns:2" (multi-columna) con
+# JS reduciendo la letra hasta que scrollHeight/scrollWidth calzaran. Se
+# veia bien en las pruebas, pero en el navegador real del cliente seguia
+# saliendo texto recortado con una barra de scroll horizontal -- "columns"
+# balancea el contenido con un algoritmo propio del navegador que no es
+# 100% consistente entre motores (Chrome/Safari/etc.), y ademas puede
+# agregar una columna de mas por su cuenta cuando el contenido no cabe en
+# el alto dado, saliendose del ancho sin avisar. Por eso ahora las columnas
+# se arman a mano en JS (un <ul> por columna, repartiendo las categorias
+# por indice, dentro de un CSS grid con N columnas fijas) -- reparto
+# determinista, sin ningun algoritmo de balanceo del navegador de por
+# medio, y por lo tanto sin esa inconsistencia.
+#
+# Nota: "em" y no "vh" -- reveal.js escala TODA la lamina con un transform
+# CSS a partir de un lienzo logico fijo (ver width/height en el YAML); vh se
+# mide contra el viewport real del navegador ANTES de ese transform, asi
+# que un elemento en vh no respeta el mismo escalado que el resto de la
+# lamina (se ve distinto en laptop vs. pantalla grande). em si respeta ese
+# lienzo logico porque es relativo a --r-main-font-size.
+#
+# Estilos inline vía JS, no una clase CSS: igual que el h1 de arriba, el
+# bloque scss:rules de clean.scss no compila en este pipeline.
+# $presentation-heading-color (usado por h2/h3) tampoco es accesible desde R
+# en tiempo de render -- guinda (#7a1f3d) queda fijo aqui; si esta plantilla
+# se reutiliza con otra marca, ajustar a mano.
 nombres_categorias <- ifelse(is.na(categorias$categoria), "Sin categoria", categorias$categoria)
-ids_categorias <- paste0("C", seq_along(nombres_categorias))
-etiquetas_categorias <- gsub('"', "'", nombres_categorias)
+# el arreglo de categorias va a JS como texto (para que el script pueda
+# repartirlo en distintos numeros de columnas en tiempo real); textContent
+# en el navegador (no innerHTML) es lo que evita tener que escapar HTML aqui.
+escapar_js <- function(x) {
+    x <- gsub("\\", "\\\\", x, fixed = TRUE)
+    x <- gsub('"', '\\"', x, fixed = TRUE)
+    x <- gsub("\n", " ", x, fixed = TRUE)
+    x
+}
+categorias_js <- paste0(
+    "[", paste(sprintf('"%s"', escapar_js(nombres_categorias)), collapse = ","), "]"
+)
+
+# alto reservado para el panorama bajo "## Panorama general" -- remedido en
+# vivo tras agregar la banda de titulo y bajar el margen de la lamina a
+# 0.02 (quedan ~15em libres bajo el titulo con banda; antes, con margen
+# 0.1 y sin banda, eran ~14em -- quedarse con el valor viejo despues de
+# esos dos cambios fue justo lo que forzo mas columnas de las necesarias).
+# 14.5 en vez de 15 para no pegar el ultimo renglon al borde de la lamina.
+alto_grid_em <- 14.5
 
 panorama_src <- c(
-    "## Panorama general",
+    "## Panorama general {.scrollable}",
     "",
-    "```{mermaid}",
-    # htmlLabels:false -- con las etiquetas por defecto (foreignObject/HTML),
-    # mermaid mide su ancho con getBoundingClientRect(), que en reveal.js
-    # refleja el transform de escalado-a-viewport (0.24x en ventanas chicas).
-    # Ese tamano ya-escalado queda grabado para siempre en el viewBox del SVG,
-    # asi que el texto real (sin escalar) se sale de su caja y revealjs lo
-    # recorta -- pasa justo en ventanas angostas/laptop, no en una ventana
-    # ancha donde reveal casi no escala. Con htmlLabels:false mermaid mide con
-    # <text> + canvas measureText, que no depende del transform del ancestro.
-    "%%{init: {'themeVariables': {'fontSize': '22px'}, 'flowchart': {'nodeSpacing': 12, 'rankSpacing': 90, 'htmlLabels': false}}}%%",
-    "flowchart LR",
-    '    R["Categorías"]',
-    sprintf('    R --- %s["%s"]', ids_categorias, etiquetas_categorias),
-    "    classDef plain fill:none,stroke:none,color:#000000",
-    if (length(ids_categorias) > 0) sprintf("    class R,%s plain", paste(ids_categorias, collapse = ",")) else "    class R plain",
-    "    linkStyle default stroke:#000000,stroke-width:1px",
-    "```",
+    sprintf('<div id="abp-panorama-grid" style="height:%sem;overflow:hidden;"></div>', alto_grid_em),
+    "",
+    "<script>",
+    "(function () {",
+    sprintf("  var CATEGORIAS = %s;", categorias_js),
+    "  var TAM_INICIAL = 1.15, TAM_PISO_SUAVE = 0.75, TAM_PISO_DURO = 0.55, MAX_COLUMNAS = 4;",
+    "  function desborda(el) { return el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth; }",
+    "  function construirGrid(contenedor, columnas, tamEm) {",
+    "    contenedor.innerHTML = '';",
+    "    contenedor.style.display = 'grid';",
+    "    contenedor.style.gridTemplateColumns = 'repeat(' + columnas + ',1fr)';",
+    "    contenedor.style.columnGap = '2em';",
+    "    contenedor.style.alignContent = 'start';",
+    "    var porColumna = Math.ceil(CATEGORIAS.length / columnas);",
+    "    for (var c = 0; c < columnas; c++) {",
+    "      var ul = document.createElement('ul');",
+    "      ul.style.cssText = 'list-style-type:disc;padding-left:1.1em;margin:0;font-size:' + tamEm + 'em;color:#7a1f3d;line-height:1.35;';",
+    "      var inicio = c * porColumna, fin = Math.min(inicio + porColumna, CATEGORIAS.length);",
+    "      for (var i = inicio; i < fin; i++) {",
+    "        var li = document.createElement('li');",
+    # solo overflow-wrap (parte una palabra unicamente si de plano no cabe
+    # sola en la columna) -- con word-break:break-word ADEMAS, el navegador
+    # prefiere partir a media palabra en vez de bajar la palabra completa a
+    # la siguiente linea aunque si quepa ahi, dejando cosas como
+    # "mantenimient-o urbano".
+    "        li.style.cssText = 'margin-bottom:0.3em;padding-right:0.6em;overflow-wrap:break-word;';",
+    "        li.textContent = CATEGORIAS[i];",
+    "        ul.appendChild(li);",
+    "      }",
+    "      contenedor.appendChild(ul);",
+    "    }",
+    "  }",
+    "  function ajustarLista() {",
+    "    var contenedor = document.getElementById('abp-panorama-grid');",
+    "    if (!contenedor) return;",
+    "    var columnas = 2, tam = TAM_INICIAL;",
+    "    construirGrid(contenedor, columnas, tam);",
+    "    void contenedor.offsetHeight;",
+    "    var intentos = 0;",
+    "    while (desborda(contenedor) && intentos < 90) {",
+    "      if (tam > TAM_PISO_SUAVE) {",
+    # dos columnas es lo que se pidio, pero con categorias largas y
+    # numerosas (oraciones completas, no solo un par de palabras) 2
+    # columnas puede no alcanzar sin bajar la letra a un tamano ilegible
+    # de lejos -- antes que eso, se agrega una tercera/cuarta columna.
+    # Mas columnas no siempre ayuda (una columna angosta con oraciones
+    # largas envuelve en mas renglones, no menos), asi que si ni con 4
+    # columnas alcanza el piso suave, se sigue bajando la letra hasta un
+    # piso duro (0.55em) como ultimo recurso -- prioriza que quepa
+    # completo sobre que se vea bonito. "void contenedor.offsetHeight"
+    # fuerza un reflow entre cada cambio -- sin esto, algunos navegadores
+    # miden scrollHeight/scrollWidth con el layout todavia desactualizado
+    # tras el cambio de estilo, lo que puede dejar pasar un desborde real.
+    "        tam -= 0.03;",
+    "      } else if (columnas < MAX_COLUMNAS) {",
+    "        columnas += 1;",
+    "        tam = TAM_INICIAL;",
+    "      } else if (tam > TAM_PISO_DURO) {",
+    "        tam -= 0.02;",
+    "      } else {",
+    "        break;",
+    "      }",
+    "      construirGrid(contenedor, columnas, tam);",
+    "      void contenedor.offsetHeight;",
+    "      intentos++;",
+    "    }",
+    "  }",
+    # 'load' (no 'DOMContentLoaded' ni Reveal.on('ready')) porque este
+    # script vive dentro del contenido de esta lamina, que en el HTML
+    # final se imprime antes de que Quarto llame a Reveal.initialize() al
+    # final del documento -- 'load' garantiza que ya corrio, sin depender
+    # de en que orden ni si `Reveal` ya existe en el momento en que el
+    # navegador parsea este bloque.
+    "  if (document.readyState === 'complete') { ajustarLista(); }",
+    "  else { window.addEventListener('load', ajustarLista); }",
+    "})();",
+    "</script>",
     ""
 )
 cat(knitr::knit_child(text = panorama_src, quiet = TRUE), sep = '\n')
@@ -138,10 +277,22 @@ parametros_nube <- list(
 tokens_clean <- suppressMessages(
     procesar_p_abierta(bd, pregunta = preguntas, etapa = etapa, parametros = parametros_nube)
 )[[1]]
-grafica_nube <- graficar_nube(tokens_clean, interactivo = TRUE, parametros = parametros_nube)
+# top 40 por frecuencia: highcharter reparte el tamano de fuente entre todas
+# las palabras que le des, asi que meter la cola larga de palabras con
+# n=1 solo empuja a que hasta las mas frecuentes salgan chicas. Con menos
+# palabras en la misma caja, todas -- incluida la mas chica -- quedan
+# legibles desde lejos.
+tokens_clean <- tokens_clean %>% slice_max(n, n = 40, with_ties = FALSE)
+grafica_nube <- graficar_nube(tokens_clean, interactivo = TRUE, parametros = parametros_nube) %>%
+    # 1000x560: la lamina de revealjs mide 1050x700 (ver YAML) menos margen
+    # de reveal y el titulo "## Nube de palabras" -- si ese lienzo cambia,
+    # recalcular. minFontSize 14 (default de graficar_nube es 2) para que
+    # ninguna palabra, ni la menos frecuente, quede ilegible de lejos.
+    highcharter::hc_size(width = 1000, height = 560) %>%
+    highcharter::hc_plotOptions(wordcloud = list(minFontSize = 14))
 
 nube_src <- c(
-    "## Nube de palabras",
+    "## Nube de palabras {.scrollable}",
     "",
     "```{r}",
     "grafica_nube",
@@ -153,7 +304,7 @@ cat(knitr::knit_child(text = nube_src, quiet = TRUE), sep = '\n')
 for (i in seq_len(nrow(categorias))) {
     nombre_categoria <- if (is.na(categorias$categoria[i])) "" else categorias$categoria[i]
     src <- knitr::knit_expand(text = c(
-        "## {{ nombre_categoria }}",
+        "## {{ nombre_categoria }} {.scrollable}",
         "",
         "{{ categorias$texto[i] }}",
         ""
