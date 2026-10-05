@@ -5,13 +5,16 @@
 #'  provistas por la función leer_base.
 #' @param pregunta (int) Número de pregunta de la etapa.
 #' @param etapa (int) Número de la etapa.
+#' @param n_palabras (int) Palabras por término: 1 (default) cuenta palabras
+#'  sueltas; 2 cuenta expresiones de dos palabras ("seguridad vial") y
+#'  descarta las que contengan una palabra vacía.
 #'
 #' @return (list) Lista de dataframes uno con una tabla con las palabras, frecuencias y colores asignados y otro con las respuestas.
 #' @export
 #' @import dplyr
 #' @examples #notrun (procesar_p_abierta(bd, pregunta = 1, etapa = 1))
 
-procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
+procesar_p_abierta <- function(bd, pregunta, etapa, parametros, n_palabras = 1){
     df <- bd$respuesta %>%
         left_join(bd$pregunta) %>%
         filter(IdPregunta == pregunta, IdEtapa == etapa)
@@ -19,10 +22,25 @@ procesar_p_abierta <- function(bd, pregunta, etapa, parametros){
     stop_words <- stopwords
         #tibble::tibble(palabra = c(stopwords::stopwords("es")))
 
-    tokens_clean <- df %>%
-        tidytext::unnest_tokens(
-            output = palabra, input = Respuesta, drop = FALSE) %>%
-        anti_join(stop_words) %>%
+    tokens <- if (n_palabras == 1) {
+        df %>%
+            tidytext::unnest_tokens(
+                output = palabra, input = Respuesta, drop = FALSE) %>%
+            anti_join(stop_words)
+    } else {
+        df %>%
+            tidytext::unnest_tokens(
+                output = palabra, input = Respuesta, drop = FALSE,
+                token = "ngrams", n = n_palabras) %>%
+            filter(!is.na(palabra)) %>%
+            # una expresion con una palabra vacia ("de la", "seguridad en")
+            # no dice nada: se descarta si cualquiera de sus palabras lo es
+            filter(!purrr::map_lgl(
+                stringr::str_split(palabra, " "),
+                ~ any(.x %in% stop_words$palabra)))
+    }
+
+    tokens_clean <- tokens %>%
         group_by(palabra) %>%
         mutate(num = paste0(row_number(),") ")) %>%
         summarise(

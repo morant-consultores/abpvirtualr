@@ -275,21 +275,29 @@ parametros_nube <- list(
     gris = "#333333"
 )
 tokens_clean <- suppressMessages(
-    procesar_p_abierta(bd, pregunta = preguntas, etapa = etapa, parametros = parametros_nube)
+    # n_palabras = 2: la nube cuenta expresiones de dos palabras ("seguridad
+    # vial") como una sola unidad en vez de palabras sueltas.
+    procesar_p_abierta(bd, pregunta = preguntas, etapa = etapa, parametros = parametros_nube, n_palabras = 2)
 )[[1]]
 # top 40 por frecuencia: highcharter reparte el tamano de fuente entre todas
 # las palabras que le des, asi que meter la cola larga de palabras con
 # n=1 solo empuja a que hasta las mas frecuentes salgan chicas. Con menos
 # palabras en la misma caja, todas -- incluida la mas chica -- quedan
 # legibles desde lejos.
-tokens_clean <- tokens_clean %>% slice_max(n, n = 40, with_ties = FALSE)
+# Con expresiones de dos palabras casi todas salen una sola vez; si hay
+# suficientes que se repiten, la nube muestra solo esas (las que de verdad
+# reflejan un tema) y si no, se queda con las mas frecuentes que haya.
+repetidas <- tokens_clean %>% filter(n >= 2)
+if (nrow(repetidas) >= 12) tokens_clean <- repetidas
+# 30 y no 40: las etiquetas son el doble de largas, caben menos en la caja.
+tokens_clean <- tokens_clean %>% slice_max(n, n = 30, with_ties = FALSE)
 grafica_nube <- graficar_nube(tokens_clean, interactivo = TRUE, parametros = parametros_nube) %>%
     # 1000x560: la lamina de revealjs mide 1050x700 (ver YAML) menos margen
     # de reveal y el titulo "## Nube de palabras" -- si ese lienzo cambia,
-    # recalcular. minFontSize 14 (default de graficar_nube es 2) para que
+    # recalcular. minFontSize 12 (default de graficar_nube es 2) para que
     # ninguna palabra, ni la menos frecuente, quede ilegible de lejos.
     highcharter::hc_size(width = 1000, height = 560) %>%
-    highcharter::hc_plotOptions(wordcloud = list(minFontSize = 14))
+    highcharter::hc_plotOptions(wordcloud = list(minFontSize = 12, maxFontSize = 46, rotation = list(from = 0, to = 0, orientations = 1), spiral = "rectangular"))
 
 nube_src <- c(
     "## Nube de palabras {.scrollable}",
