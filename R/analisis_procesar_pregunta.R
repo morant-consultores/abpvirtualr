@@ -387,3 +387,44 @@ calcular_brecha <- function(bd, corte, parametros){
 
     return(list(juntos, res))
 }
+
+#' Términos para la nube de palabras: expresiones de dos palabras y
+#' palabras sueltas combinadas
+#'
+#' Las expresiones de dos palabras ("seguridad vial") que se repiten van
+#' como una sola unidad; la nube se completa con las palabras sueltas más
+#' frecuentes que no formen parte de una expresión ya incluida. Con pocas
+#' respuestas casi ninguna expresión se repite, y así la nube no queda plana.
+#'
+#' @inheritParams procesar_p_abierta
+#' @param max (int) Máximo de términos en la nube.
+#'
+#' @return (tibble) Términos con columnas palabra, n y colores, ordenados por
+#'  frecuencia; el color sigue el lugar en el orden, no cuantiles (con muchos
+#'  empates los cuantiles dejaban todo del mismo color).
+#' @export
+#' @import dplyr
+#' @examples #notrun (nube_mixta(bd, pregunta = 1, etapa = 1, parametros = parametros))
+nube_mixta <- function(bd, pregunta, etapa, parametros, max = 30){
+    una <- procesar_p_abierta(bd, pregunta, etapa, parametros, n_palabras = 1)[[1]]
+    dos <- procesar_p_abierta(bd, pregunta, etapa, parametros, n_palabras = 2)[[1]] %>%
+        filter(n >= 2)
+
+    en_expresion <- unique(unlist(strsplit(dos$palabra, " ")))
+    una <- una %>% filter(n >= 2, !palabra %in% en_expresion)
+
+    res <- bind_rows(dos, una) %>%
+        arrange(desc(n)) %>%
+        slice_head(n = max)
+
+    k <- nrow(res)
+    res %>%
+        mutate(
+            lugar = row_number(),
+            colores = case_when(
+                lugar <= ceiling(k * .2) ~ parametros$primario_obscuro,
+                lugar <= ceiling(k * .5) ~ parametros$primario_claro,
+                TRUE ~ parametros$inverso)
+        ) %>%
+        select(-lugar)
+}
