@@ -112,6 +112,49 @@ titulo_src <- knitr::knit_expand(text = c(
 ))
 cat(knitr::knit_child(text = titulo_src, quiet = TRUE), sep = '\n')
 
+# Nube de palabras: mismo procesar_p_abierta()/graficar_nube() (highcharter)
+# usados en los reportes xaringan anteriores -- parametrizada por bd/preguntas/
+# etapa, ya cargados arriba, asi que se recalcula sola en cada render. Solo se
+# le pasan los colores/fuente que graficar_nube necesita (parametros$familia,
+# $gris, $inverso, $primario_claro, $primario_obscuro), no el objeto
+# "parametros" completo de brecha/semaforo que usan otros reportes.
+parametros_nube <- list(
+    inverso = "#d9b8c4",
+    primario_claro = "#a8455f",
+    primario_obscuro = "#7a1f3d",
+    familia = "sans-serif",
+    gris = "#333333"
+)
+# nube_mixta(): expresiones de dos palabras ("seguridad vial") que se
+# repiten como una sola unidad, completadas con las palabras sueltas mas
+# frecuentes. Con pocas respuestas casi ninguna expresion se repite, y una
+# nube solo de expresiones quedaria plana (mismo tamano y color). Top 30 y
+# no 40: las etiquetas son mas largas, caben menos en la caja.
+tokens_clean <- suppressMessages(
+    nube_mixta(bd, pregunta = preguntas, etapa = etapa, parametros = parametros_nube, max = 30)
+)
+# Con pocas respuestas casi nada se repite y la nube queda con 1-2 palabras
+# (se ve vacia y no informa): en ese caso la lamina se omite.
+if (nrow(tokens_clean) >= 8) {
+    grafica_nube <- graficar_nube(tokens_clean, interactivo = TRUE, parametros = parametros_nube) %>%
+        # 1000x560: la lamina de revealjs mide 1050x700 (ver YAML) menos margen
+        # de reveal y el titulo "## Nube de palabras" -- si ese lienzo cambia,
+        # recalcular. minFontSize 12 (default de graficar_nube es 2) para que
+        # ninguna palabra, ni la menos frecuente, quede ilegible de lejos.
+        highcharter::hc_size(width = 1000, height = 560) %>%
+        highcharter::hc_plotOptions(wordcloud = list(minFontSize = 12, maxFontSize = 46, rotation = list(from = 0, to = 0, orientations = 1), spiral = "rectangular"))
+    
+    nube_src <- c(
+        "## Nube de palabras {.scrollable}",
+        "",
+        "```{r}",
+        "grafica_nube",
+        "```",
+        ""
+    )
+    cat(knitr::knit_child(text = nube_src, quiet = TRUE), sep = '\n')
+}
+
 # Panorama general: antes un arbol mermaid (flowchart LR) con las
 # categorias colgando de un nodo raiz. El layout de mermaid (dagre)
 # calculaba el viewBox del SVG a partir de una medicion de texto propia que
@@ -195,9 +238,12 @@ panorama_src <- c(
     "    contenedor.style.alignContent = 'start';",
     "    var porColumna = Math.ceil(CATEGORIAS.length / columnas);",
     "    for (var c = 0; c < columnas; c++) {",
-    "      var ul = document.createElement('ul');",
-    "      ul.style.cssText = 'list-style-type:disc;padding-left:1.1em;margin:0;font-size:' + tamEm + 'em;color:#7a1f3d;line-height:1.35;';",
+    # lista numerada (ol), no bullets: son los temas del reporte. "start"
+    # hace que la numeracion siga de una columna a la siguiente (1-5, 6-10).
+    "      var ul = document.createElement('ol');",
+    "      ul.style.cssText = 'list-style-type:decimal;padding-left:1.7em;margin:0;font-size:' + tamEm + 'em;color:#7a1f3d;line-height:1.35;';",
     "      var inicio = c * porColumna, fin = Math.min(inicio + porColumna, CATEGORIAS.length);",
+    "      ul.start = inicio + 1;",
     "      for (var i = inicio; i < fin; i++) {",
     "        var li = document.createElement('li');",
     # solo overflow-wrap (parte una palabra unicamente si de plano no cabe
@@ -261,44 +307,6 @@ panorama_src <- c(
 )
 cat(knitr::knit_child(text = panorama_src, quiet = TRUE), sep = '\n')
 
-# Nube de palabras: mismo procesar_p_abierta()/graficar_nube() (highcharter)
-# usados en los reportes xaringan anteriores -- parametrizada por bd/preguntas/
-# etapa, ya cargados arriba, asi que se recalcula sola en cada render. Solo se
-# le pasan los colores/fuente que graficar_nube necesita (parametros$familia,
-# $gris, $inverso, $primario_claro, $primario_obscuro), no el objeto
-# "parametros" completo de brecha/semaforo que usan otros reportes.
-parametros_nube <- list(
-    inverso = "#d9b8c4",
-    primario_claro = "#a8455f",
-    primario_obscuro = "#7a1f3d",
-    familia = "sans-serif",
-    gris = "#333333"
-)
-# nube_mixta(): expresiones de dos palabras ("seguridad vial") que se
-# repiten como una sola unidad, completadas con las palabras sueltas mas
-# frecuentes. Con pocas respuestas casi ninguna expresion se repite, y una
-# nube solo de expresiones quedaria plana (mismo tamano y color). Top 30 y
-# no 40: las etiquetas son mas largas, caben menos en la caja.
-tokens_clean <- suppressMessages(
-    nube_mixta(bd, pregunta = preguntas, etapa = etapa, parametros = parametros_nube, max = 30)
-)
-grafica_nube <- graficar_nube(tokens_clean, interactivo = TRUE, parametros = parametros_nube) %>%
-    # 1000x560: la lamina de revealjs mide 1050x700 (ver YAML) menos margen
-    # de reveal y el titulo "## Nube de palabras" -- si ese lienzo cambia,
-    # recalcular. minFontSize 12 (default de graficar_nube es 2) para que
-    # ninguna palabra, ni la menos frecuente, quede ilegible de lejos.
-    highcharter::hc_size(width = 1000, height = 560) %>%
-    highcharter::hc_plotOptions(wordcloud = list(minFontSize = 12, maxFontSize = 46, rotation = list(from = 0, to = 0, orientations = 1), spiral = "rectangular"))
-
-nube_src <- c(
-    "## Nube de palabras {.scrollable}",
-    "",
-    "```{r}",
-    "grafica_nube",
-    "```",
-    ""
-)
-cat(knitr::knit_child(text = nube_src, quiet = TRUE), sep = '\n')
 
 for (i in seq_len(nrow(categorias))) {
     nombre_categoria <- if (is.na(categorias$categoria[i])) "" else categorias$categoria[i]
