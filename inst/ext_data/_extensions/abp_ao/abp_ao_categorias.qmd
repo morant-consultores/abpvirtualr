@@ -125,10 +125,23 @@ cat(c(
     "  function ajustar() {",
     "    var a = Math.max(1.5, Math.min(window.innerWidth / window.innerHeight, 2.4));",
     "    Reveal.configure({ width: Math.round(700 * a), height: 700 });",
+    # knitr fija el contenedor del widget en px (960): sin esto la nube no
+    # crece con el lienzo.
+    "    document.querySelectorAll('.highchart.html-widget').forEach(function (w) { w.style.width = '100%'; });",
+    # La nube coloca sus palabras (y el recorte del dibujo) con el ancho con
+    # que se creo: ni reflow ni redraw lo recalculan y las palabras quedan
+    # cortadas en el 960 original. Hay que destruir el grafico y crearlo de
+    # nuevo con las mismas opciones, ya con el contenedor al ancho final.
+    "    if (window.Highcharts) Highcharts.charts.slice().forEach(function (ch) {",
+    "      if (!ch) return;",
+    "      var el = ch.renderTo, opciones = ch.userOptions;",
+    "      ch.destroy();",
+    "      Highcharts.chart(el, opciones);",
+    "    });",
     "  }",
     "  window.addEventListener('load', function () {",
     "    if (Reveal.isReady()) ajustar(); else Reveal.on('ready', ajustar);",
-    "    window.addEventListener('resize', ajustar);",
+    "    var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(ajustar, 250); });",
     "  });",
     "})();",
     "</script>"), sep = '\n')
@@ -161,12 +174,13 @@ tokens_clean <- suppressMessages(
 # (se ve vacia y no informa): en ese caso la lamina se omite.
 if (nrow(tokens_clean) >= 8) {
     grafica_nube <- graficar_nube(tokens_clean, interactivo = TRUE, parametros = parametros_nube) %>%
-        # 1000x560: la lamina de revealjs mide 1050x700 (ver YAML) menos margen
+        # Ancho NULL = el de la lamina (el lienzo se ensancha segun la pantalla, ver
+        # el script de arriba); alto 560: la lamina mide 700 menos margen
         # de reveal y el titulo "## Nube de palabras" -- si ese lienzo cambia,
         # recalcular. minFontSize 28 (default de graficar_nube es 2) para que
         # ninguna palabra, ni la menos frecuente, quede ilegible de lejos.
-        highcharter::hc_size(width = 1000, height = 560) %>%
-        highcharter::hc_plotOptions(wordcloud = list(minFontSize = 28, maxFontSize = 64, style = list(fontWeight = "bold"), rotation = list(from = 0, to = 0, orientations = 1), spiral = "rectangular"))
+        highcharter::hc_size(width = NULL, height = 560) %>%
+        highcharter::hc_plotOptions(wordcloud = list(animation = FALSE, minFontSize = 28, maxFontSize = 64, style = list(fontWeight = "bold"), rotation = list(from = 0, to = 0, orientations = 1), spiral = "rectangular"))
     
     nube_src <- c(
         "## Nube de palabras {.scrollable}",
@@ -242,7 +256,7 @@ categorias_js <- paste0(
 # 0.1 y sin banda, eran ~14em -- quedarse con el valor viejo despues de
 # esos dos cambios fue justo lo que forzo mas columnas de las necesarias).
 # 14.5 en vez de 15 para no pegar el ultimo renglon al borde de la lamina.
-alto_grid_em <- 14.5
+alto_grid_em <- 13.4
 
 panorama_src <- c(
     "## Panorama general {.scrollable}",
@@ -252,7 +266,7 @@ panorama_src <- c(
     "<script>",
     "(function () {",
     sprintf("  var CATEGORIAS = %s;", categorias_js),
-    "  var TAM_INICIAL = 1.15, TAM_PISO_SUAVE = 0.75, TAM_PISO_DURO = 0.55, MAX_COLUMNAS = 4;",
+    "  var TAM_INICIAL = 1.6, TAM_PISO_SUAVE = 0.75, TAM_PISO_DURO = 0.55, MAX_COLUMNAS = 4;",
     "  function desborda(el) { return el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth; }",
     "  function construirGrid(contenedor, columnas, tamEm) {",
     "    contenedor.innerHTML = '';",
@@ -323,8 +337,15 @@ panorama_src <- c(
     # final del documento -- 'load' garantiza que ya corrio, sin depender
     # de en que orden ni si `Reveal` ya existe en el momento en que el
     # navegador parsea este bloque.
-    "  if (document.readyState === 'complete') { ajustarLista(); }",
-    "  else { window.addEventListener('load', ajustarLista); }",
+    # Se espera a que carguen las tipografias: medir con la letra de respaldo
+    # deja el grid mas alto de lo que cabe y corta el ultimo renglon.
+    "  function iniciar() {",
+    "    var f = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();",
+    "    f.then(function () { setTimeout(ajustarLista, 400); });",
+    "    var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(ajustarLista, 600); });",
+    "  }",
+    "  if (document.readyState === 'complete') { iniciar(); }",
+    "  else { window.addEventListener('load', iniciar); }",
     "})();",
     "</script>",
     ""
