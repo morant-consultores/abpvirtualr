@@ -140,9 +140,12 @@ cat(c(
 # $gris, $inverso, $primario_claro, $primario_obscuro), no el objeto
 # "parametros" completo de brecha/semaforo que usan otros reportes.
 parametros_nube <- list(
-    inverso = "#d9b8c4",
-    primario_claro = "#a8455f",
-    primario_obscuro = "#7a1f3d",
+    # Los tres tonos deben leerse sobre el fondo gris claro de la lamina
+    # (contraste >= 4.5:1): guinda oscuro, guinda y dorado oscuro. Antes el
+    # tercer tono era un rosa palido (#d9b8c4) que casi desaparecia.
+    inverso = "#7d5a22",
+    primario_claro = "#8f2c2d",
+    primario_obscuro = "#51181e",
     familia = "sans-serif",
     gris = "#333333"
 )
@@ -152,7 +155,7 @@ parametros_nube <- list(
 # nube solo de expresiones quedaria plana (mismo tamano y color). Top 30 y
 # no 40: las etiquetas son mas largas, caben menos en la caja.
 tokens_clean <- suppressMessages(
-    nube_mixta(bd, pregunta = preguntas, etapa = etapa, parametros = parametros_nube, max = 30)
+    nube_mixta(bd, pregunta = preguntas, etapa = etapa, parametros = parametros_nube, max = 24)
 )
 # Con pocas respuestas casi nada se repite y la nube queda con 1-2 palabras
 # (se ve vacia y no informa): en ese caso la lamina se omite.
@@ -160,10 +163,10 @@ if (nrow(tokens_clean) >= 8) {
     grafica_nube <- graficar_nube(tokens_clean, interactivo = TRUE, parametros = parametros_nube) %>%
         # 1000x560: la lamina de revealjs mide 1050x700 (ver YAML) menos margen
         # de reveal y el titulo "## Nube de palabras" -- si ese lienzo cambia,
-        # recalcular. minFontSize 12 (default de graficar_nube es 2) para que
+        # recalcular. minFontSize 28 (default de graficar_nube es 2) para que
         # ninguna palabra, ni la menos frecuente, quede ilegible de lejos.
         highcharter::hc_size(width = 1000, height = 560) %>%
-        highcharter::hc_plotOptions(wordcloud = list(minFontSize = 12, maxFontSize = 46, rotation = list(from = 0, to = 0, orientations = 1), spiral = "rectangular"))
+        highcharter::hc_plotOptions(wordcloud = list(minFontSize = 28, maxFontSize = 64, style = list(fontWeight = "bold"), rotation = list(from = 0, to = 0, orientations = 1), spiral = "rectangular"))
     
     nube_src <- c(
         "## Nube de palabras {.scrollable}",

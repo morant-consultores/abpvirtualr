@@ -406,8 +406,21 @@ calcular_brecha <- function(bd, corte, parametros){
 #' @import dplyr
 #' @examples #notrun (nube_mixta(bd, pregunta = 1, etapa = 1, parametros = parametros))
 nube_mixta <- function(bd, pregunta, etapa, parametros, max = 30){
-    una <- procesar_p_abierta(bd, pregunta, etapa, parametros, n_palabras = 1)[[1]]
+    # "alcaldia" y "alcald\u00eda" son la misma palabra con y sin acento (los
+    # vecinos escriben de las dos formas): se suman y se muestra la acentuada.
+    # Se fusiona ANTES de filtrar por frecuencia para que la suma cuente.
+    sin_acento <- function(x) chartr("\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc", "aeiouu", x)
+    fusionar <- function(d) {
+        d %>%
+            group_by(base = sin_acento(palabra)) %>%
+            summarise(
+                palabra = if (any(palabra != base)) palabra[palabra != base][1] else palabra[1],
+                n = sum(n), .groups = "drop") %>%
+            select(-base)
+    }
+    una <- procesar_p_abierta(bd, pregunta, etapa, parametros, n_palabras = 1)[[1]] %>% fusionar()
     dos <- procesar_p_abierta(bd, pregunta, etapa, parametros, n_palabras = 2)[[1]] %>%
+        fusionar() %>%
         filter(n >= 2)
 
     en_expresion <- unique(unlist(strsplit(dos$palabra, " ")))
