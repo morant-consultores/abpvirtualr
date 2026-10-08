@@ -112,6 +112,27 @@ titulo_src <- knitr::knit_expand(text = c(
 ))
 cat(knitr::knit_child(text = titulo_src, quiet = TRUE), sep = '\n')
 
+# Lienzo adaptable: la lamina es 1050x700 (3:2, la pantalla del cliente), pero
+# en una ventana/proyector mas ancho reveal la centra y deja franjas vacias a
+# los lados. Se deja la altura fija (700, para que la letra no cambie de
+# tamano) y se ensancha el lienzo segun la proporcion real de la ventana, entre
+# 3:2 y 2.4:1 -- en una pantalla 3:2 queda exactamente igual que antes. Va
+# ANTES del script del panorama (mismo evento 'load', se ejecutan en orden)
+# para que ese grid mida ya con el ancho final.
+cat(c(
+    "<script>",
+    "(function () {",
+    "  function ajustar() {",
+    "    var a = Math.max(1.5, Math.min(window.innerWidth / window.innerHeight, 2.4));",
+    "    Reveal.configure({ width: Math.round(700 * a), height: 700 });",
+    "  }",
+    "  window.addEventListener('load', function () {",
+    "    if (Reveal.isReady()) ajustar(); else Reveal.on('ready', ajustar);",
+    "    window.addEventListener('resize', ajustar);",
+    "  });",
+    "})();",
+    "</script>"), sep = '\n')
+
 # Nube de palabras: mismo procesar_p_abierta()/graficar_nube() (highcharter)
 # usados en los reportes xaringan anteriores -- parametrizada por bd/preguntas/
 # etapa, ya cargados arriba, asi que se recalcula sola en cada render. Solo se
